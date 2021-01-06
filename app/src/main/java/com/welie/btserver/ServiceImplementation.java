@@ -10,15 +10,19 @@ interface ServiceImplementation {
 
     BluetoothGattService getService();
 
-    void onCharacteristicRead(@NotNull BluetoothGattCharacteristic characteristic);
+    void onCharacteristicRead(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic);
 
-    int onCharacteristicWrite(@NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value);
+    int onCharacteristicWrite(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value);
 
-    void onDescriptorRead(@NotNull BluetoothGattDescriptor descriptor);
+    void onDescriptorRead(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor);
 
-    int onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value);
+    int onDescriptorWrite(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value);
 
-    void onNotifyingEnabled(@NotNull BluetoothGattCharacteristic characteristic);
+    void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic);
 
-    void onNotifyingDisabled(@NotNull BluetoothGattCharacteristic characteristic);
+    void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic);
+
+    void onCentralConnected(@NotNull Central central);
+
+    void onCentralDisconnected(@NotNull Central central);
 }

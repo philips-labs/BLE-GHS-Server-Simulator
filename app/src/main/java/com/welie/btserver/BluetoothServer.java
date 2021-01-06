@@ -4,12 +4,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.os.Handler;
 import android.os.ParcelUuid;
@@ -46,57 +44,71 @@ class BluetoothServer {
         }
 
         @Override
-        public void onCharacteristicRead(@NotNull BluetoothGattCharacteristic characteristic) {
+        public void onCharacteristicRead(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
             ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
             if (serviceImplementation != null) {
-                serviceImplementation.onCharacteristicRead(characteristic);
+                serviceImplementation.onCharacteristicRead(central, characteristic);
             }
         }
 
         @Override
-        public void onNotifyingEnabled(@NotNull BluetoothGattCharacteristic characteristic) {
+        public int onCharacteristicWrite(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value) {
             ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
             if (serviceImplementation != null) {
-                serviceImplementation.onNotifyingEnabled(characteristic);
-            }
-        }
-
-        @Override
-        public void onNotifyingDisabled(@NotNull BluetoothGattCharacteristic characteristic) {
-            ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                serviceImplementation.onNotifyingDisabled(characteristic);
-            }
-        }
-
-        @Override
-        public int onCharacteristicWrite(@NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value) {
-            ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                return serviceImplementation.onCharacteristicWrite(characteristic, value);
+                return serviceImplementation.onCharacteristicWrite(central, characteristic, value);
             }
             return BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
         }
 
         @Override
-        public void onDescriptorRead(@NotNull BluetoothGattDescriptor descriptor) {
+        public void onDescriptorRead(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor) {
             BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
             BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
             ServiceImplementation serviceImplementation = serviceImplementations.get(service);
             if (serviceImplementation != null) {
-                serviceImplementation.onDescriptorRead(descriptor);
+                serviceImplementation.onDescriptorRead(central, descriptor);
             }
         }
 
         @Override
-        public int onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
+        public int onDescriptorWrite(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
             BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
             BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
             ServiceImplementation serviceImplementation = serviceImplementations.get(service);
             if (serviceImplementation != null) {
-                return serviceImplementation.onDescriptorWrite(descriptor, value);
+                return serviceImplementation.onDescriptorWrite(central, descriptor, value);
             }
             return BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+        }
+
+        @Override
+        public void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
+            ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
+            if (serviceImplementation != null) {
+                serviceImplementation.onNotifyingEnabled(central, characteristic);
+            }
+        }
+
+        @Override
+        public void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
+            ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
+            if (serviceImplementation != null) {
+                serviceImplementation.onNotifyingDisabled(central, characteristic);
+            }
+        }
+
+        @Override
+        public void onCentralConnected(@NotNull Central central) {
+            for (ServiceImplementation serviceImplementation : serviceImplementations.values()) {
+                serviceImplementation.onCentralConnected(central);
+            }
+        }
+
+        @Override
+        public void onCentralDisconnected(@NotNull Central central) {
+            for (ServiceImplementation serviceImplementation : serviceImplementations.values()) {
+                serviceImplementation.onCentralDisconnected(central);
+            }
         }
     };
 
@@ -134,8 +146,6 @@ class BluetoothServer {
         // Plant a tree
         Timber.plant(new Timber.DebugTree());
 
-
-
         bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -143,14 +153,17 @@ class BluetoothServer {
             Timber.e("not supporting advertising");
         }
 
+        bluetoothAdapter.setName("Nokia 8");
         this.peripheralManager = new PeripheralManager(context, bluetoothManager, peripheralManagerCallback);
 
         DeviceInformationService dis = new DeviceInformationService(peripheralManager);
         CurrentTimeService cts = new CurrentTimeService(peripheralManager);
         HeartRateService hrs = new HeartRateService(peripheralManager);
+        GenericHealthSensorService ghs = new GenericHealthSensorService(peripheralManager);
         serviceImplementations.put(dis.getService(), dis);
         serviceImplementations.put(cts.getService(), cts);
         serviceImplementations.put(hrs.getService(), hrs);
+        serviceImplementations.put(ghs.getService(), ghs);
 
         setupServices();
         startAdvertising(hrs.getService().getUuid());

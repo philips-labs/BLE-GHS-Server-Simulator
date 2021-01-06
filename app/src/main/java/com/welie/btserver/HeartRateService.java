@@ -12,8 +12,6 @@ import java.util.UUID;
 
 import timber.log.Timber;
 
-import static com.welie.btserver.PeripheralManager.CCC_DESCRIPTOR_UUID;
-
 class HeartRateService extends BaseServiceImplementation {
 
     private static final UUID HRS_SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb");
@@ -39,15 +37,20 @@ class HeartRateService extends BaseServiceImplementation {
     }
 
     @Override
-    public void onNotifyingEnabled(@NotNull BluetoothGattCharacteristic characteristic) {
-        Timber.i("notifying enabled for <%s>", characteristic.getUuid());
+    public void onCentralDisconnected(@NotNull Central central) {
+        if (noCentralsConnected()) {
+            stopNotifying();
+        }
+    }
+
+    @Override
+    public void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
         notifyHeartRate();
     }
 
     @Override
-    public void onNotifyingDisabled(@NotNull BluetoothGattCharacteristic characteristic) {
-        Timber.i("notifying disabled for <%s>", characteristic.getUuid());
-        handler.removeCallbacks(notifyRunnable);
+    public void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
+        stopNotifying();
     }
 
     private void notifyHeartRate() {
@@ -57,5 +60,10 @@ class HeartRateService extends BaseServiceImplementation {
         Timber.i("new hr: %d", currentHR);
 
         handler.postDelayed(notifyRunnable, 1000);
+    }
+
+    private void stopNotifying() {
+        handler.removeCallbacks(notifyRunnable);
+        measurement.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
     }
 }

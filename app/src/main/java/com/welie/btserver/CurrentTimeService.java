@@ -30,12 +30,12 @@ class CurrentTimeService extends BaseServiceImplementation {
     }
 
     @Override
-    public void onNotifyingEnabled(@NotNull BluetoothGattCharacteristic characteristic) {
+    public void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
         notifyCurrentTime();
     }
 
     @Override
-    public void onNotifyingDisabled(@NotNull BluetoothGattCharacteristic characteristic) {
+    public void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
         handler.removeCallbacks(notifyRunnable);
     }
 
