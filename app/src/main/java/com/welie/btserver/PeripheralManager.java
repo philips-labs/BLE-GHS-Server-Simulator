@@ -116,15 +116,17 @@ public class PeripheralManager {
 
             // Ask callback if this write is ok or not
             final byte[] safeValue = nonnullOf(value);
-            final int status = callback.onCharacteristicWrite(getCentral(device),characteristic, safeValue);
+            mainHandler.post(() -> {
+                final int status = callback.onCharacteristicWrite(getCentral(device), characteristic, safeValue);
 
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                characteristic.setValue(safeValue);
-            }
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    characteristic.setValue(safeValue);
+                }
 
-            if (responseNeeded) {
-                mainHandler.post(() -> bluetoothGattServer.sendResponse(device, requestId, status, 0, null));
-            }
+                if (responseNeeded) {
+                    bluetoothGattServer.sendResponse(device, requestId, status, 0, null);
+                }
+            });
         }
 
         @Override
@@ -132,57 +134,56 @@ public class PeripheralManager {
             Timber.i("read request for descriptor <%s>", descriptor.getUuid());
 
             mainHandler.post(() -> {
-                callback.onDescriptorRead(getCentral(device),descriptor);
+                callback.onDescriptorRead(getCentral(device), descriptor);
                 bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, nonnullOf(descriptor.getValue()));
             });
         }
 
         @Override
         public void onDescriptorWriteRequest(@NotNull final BluetoothDevice device, int requestId, @NotNull final BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, @Nullable byte[] value) {
-            int status = BluetoothGatt.GATT_SUCCESS;
             final byte[] safeValue = nonnullOf(value);
             final BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor does not have characteristic");
 
-            if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
-                // Check value to see if it is valid and if matches the characteristic properties
-                if (safeValue.length != 2) {
-                    status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
-                } else if (!(Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
-                        || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                        || Arrays.equals(safeValue, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))) {
-                    status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
-                } else if (!supportsIndicate(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
-                    status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
-                } else if (!supportsNotify(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
-                    status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
-                }
-            } else {
-                // Ask callback if value is ok or not
-                Timber.i("write request for descriptor <%s>", descriptor.getUuid());
-                status = callback.onDescriptorWrite(getCentral(device),descriptor, safeValue);
-            }
-
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                descriptor.setValue(safeValue);
-            }
-
-            if (responseNeeded) {
-                final int finalStatus = status;
-                mainHandler.post(() -> bluetoothGattServer.sendResponse(device, requestId, finalStatus, 0, null));
-            }
-
-            if (status == BluetoothGatt.GATT_SUCCESS) {
+            mainHandler.post((() -> {
+                int status = BluetoothGatt.GATT_SUCCESS;
                 if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
+                    // Check value to see if it is valid and if matches the characteristic properties
+                    if (safeValue.length != 2) {
+                        status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+                    } else if (!(Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
+                            || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                            || Arrays.equals(safeValue, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))) {
+                        status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+                    } else if (!supportsIndicate(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
+                        status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+                    } else if (!supportsNotify(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+                        status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+                    }
+                } else {
+                    // Ask callback if value is ok or not
+                    Timber.i("write request for descriptor <%s>", descriptor.getUuid());
+                    status = callback.onDescriptorWrite(getCentral(device), descriptor, safeValue);
+                }
+
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    descriptor.setValue(safeValue);
+                }
+
+                if (responseNeeded) {
+                    bluetoothGattServer.sendResponse(device, requestId, status, 0, null);
+                }
+
+                if (status == BluetoothGatt.GATT_SUCCESS && descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
                     if (Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
                             || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
                         Timber.i("notifying enabled for <%s>", characteristic.getUuid());
-                        mainHandler.post(() -> callback.onNotifyingEnabled(getCentral(device),characteristic));
+                        callback.onNotifyingEnabled(getCentral(device), characteristic);
                     } else {
                         Timber.i("notifying disabled for <%s>", characteristic.getUuid());
-                        mainHandler.post(() -> callback.onNotifyingDisabled(getCentral(device),characteristic));
+                        callback.onNotifyingDisabled(getCentral(device), characteristic);
                     }
                 }
-            }
+            }));
         }
 
         @Override
@@ -391,6 +392,7 @@ public class PeripheralManager {
             connectedCentrals.remove(address);
         }
     }
+
     /**
      * Make a byte array nonnull by either returning the original byte array if non-null or an empty bytearray
      *
