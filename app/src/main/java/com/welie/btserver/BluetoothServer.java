@@ -41,6 +41,11 @@ class BluetoothServer {
 
     private final PeripheralManagerCallback peripheralManagerCallback = new PeripheralManagerCallback() {
         @Override
+        public void onServiceAdded(int status, @NotNull BluetoothGattService service) {
+
+        }
+
+        @Override
         public void onCharacteristicRead(@NotNull BluetoothGattCharacteristic characteristic) {
             ServiceImplementation serviceImplementation = serviceImplementations.get(characteristic.getService());
             if (serviceImplementation != null) {
@@ -74,13 +79,24 @@ class BluetoothServer {
         }
 
         @Override
-        public void onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
+        public void onDescriptorRead(@NotNull BluetoothGattDescriptor descriptor) {
             BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
             BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
             ServiceImplementation serviceImplementation = serviceImplementations.get(service);
             if (serviceImplementation != null) {
-                serviceImplementation.onDescriptorWrite(descriptor, value);
+                serviceImplementation.onDescriptorRead(descriptor);
             }
+        }
+
+        @Override
+        public int onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
+            BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
+            BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
+            ServiceImplementation serviceImplementation = serviceImplementations.get(service);
+            if (serviceImplementation != null) {
+                return serviceImplementation.onDescriptorWrite(descriptor, value);
+            }
+            return BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
         }
     };
 

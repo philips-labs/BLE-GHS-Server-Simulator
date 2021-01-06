@@ -90,31 +90,33 @@ public class PeripheralManager {
         }
 
         @Override
-        public void onServiceAdded(int status, BluetoothGattService service) {
+        public void onServiceAdded(int status, final BluetoothGattService service) {
             Timber.i("added service <%s>", service.getUuid());
+            mainHandler.post(() -> callback.onServiceAdded(status, service));
             completedCommand();
         }
 
         @Override
-        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-            Timber.i("read request for <%s>",characteristic );
+        public void onCharacteristicReadRequest(@NotNull BluetoothDevice device, int requestId, int offset, @NotNull BluetoothGattCharacteristic characteristic) {
+            Timber.i("read request for characteristic <%s>", characteristic.getUuid());
 
             mainHandler.post(() -> {
                 callback.onCharacteristicRead(characteristic);
-                bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, characteristic.getValue());
+                bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, nonnullOf(characteristic.getValue()));
             });
         }
 
         @Override
-        public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+        public void onCharacteristicWriteRequest(@NotNull BluetoothDevice device, int requestId, @NotNull BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, @Nullable byte[] value) {
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-            Timber.i("write %s request <%s> for <%s>",characteristic, bytes2String(value), responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE");
+            Timber.i("write %s request <%s> for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), characteristic.getUuid());
 
             // Ask callback if this write is ok or not
-            final int status = callback.onCharacteristicWrite(characteristic, value);
+            final byte[] safeValue = nonnullOf(value);
+            final int status = callback.onCharacteristicWrite(characteristic, safeValue);
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                characteristic.setValue(value);
+                characteristic.setValue(safeValue);
             }
 
             if (responseNeeded) {
@@ -124,27 +126,35 @@ public class PeripheralManager {
 
         @Override
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
-            final byte[] value = nonnullOf(descriptor.getValue());
-            mainHandler.post(() -> bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, value));
+            Timber.i("read request for descriptor <%s>", descriptor.getUuid());
+
+            mainHandler.post(() -> {
+                callback.onDescriptorRead(descriptor);
+                bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, nonnullOf(descriptor.getValue()));
+            });
         }
 
         @Override
         public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
+            Timber.i("write request for descriptor <%s>", descriptor.getUuid());
 
             int status = BluetoothGatt.GATT_SUCCESS;
+            final byte[] safeValue = nonnullOf(value);
             if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
-                if (value.length != 2) {
+                if (safeValue.length != 2) {
                     status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
-                } else if (!(Arrays.equals(value, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
-                        ||  Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                        || Arrays.equals(value, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))) {
+                } else if (!(Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
+                        || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                        || Arrays.equals(safeValue, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))) {
                     status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
                 }
+            } else {
+                // Ask callback if value is ok or not
+                status = callback.onDescriptorWrite(descriptor, safeValue);
             }
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                descriptor.setValue(value);
+                descriptor.setValue(safeValue);
             }
 
             if (responseNeeded) {
@@ -155,14 +165,12 @@ public class PeripheralManager {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
                     BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor does not have characteristic");
-                    if (Arrays.equals(value, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
-                            || Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+                    if (Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
+                            || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
                         mainHandler.post(() -> callback.onNotifyingEnabled(characteristic));
                     } else {
                         mainHandler.post(() -> callback.onNotifyingDisabled(characteristic));
                     }
-                } else {
-                    mainHandler.post(() -> callback.onDescriptorWrite(descriptor, value));
                 }
             }
         }
@@ -241,10 +249,10 @@ public class PeripheralManager {
             if (!bluetoothGattServer.addService(service)) {
                 Timber.e("adding service %s failed", service.getUuid());
                 completedCommand();
-                } else {
-                    Timber.d("adding service <%s>", service.getUuid());
-                }
-            });
+            } else {
+                Timber.d("adding service <%s>", service.getUuid());
+            }
+        });
 
         if (result) {
             nextCommand();
@@ -273,7 +281,7 @@ public class PeripheralManager {
 
         boolean result = true;
         for (BluetoothDevice device : connectedDevices) {
-            if(!notifyCharacteristicChanged(device, characteristic)) {
+            if (!notifyCharacteristicChanged(device, characteristic)) {
                 result = false;
             }
         }

@@ -1,5 +1,6 @@
 package com.welie.btserver;
 
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
@@ -31,18 +32,23 @@ class BaseServiceImplementation implements ServiceImplementation{
     }
 
     @Override
-    public void onCharacteristicRead(BluetoothGattCharacteristic characteristic) {
+    public void onCharacteristicRead(@NotNull BluetoothGattCharacteristic characteristic) {
 
     }
 
     @Override
     public int onCharacteristicWrite(@NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value) {
-        return 0;
+        return BluetoothGatt.GATT_SUCCESS;
     }
 
     @Override
-    public void onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
+    public void onDescriptorRead(@NotNull BluetoothGattDescriptor descriptor) {
 
+    }
+
+    @Override
+    public int onDescriptorWrite(@NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
+        return BluetoothGatt.GATT_SUCCESS;
     }
 
     @Override
