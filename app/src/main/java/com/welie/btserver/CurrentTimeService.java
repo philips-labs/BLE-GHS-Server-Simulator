@@ -42,7 +42,7 @@ class CurrentTimeService extends BaseServiceImplementation {
     private void notifyCurrentTime() {
         setCurrentTime();
         peripheralManager.notifyCharacteristicChanged(currentTime);
-        handler.postDelayed(this::notifyCurrentTime, 1000);
+        handler.postDelayed(notifyRunnable, 1000);
     }
 
     private void setCurrentTime() {
