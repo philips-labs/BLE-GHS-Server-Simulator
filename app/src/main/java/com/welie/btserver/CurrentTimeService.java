@@ -16,10 +16,16 @@ class CurrentTimeService extends BaseServiceImplementation {
     private static final UUID CTS_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb");
     private static final UUID CURRENT_TIME_CHARACTERISTIC_UUID = UUID.fromString("00002A2B-0000-1000-8000-00805f9b34fb");
 
+    @NotNull
     BluetoothGattService service = new BluetoothGattService(CTS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+    @NotNull
     BluetoothGattCharacteristic currentTime = new BluetoothGattCharacteristic(CURRENT_TIME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
 
+    @NotNull
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    @NotNull
     private final Runnable notifyRunnable = this::notifyCurrentTime;
 
     public CurrentTimeService(@NotNull PeripheralManager peripheralManager) {
@@ -52,7 +58,7 @@ class CurrentTimeService extends BaseServiceImplementation {
     }
 
     @Override
-    public BluetoothGattService getService() {
+    public @NotNull BluetoothGattService getService() {
         return service;
     }
 }

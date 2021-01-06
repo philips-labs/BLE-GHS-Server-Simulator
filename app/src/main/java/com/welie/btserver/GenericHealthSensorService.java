@@ -34,6 +34,8 @@ class GenericHealthSensorService extends BaseServiceImplementation {
 
     @NotNull
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    @NotNull
     private final Runnable notifyRunnable = this::sendObservations;
 
     public GenericHealthSensorService(@NotNull PeripheralManager peripheralManager) {

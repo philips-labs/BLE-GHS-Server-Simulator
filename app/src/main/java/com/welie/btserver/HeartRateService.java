@@ -17,11 +17,18 @@ class HeartRateService extends BaseServiceImplementation {
     private static final UUID HRS_SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb");
     private static final UUID HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb");
 
+    @NotNull
     BluetoothGattService service = new BluetoothGattService(HRS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+    @NotNull
     BluetoothGattCharacteristic measurement = new BluetoothGattCharacteristic(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_INDICATE,BluetoothGattCharacteristic.PERMISSION_READ);
 
+    @NotNull
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    @NotNull
     private final Runnable notifyRunnable = this::notifyHeartRate;
+
     private int currentHR = 80;
 
     public HeartRateService(@NotNull PeripheralManager peripheralManager) {
@@ -32,7 +39,7 @@ class HeartRateService extends BaseServiceImplementation {
     }
 
     @Override
-    public BluetoothGattService getService() {
+    public @NotNull BluetoothGattService getService() {
         return service;
     }
 
@@ -64,6 +71,6 @@ class HeartRateService extends BaseServiceImplementation {
 
     private void stopNotifying() {
         handler.removeCallbacks(notifyRunnable);
-        measurement.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+        measurement.getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
     }
 }
