@@ -45,6 +45,7 @@ public class PeripheralManager {
     private static final String CHARACTERISTIC_IS_NULL = "Characteristic is null";
     private static final String DEVICE_IS_NULL = "Device is null";
     private static final String ADDRESS_IS_NULL = "Address is null";
+    private static final String CHARACTERISTIC_VALUE_IS_NULL = "Characteristic value is null";
 
     @NotNull
     private final Context context;
@@ -114,9 +115,9 @@ public class PeripheralManager {
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
             Timber.i("write %s request <%s> for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), characteristic.getUuid());
 
-            // Ask callback if this write is ok or not
             final byte[] safeValue = nonnullOf(value);
             mainHandler.post(() -> {
+                // Ask callback if this write is ok or not
                 final int status = callback.onCharacteristicWrite(getCentral(device), characteristic, safeValue);
 
                 if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -253,7 +254,6 @@ public class PeripheralManager {
         bluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
     }
 
-
     public boolean add(@NotNull BluetoothGattService service) {
         Objects.requireNonNull(service, SERVICE_IS_NULL);
 
@@ -261,15 +261,13 @@ public class PeripheralManager {
             if (!bluetoothGattServer.addService(service)) {
                 Timber.e("adding service %s failed", service.getUuid());
                 completedCommand();
-            } else {
-                Timber.d("adding service <%s>", service.getUuid());
             }
         });
 
         if (result) {
             nextCommand();
         } else {
-            Timber.e("could not enqueue read characteristic command");
+            Timber.e("could not enqueue add service command");
         }
         return result;
     }
@@ -303,14 +301,20 @@ public class PeripheralManager {
     private boolean notifyCharacteristicChanged(@NotNull final BluetoothDevice bluetoothDevice, @NotNull final BluetoothGattCharacteristic characteristic) {
         Objects.requireNonNull(bluetoothDevice, DEVICE_IS_NULL);
         Objects.requireNonNull(characteristic, CHARACTERISTIC_IS_NULL);
+        Objects.requireNonNull(characteristic.getValue(), CHARACTERISTIC_VALUE_IS_NULL);
 
         final boolean confirm = supportsIndicate(characteristic);
-        boolean result = commandQueue.add(() -> bluetoothGattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, confirm));
+        boolean result = commandQueue.add(() -> {
+            if (!bluetoothGattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, confirm)) {
+                Timber.e("notifying characteristic changed failed for <%s>", characteristic.getUuid());
+                completedCommand();
+            }
+        });
 
         if (result) {
             nextCommand();
         } else {
-            Timber.e("could not enqueue read characteristic command");
+            Timber.e("could not enqueue notify command");
         }
         return result;
     }
@@ -374,7 +378,7 @@ public class PeripheralManager {
     }
 
     private Central getCentral(BluetoothDevice device) {
-        String address = device.getAddress();
+        final String address = device.getAddress();
 
         if (connectedCentrals.contains(address)) {
             return connectedCentrals.get(address);
@@ -403,7 +407,6 @@ public class PeripheralManager {
     private byte[] nonnullOf(@Nullable byte[] source) {
         return (source == null) ? new byte[0] : source;
     }
-
 
     /**
      * Converts byte array to hex string
