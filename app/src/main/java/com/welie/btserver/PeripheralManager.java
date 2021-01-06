@@ -141,12 +141,19 @@ public class PeripheralManager {
         public void onDescriptorWriteRequest(@NotNull final BluetoothDevice device, int requestId, @NotNull final BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, @Nullable byte[] value) {
             int status = BluetoothGatt.GATT_SUCCESS;
             final byte[] safeValue = nonnullOf(value);
+            final BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor does not have characteristic");
+
             if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
+                // Check value to see if it is valid and if matches the characteristic properties
                 if (safeValue.length != 2) {
                     status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
                 } else if (!(Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
                         || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
                         || Arrays.equals(safeValue, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))) {
+                    status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+                } else if (!supportsIndicate(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
+                    status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+                } else if (!supportsNotify(characteristic) && Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
                     status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
                 }
             } else {
@@ -166,7 +173,6 @@ public class PeripheralManager {
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
-                    BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor does not have characteristic");
                     if (Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
                             || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
                         Timber.i("notifying enabled for <%s>", characteristic.getUuid());
@@ -297,7 +303,7 @@ public class PeripheralManager {
         Objects.requireNonNull(bluetoothDevice, DEVICE_IS_NULL);
         Objects.requireNonNull(characteristic, CHARACTERISTIC_IS_NULL);
 
-        final boolean confirm = (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0;
+        final boolean confirm = supportsIndicate(characteristic);
         boolean result = commandQueue.add(() -> bluetoothGattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, confirm));
 
         if (result) {
@@ -411,5 +417,13 @@ public class PeripheralManager {
             sb.append(String.format("%02x", b & 0xff));
         }
         return sb.toString();
+    }
+
+    private boolean supportsNotify(BluetoothGattCharacteristic characteristic) {
+        return (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
+    }
+
+    private boolean supportsIndicate(BluetoothGattCharacteristic characteristic) {
+        return (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0;
     }
 }
