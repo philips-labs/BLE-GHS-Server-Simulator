@@ -166,6 +166,6 @@ class BluetoothServer {
         serviceImplementations.put(ghs.getService(), ghs);
 
         setupServices();
-        startAdvertising(hrs.getService().getUuid());
+        startAdvertising(ghs.getService().getUuid());
     }
 }
