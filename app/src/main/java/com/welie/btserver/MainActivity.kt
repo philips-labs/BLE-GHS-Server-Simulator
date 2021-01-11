@@ -1,163 +1,137 @@
-package com.welie.btserver;
+package com.welie.btserver
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import android.Manifest
+import android.app.AlertDialog
+import android.bluetooth.BluetoothAdapter
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.os.Build
+import android.os.Bundle
+import android.provider.Settings
+import androidx.appcompat.app.AppCompatActivity
+import com.welie.btserver.MainActivity
+import timber.log.Timber
+import java.util.*
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.os.Build;
-import android.os.Bundle;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import timber.log.Timber;
-
-public class MainActivity extends AppCompatActivity {
-
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int ACCESS_LOCATION_REQUEST = 2;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (!isBluetoothEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+    override fun onResume() {
+        super.onResume()
+        if (!isBluetoothEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         } else {
-            checkPermissions();
+            checkPermissions()
         }
     }
 
-    private boolean isBluetoothEnabled() {
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(bluetoothAdapter == null) return false;
+    private val isBluetoothEnabled: Boolean
+        private get() {
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter() ?: return false
+            return bluetoothAdapter.isEnabled
+        }
 
-        return bluetoothAdapter.isEnabled();
-    }
-
-    private void checkPermissions() {
+    private fun checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String[] missingPermissions = getMissingPermissions(getRequiredPermissions());
-            if (missingPermissions.length > 0) {
-                requestPermissions(missingPermissions, ACCESS_LOCATION_REQUEST);
+            val missingPermissions = getMissingPermissions(requiredPermissions)
+            if (missingPermissions.size > 0) {
+                requestPermissions(missingPermissions, ACCESS_LOCATION_REQUEST)
             } else {
-                permissionsGranted();
+                permissionsGranted()
             }
         }
     }
 
-    private String[] getMissingPermissions(String[] requiredPermissions) {
-        List<String> missingPermissions = new ArrayList<>();
+    private fun getMissingPermissions(requiredPermissions: Array<String>): Array<String> {
+        val missingPermissions: MutableList<String> = ArrayList()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            for (String requiredPermission : requiredPermissions) {
-                if (getApplicationContext().checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                    missingPermissions.add(requiredPermission);
+            for (requiredPermission in requiredPermissions) {
+                if (applicationContext.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                    missingPermissions.add(requiredPermission)
                 }
             }
         }
-        return missingPermissions.toArray(new String[0]);
+        return missingPermissions.toTypedArray()
     }
 
-    private String[] getRequiredPermissions() {
-        int targetSdkVersion = getApplicationInfo().targetSdkVersion;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && targetSdkVersion >= Build.VERSION_CODES.Q)
-            return new String[] {Manifest.permission.ACCESS_FINE_LOCATION};
-        else return new String[] {Manifest.permission.ACCESS_COARSE_LOCATION};
-    }
+    private val requiredPermissions: Array<String>
+        private get() {
+            val targetSdkVersion = applicationInfo.targetSdkVersion
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && targetSdkVersion >= Build.VERSION_CODES.Q) arrayOf(Manifest.permission.ACCESS_FINE_LOCATION) else arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
 
-    private void permissionsGranted() {
+    private fun permissionsGranted() {
         // Check if Location services are on because they are required to make scanning work
         if (checkLocationServices()) {
-            initBluetoothHandler();
+            initBluetoothHandler()
         }
     }
 
-    private boolean areLocationServicesEnabled() {
-        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        if (locationManager == null) {
-            Timber.e("could not get location manager");
-            return false;
-        }
-
-        boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        return isGpsEnabled || isNetworkEnabled;
+    private fun areLocationServicesEnabled(): Boolean {
+        val locationManager = applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
+        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        val isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        return isGpsEnabled || isNetworkEnabled
     }
 
-    private boolean checkLocationServices() {
-        if (!areLocationServicesEnabled()) {
-            new AlertDialog.Builder(MainActivity.this)
+    private fun checkLocationServices(): Boolean {
+        return if (!areLocationServicesEnabled()) {
+            AlertDialog.Builder(this@MainActivity)
                     .setTitle("Location services are not enabled")
                     .setMessage("Scanning for Bluetooth peripherals requires locations services to be enabled.") // Want to enable?
-                    .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // if this button is clicked, just close
-                            // the dialog box and do nothing
-                            dialog.cancel();
-                        }
-                    })
+                    .setPositiveButton("Enable") { dialogInterface, i ->
+                        dialogInterface.cancel()
+                        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }
+                    .setNegativeButton("Cancel") { dialog, which -> // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel()
+                    }
                     .create()
-                    .show();
-            return false;
+                    .show()
+            false
         } else {
-            return true;
+            true
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         // Check if all permission were granted
-        boolean allGranted = true;
-        for (int result : grantResults) {
+        var allGranted = true
+        for (result in grantResults) {
             if (result != PackageManager.PERMISSION_GRANTED) {
-                allGranted = false;
-                break;
+                allGranted = false
+                break
             }
         }
-
         if (allGranted) {
-            permissionsGranted();
+            permissionsGranted()
         } else {
-            new AlertDialog.Builder(MainActivity.this)
+            AlertDialog.Builder(this@MainActivity)
                     .setTitle("Location permission is required for scanning Bluetooth peripherals")
                     .setMessage("Please grant permissions")
-                    .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                            checkPermissions();
-                        }
-                    })
+                    .setPositiveButton("Retry") { dialogInterface, i ->
+                        dialogInterface.cancel()
+                        checkPermissions()
+                    }
                     .create()
-                    .show();
+                    .show()
         }
     }
 
-    private void initBluetoothHandler()
-    {
-        BluetoothServer.getInstance(getApplicationContext());
+    private fun initBluetoothHandler() {
+        BluetoothServer.getInstance(applicationContext)
+    }
+
+    companion object {
+        private const val REQUEST_ENABLE_BT = 1
+        private const val ACCESS_LOCATION_REQUEST = 2
     }
 }

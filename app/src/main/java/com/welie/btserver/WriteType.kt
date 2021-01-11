@@ -20,14 +20,11 @@
  *   SOFTWARE.
  *
  */
-
-package com.welie.btserver;
+package com.welie.btserver
 
 /**
  * WriteType describes the type of write that can be done
  */
-public enum WriteType {
-    WITH_RESPONSE,
-    WITHOUT_RESPONSE,
-    SIGNED
+enum class WriteType {
+    WITH_RESPONSE, WITHOUT_RESPONSE, SIGNED
 }

@@ -1,171 +1,131 @@
-package com.welie.btserver;
+package com.welie.btserver
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
-import android.content.Context;
-import android.os.Handler;
-import android.os.ParcelUuid;
+import android.bluetooth.*
+import android.bluetooth.le.AdvertiseData
+import android.bluetooth.le.AdvertiseSettings
+import android.content.Context
+import android.os.Handler
+import android.os.ParcelUuid
+import com.welie.btserver.GattStatus
+import timber.log.Timber
+import timber.log.Timber.DebugTree
+import java.util.*
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
-
-import timber.log.Timber;
-
-class BluetoothServer {
-    private static BluetoothServer instance = null;
-    private final Context context;
-    private final Handler handler = new Handler();
-    BluetoothAdapter bluetoothAdapter;
-    BluetoothManager bluetoothManager;
-
-    @NotNull
-    private final PeripheralManager peripheralManager;
-
-    public static synchronized BluetoothServer getInstance(Context context) {
-        if (instance == null) {
-            instance = new BluetoothServer(context.getApplicationContext());
+internal class BluetoothServer(private val context: Context) {
+    private val handler = Handler()
+    var bluetoothAdapter: BluetoothAdapter
+    var bluetoothManager: BluetoothManager
+    private val peripheralManager: PeripheralManager
+    private val peripheralManagerCallback: PeripheralManagerCallback = object : PeripheralManagerCallback {
+        override fun onServiceAdded(status: Int, service: BluetoothGattService) {}
+        override fun onCharacteristicRead(central: Central, characteristic: BluetoothGattCharacteristic) {
+            val serviceImplementation = serviceImplementations[characteristic.service]
+            serviceImplementation?.onCharacteristicRead(central, characteristic)
         }
-        return instance;
+
+        override fun onCharacteristicWrite(central: Central, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+            val serviceImplementation = serviceImplementations[characteristic.service]
+            return if (serviceImplementation != null) {
+                serviceImplementation.onCharacteristicWrite(central, characteristic, value)
+            } else GattStatus.REQUEST_NOT_SUPPORTED
+        }
+
+        override fun onDescriptorRead(central: Central, descriptor: BluetoothGattDescriptor) {
+            val characteristic = Objects.requireNonNull(descriptor.characteristic, "Descriptor has no Characteristic")
+            val service = Objects.requireNonNull(characteristic.service, "Characteristic has no Service")
+            val serviceImplementation = serviceImplementations[service]
+            serviceImplementation?.onDescriptorRead(central, descriptor)
+        }
+
+        override fun onDescriptorWrite(central: Central, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
+            val characteristic = Objects.requireNonNull(descriptor.characteristic, "Descriptor has no Characteristic")
+            val service = Objects.requireNonNull(characteristic.service, "Characteristic has no Service")
+            val serviceImplementation = serviceImplementations[service]
+            return if (serviceImplementation != null) {
+                serviceImplementation.onDescriptorWrite(central, descriptor, value)
+            } else GattStatus.REQUEST_NOT_SUPPORTED
+        }
+
+        override fun onNotifyingEnabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+            val serviceImplementation = serviceImplementations[characteristic.service]
+            serviceImplementation?.onNotifyingEnabled(central, characteristic)
+        }
+
+        override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+            val serviceImplementation = serviceImplementations[characteristic.service]
+            serviceImplementation?.onNotifyingDisabled(central, characteristic)
+        }
+
+        override fun onCentralConnected(central: Central) {
+            for (serviceImplementation in serviceImplementations.values) {
+                serviceImplementation.onCentralConnected(central)
+            }
+        }
+
+        override fun onCentralDisconnected(central: Central) {
+            for (serviceImplementation in serviceImplementations.values) {
+                serviceImplementation.onCentralDisconnected(central)
+            }
+        }
     }
 
-    private final PeripheralManagerCallback peripheralManagerCallback = new PeripheralManagerCallback() {
-        @Override
-        public void onServiceAdded(int status, @NotNull BluetoothGattService service) {
-
-        }
-
-        @Override
-        public void onCharacteristicRead(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
-            Service serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                serviceImplementation.onCharacteristicRead(central, characteristic);
-            }
-        }
-
-        @Override
-        public GattStatus onCharacteristicWrite(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value) {
-            Service serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                return serviceImplementation.onCharacteristicWrite(central, characteristic, value);
-            }
-            return GattStatus.REQUEST_NOT_SUPPORTED;
-        }
-
-        @Override
-        public void onDescriptorRead(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor) {
-            BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
-            BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
-            Service serviceImplementation = serviceImplementations.get(service);
-            if (serviceImplementation != null) {
-                serviceImplementation.onDescriptorRead(central, descriptor);
-            }
-        }
-
-        @Override
-        public GattStatus onDescriptorWrite(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value) {
-            BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor has no Characteristic");
-            BluetoothGattService service = Objects.requireNonNull(characteristic.getService(), "Characteristic has no Service");
-            Service serviceImplementation = serviceImplementations.get(service);
-            if (serviceImplementation != null) {
-                return serviceImplementation.onDescriptorWrite(central, descriptor, value);
-            }
-            return GattStatus.REQUEST_NOT_SUPPORTED;
-        }
-
-        @Override
-        public void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
-            Service serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                serviceImplementation.onNotifyingEnabled(central, characteristic);
-            }
-        }
-
-        @Override
-        public void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
-            Service serviceImplementation = serviceImplementations.get(characteristic.getService());
-            if (serviceImplementation != null) {
-                serviceImplementation.onNotifyingDisabled(central, characteristic);
-            }
-        }
-
-        @Override
-        public void onCentralConnected(@NotNull Central central) {
-            for (Service serviceImplementation : serviceImplementations.values()) {
-                serviceImplementation.onCentralConnected(central);
-            }
-        }
-
-        @Override
-        public void onCentralDisconnected(@NotNull Central central) {
-            for (Service serviceImplementation : serviceImplementations.values()) {
-                serviceImplementation.onCentralDisconnected(central);
-            }
-        }
-    };
-
-    public void startAdvertising(UUID serviceUUID) {
-        AdvertiseSettings advertiseSettings = new AdvertiseSettings.Builder()
+    fun startAdvertising(serviceUUID: UUID?) {
+        val advertiseSettings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
                 .setConnectable(true)
                 .setTimeout(0)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-                .build();
-
-        AdvertiseData advertiseData = new AdvertiseData.Builder()
+                .build()
+        val advertiseData = AdvertiseData.Builder()
                 .setIncludeTxPowerLevel(true)
-                .addServiceUuid(new ParcelUuid(serviceUUID))
-                .build();
-
-        AdvertiseData scanResponse = new AdvertiseData.Builder()
+                .addServiceUuid(ParcelUuid(serviceUUID))
+                .build()
+        val scanResponse = AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
-                .build();
-
-        peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData);
+                .build()
+        peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData)
     }
 
-    private void setupServices() {
-        for (BluetoothGattService service : serviceImplementations.keySet()) {
-            peripheralManager.add(service);
+    private fun setupServices() {
+        for (service in serviceImplementations.keys) {
+            peripheralManager.add(service)
         }
     }
 
-    private final HashMap<BluetoothGattService, Service> serviceImplementations = new HashMap<>();
+    private val serviceImplementations = HashMap<BluetoothGattService, Service>()
 
-    BluetoothServer(Context context) {
-        this.context = context;
+    companion object {
+        private var instance: BluetoothServer? = null
+
+        @Synchronized
+        fun getInstance(context: Context): BluetoothServer? {
+            if (instance == null) {
+                instance = BluetoothServer(context.applicationContext)
+            }
+            return instance
+        }
+    }
+
+    init {
 
         // Plant a tree
-        Timber.plant(new Timber.DebugTree());
-
-        bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (!bluetoothAdapter.isMultipleAdvertisementSupported()) {
-            Timber.e("not supporting advertising");
+        Timber.plant(DebugTree())
+        bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
+            Timber.e("not supporting advertising")
         }
-
-        bluetoothAdapter.setName("Nokia 8");
-        this.peripheralManager = new PeripheralManager(context, bluetoothManager, peripheralManagerCallback);
-
-        DeviceInformationService dis = new DeviceInformationService(peripheralManager);
-        CurrentTimeService cts = new CurrentTimeService(peripheralManager);
-        HeartRateService hrs = new HeartRateService(peripheralManager);
-        GenericHealthSensorService ghs = new GenericHealthSensorService(peripheralManager);
-        serviceImplementations.put(dis.getService(), dis);
-        serviceImplementations.put(cts.getService(), cts);
-        serviceImplementations.put(hrs.getService(), hrs);
-        serviceImplementations.put(ghs.getService(), ghs);
-
-        setupServices();
-        startAdvertising(ghs.getService().getUuid());
+        bluetoothAdapter.name = "Nokia 8"
+        peripheralManager = PeripheralManager(context, bluetoothManager, peripheralManagerCallback)
+        val dis = DeviceInformationService(peripheralManager)
+        val cts = CurrentTimeService(peripheralManager)
+        val hrs = HeartRateService(peripheralManager)
+        val ghs = GenericHealthSensorService(peripheralManager)
+        serviceImplementations[dis.service] = dis
+        serviceImplementations[cts.service] = cts
+        serviceImplementations[hrs.service] = hrs
+        serviceImplementations[ghs.service] = ghs
+        setupServices()
+        startAdvertising(ghs.service.uuid)
     }
 }
