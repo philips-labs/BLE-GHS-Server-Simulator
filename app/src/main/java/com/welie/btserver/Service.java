@@ -6,17 +6,17 @@ import android.bluetooth.BluetoothGattService;
 
 import org.jetbrains.annotations.NotNull;
 
-interface ServiceImplementation {
+interface Service {
 
     BluetoothGattService getService();
 
     void onCharacteristicRead(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic);
 
-    int onCharacteristicWrite(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value);
+    GattStatus onCharacteristicWrite(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic, @NotNull byte[] value);
 
     void onDescriptorRead(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor);
 
-    int onDescriptorWrite(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value);
+    GattStatus onDescriptorWrite(@NotNull Central central, @NotNull BluetoothGattDescriptor descriptor, @NotNull byte[] value);
 
     void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic);
 

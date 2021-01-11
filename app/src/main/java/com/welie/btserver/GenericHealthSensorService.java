@@ -12,12 +12,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 import timber.log.Timber;
 
-class GenericHealthSensorService extends BaseServiceImplementation {
+class GenericHealthSensorService extends BaseService {
 
     private static final UUID GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb");
     private static final UUID OBSERVATION_CHARACTERISTIC_UUID = UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb");
@@ -53,22 +55,6 @@ class GenericHealthSensorService extends BaseServiceImplementation {
         controlCharacteristic.setValue(new byte[]{0x00});
     }
 
-    private byte[][] segments = {
-            // First segment is all fixed except for last byte which is the current heart rate
-            // Type: Obs Type, Length: 4, value: Heart Rate
-            {0x00, 0x01, 0x09, 0x2F, 0x00, 0x04, 0x00, 0x02, 0x41, (byte) 0x82,
-            // Type: Handle, Length: 2, Value: 0x0001
-            0x00, 0x01, 0x09, 0x21, 0x00, 0x02, 0x00, 0x01,
-            // Type: Unit Code, Length: 4, value: bpm 0x00040AA0
-            0x00, 0x01, 0x09, (byte) 0x96, 0x00, 0x04, 0x00, 0x04, 0x0A, (byte) 0xA0,
-            // Type: Simple Num, Length: 4, value: Current HR
-            0x00, 0x01, 0x0A, 0x56, 0x00, 0x04, 0x00, 0x00, 0x00, 0x40},
-
-            // Last segment is all fixed except for last 8 bytes which is the epoch time in milliseconds
-            // Abs Timestamp, Length: 8, value: Wed Dec 02 2020 15:42:54
-            {0x00, 0x01, 0x09, (byte) 0x90, 0x00, 0x08, 0x00, 0x00, 0x01, 0x76, 0x24, 0x1E, (byte) 0xE8, (byte) 0x82}
-    };
-
     @Override
     public void onCentralDisconnected(@NotNull Central central) {
         if (noCentralsConnected()) {
@@ -78,12 +64,16 @@ class GenericHealthSensorService extends BaseServiceImplementation {
 
     @Override
     public void onNotifyingEnabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
-        sendObservations();
+        if (characteristic.getUuid().equals(OBSERVATION_CHARACTERISTIC_UUID)) {
+            sendObservations();
+        }
     }
 
     @Override
     public void onNotifyingDisabled(@NotNull Central central, @NotNull BluetoothGattCharacteristic characteristic) {
-        stopNotifying();
+        if (characteristic.getUuid().equals(OBSERVATION_CHARACTERISTIC_UUID)) {
+            stopNotifying();
+        }
     }
 
     private void stopNotifying() {
@@ -93,7 +83,8 @@ class GenericHealthSensorService extends BaseServiceImplementation {
 
     // Right now not handling > 63 segment wrap around
     private void sendBytes(byte[] bytes) {
-        int numSegs = (int) Math.ceil(bytes.length / 19.f);
+        int segmentSize = getMinimalMTU() - 4;
+        int numSegs = (int) Math.ceil(bytes.length / (float) segmentSize);
         for(int i = 0; i < numSegs; i++){
 
             // Compute the segment header byte (first/last seg, seg number)
@@ -103,49 +94,35 @@ class GenericHealthSensorService extends BaseServiceImplementation {
             segByte|= (segmentNumber == numSegs) ? 0x02 : 0x0;
 
             // Get the next segment data
-            int startIndex = i * 19;
-            int endIndex = Math.min(startIndex + 19, bytes.length - 1);
+            int startIndex = i * segmentSize;
+            int endIndex = Math.min(startIndex + segmentSize, bytes.length - 1);
             int length = endIndex - startIndex;
             byte[] segment = new byte[length + 1];
             byte[] segmentData =  Arrays.copyOfRange(bytes, startIndex, endIndex);
             segment[0] = (byte) segByte;
             System.arraycopy(segmentData, 0, segment, 1, length);
+
+            // Send segment
             Timber.i("Sending <%s>", BluetoothBytesParser.bytes2String(segment));
             observationCharacteristic.setValue(segment);
-            peripheralManager.notifyCharacteristicChanged(observationCharacteristic);
+            notifyCharacteristicChanged(observationCharacteristic);
         }
     }
 
     private void sendObservations() {
-        updateSegments();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        for(int i = 0; i < segments.length; i++) {
-            try {
-                outputStream.write(segments[i]);
-            } catch (IOException e) {
-                Timber.e("ByteArray writing went bad... really?");
-            }
-        }
-        sendBytes(outputStream.toByteArray());
+        SimpleNumericObservation observation = new SimpleNumericObservation((short) 1, ObservationType.PULSE_RATE, 85, Unit.BPM, Calendar.getInstance().getTime());
+        sendBytes(observation.serialize());
         handler.postDelayed(notifyRunnable, 5000);
     }
 
-    private void updateSegments() {
-
-        // Generate random heart rate between 60 - 70
-        byte hr = (byte) (Math.random() * (70 - 60 + 1) + 60);
-        // Update the HR value in the byte array to send
-        byte[] mainSegment = segments[0];
-        mainSegment[mainSegment.length - 1] = hr;
-
-        // Segment 3 - Type: Simple Num, Length: 4, value: Current HR
-        // segments[2] = new byte[]{0x00, 0x01, 0x0A, 0x56, 0x00, 0x04, 0x00, 0x00, 0x00, hr};
-
-        // Segment 5 - Abs Timestamp, Length: 8, value: Current time in milliseconds since epoch
-        long millis = new Date().getTime();
-        byte[] milliBytes = ByteBuffer.allocate(8).putLong(millis).array();
-        byte[] timeBytes = {0x00, 0x01, 0x09, (byte) 0x90, 0x00, 0x08, milliBytes[0], milliBytes[1], milliBytes[2], milliBytes[3], milliBytes[4], milliBytes[5], milliBytes[6], milliBytes[7]};
-        segments[1] = timeBytes;
+    private int getMinimalMTU() {
+        int minMTU = 512;
+        for (Central central : peripheralManager.getConnectedCentrals()) {
+            if (central.getCurrentMtu() < minMTU) {
+                minMTU = central.getCurrentMtu();
+            }
+        }
+        return minMTU;
     }
 
     @Override
