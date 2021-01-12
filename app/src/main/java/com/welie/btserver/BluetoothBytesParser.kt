@@ -474,10 +474,11 @@ class BluetoothBytesParser(
      * @return true if the locally stored value has been set
      */
     fun setFloatValue(value: Float, precision: Int): Boolean {
-        val mantissa = (value * 10.toDouble().pow(precision.toDouble())).toFloat()
+        val exponent : Int = 10.toDouble().pow(precision).toInt()
+        val mantissa = (value * exponent).toInt()
         return setFloatValue(
-                mantissa.toInt(), -precision,
-                FORMAT_FLOAT, 0
+                mantissa, -precision,
+                FORMAT_FLOAT, offset
         )
     }
 
