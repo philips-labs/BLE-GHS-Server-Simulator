@@ -92,7 +92,7 @@ data class SimpleNumericObservation(val id: Short, val type: ObservationType, va
                 Timber.e("Expected valueLength but got %d", parsedValueLength)
             }
             val parsedValue = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT, parser.offset, ByteOrder.BIG_ENDIAN)!!.toFloat()
-            val parsedValuePrecision = (parser.getIntValue(FORMAT_UINT32)!! shr 24).toInt()
+            val parsedValuePrecision = -(parser.getIntValue(FORMAT_UINT32)!! shr 24).toInt()
 
             // Parse unit
             val parsedUnitCode = parser.getIntValue(FORMAT_UINT32)
