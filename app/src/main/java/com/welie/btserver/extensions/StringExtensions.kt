@@ -4,6 +4,7 @@
  */
 package com.welie.btserver.extensions
 
+import com.welie.btserver.SimpleNumericObservation
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -18,6 +19,16 @@ fun String.asByteArray(): ByteArray {
     this.iterator().forEach {
         result[i] = it.toByte()
         i++
+    }
+    return result
+}
+
+fun String.convertHexStringtoByteArray(): ByteArray {
+    val result = ByteArray(this.length / 2)
+    for (i in result.indices) {
+        val index = i * 2
+        val j: Int = this.substring(index, index + 2).toInt(16)
+        result[i] = j.toByte()
     }
     return result
 }

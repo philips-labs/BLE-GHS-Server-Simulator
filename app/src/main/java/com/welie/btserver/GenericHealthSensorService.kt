@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
+import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_FLOAT
 import com.welie.btserver.ObservationType
 import com.welie.btserver.extensions.asHexString
+import com.welie.btserver.extensions.convertHexStringtoByteArray
 import timber.log.Timber
 import java.util.*
 
@@ -71,7 +73,8 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     private fun sendObservations() {
-        val observation = SimpleNumericObservation(1.toShort(), ObservationType.PULSE_RATE, 85.0f, Unit.BPM, Calendar.getInstance().time)
+        val observation = SimpleNumericObservation(1.toShort(), ObservationType.ORAL_TEMPERATURE, 38.7f, 1, Unit.PERCENT, Calendar.getInstance().time)
+        Timber.i("Value ${observation.serialize().asHexString()}")
         sendBytes(observation.serialize())
         handler.postDelayed(notifyRunnable, 5000)
     }
@@ -104,5 +107,9 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
         controlCharacteristic.addDescriptor(getCccDescriptor())
         controlCharacteristic.addDescriptor(getCudDescriptor(CONTROL_POINT_DESCRIPTION))
         controlCharacteristic.value = byteArrayOf(0x00)
+
+        val bytes : ByteArray = "00010921000200010001092F00040002E00800010A560004FF0001830001099600040004022000010990000800000176F68D0161".convertHexStringtoByteArray()
+        val test = SimpleNumericObservation.deserialize(bytes)
+        Timber.i("$test")
     }
 }
