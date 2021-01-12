@@ -154,6 +154,7 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
         override fun onDescriptorWriteRequest(device: BluetoothDevice, requestId: Int, descriptor: BluetoothGattDescriptor, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray) {
             val safeValue = nonnullOf(value)
             val characteristic = Objects.requireNonNull(descriptor.characteristic, "Descriptor does not have characteristic")
+
             mainHandler.post {
                 val central = getCentral(device)
                 if (central != null) {

@@ -6,9 +6,10 @@ import android.os.Build
 import java.util.*
 
 internal class DeviceInformationService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
-    override var service = BluetoothGattService(DIS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
-    var manufacturer = BluetoothGattCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
-    var modelNumber = BluetoothGattCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
+
+    override val service = BluetoothGattService(DIS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+    private val manufacturer = BluetoothGattCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
+    private val modelNumber = BluetoothGattCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
 
     companion object {
         private val DIS_SERVICE_UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
@@ -19,6 +20,7 @@ internal class DeviceInformationService(peripheralManager: PeripheralManager) : 
     init {
         service.addCharacteristic(manufacturer)
         service.addCharacteristic(modelNumber)
+
         manufacturer.setValue(Build.MANUFACTURER)
         modelNumber.setValue(Build.MODEL)
     }

@@ -9,8 +9,10 @@ import timber.log.Timber
 import java.util.*
 
 internal class HeartRateService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
-    override var service = BluetoothGattService(HRS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
-    var measurement = BluetoothGattCharacteristic(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_READ)
+
+    override val service = BluetoothGattService(HRS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+    private val measurement = BluetoothGattCharacteristic(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_READ)
+
     private val handler = Handler(Looper.getMainLooper())
     private val notifyRunnable = Runnable { notifyHeartRate() }
     private var currentHR = 80
