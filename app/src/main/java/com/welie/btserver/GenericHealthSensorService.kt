@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
-import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_FLOAT
-import com.welie.btserver.ObservationType
 import com.welie.btserver.extensions.asHexString
 import com.welie.btserver.extensions.convertHexStringtoByteArray
 import timber.log.Timber
@@ -45,7 +43,8 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     // Right now not handling > 63 segment wrap around
-    private fun sendBytes(bytes: ByteArray) {
+    private fun sendObservation(observation: SimpleNumericObservation) {
+        val bytes = observation.serialize()
         val segmentSize = minimalMTU - 4
         val numSegs = Math.ceil((bytes.size / segmentSize.toFloat()).toDouble()).toInt()
         for (i in 0 until numSegs) {
@@ -75,7 +74,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     private fun sendObservations() {
         val observation = SimpleNumericObservation(1.toShort(), ObservationType.ORAL_TEMPERATURE, 38.7f, 1, Unit.PERCENT, Calendar.getInstance().time)
         Timber.i("Value ${observation.serialize().asHexString()}")
-        sendBytes(observation.serialize())
+        sendObservation(observation)
         handler.postDelayed(notifyRunnable, 5000)
     }
 
