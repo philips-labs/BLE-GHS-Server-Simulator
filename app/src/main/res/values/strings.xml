@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">btserver</string>
+    <string name="app_name">BLEServer</string>
+    <string name="title_activity_main2">BLE Server</string>
+    <string name="tab_text_1">Dev Info</string>
+    <string name="tab_text_2">GATT HR</string>
+    <string name="tab_text_3">GHS</string>
+    <string name="tab_text_4">Settings</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="change">Change</string>
 </resources>

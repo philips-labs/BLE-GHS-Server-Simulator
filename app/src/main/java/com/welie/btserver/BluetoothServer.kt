@@ -6,7 +6,6 @@ import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.Handler
 import android.os.ParcelUuid
-import com.welie.btserver.GattStatus
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
@@ -92,10 +91,18 @@ internal class BluetoothServer(private val context: Context) {
         }
     }
 
+    fun getServiceWithUUID(serviceUUID: UUID): Service? {
+        return serviceImplementations.entries.find { it.key.uuid == serviceUUID }?.value
+    }
+
     private val serviceImplementations = HashMap<BluetoothGattService, Service>()
 
     companion object {
         private var instance: BluetoothServer? = null
+
+        fun getInstance(): BluetoothServer? {
+            return instance
+        }
 
         @Synchronized
         fun getInstance(context: Context): BluetoothServer? {

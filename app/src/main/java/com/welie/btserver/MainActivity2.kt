@@ -9,18 +9,33 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
+import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import timber.log.Timber
-import java.util.*
+import com.welie.btserver.ui.main.DeviceInformationFragment
+import com.welie.btserver.ui.main.SectionsPagerAdapter
+import java.util.ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity2 : AppCompatActivity() {
+
+    var sectionsPagerAdapter: SectionsPagerAdapter? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-    }
+        setContentView(R.layout.activity_main2)
+        sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val viewPager: ViewPager = findViewById(R.id.view_pager)
+        viewPager.adapter = sectionsPagerAdapter
+        val tabs: TabLayout = findViewById(R.id.tabs)
+        tabs.setupWithViewPager(viewPager)
+        val fab: FloatingActionButton = findViewById(R.id.fab)
 
-    override fun onResume() {
-        super.onResume()
+        fab.setOnClickListener { view ->
+            Snackbar.make(view, "Do some global BLE stuff?", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+        }
         if (!isBluetoothEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
@@ -80,7 +95,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkLocationServices(): Boolean {
         return if (!areLocationServicesEnabled()) {
-            AlertDialog.Builder(this@MainActivity)
+            AlertDialog.Builder(this@MainActivity2)
                     .setTitle("Location services are not enabled")
                     .setMessage("Scanning for Bluetooth peripherals requires locations services to be enabled.") // Want to enable?
                     .setPositiveButton("Enable") { dialogInterface, i ->
@@ -113,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         if (allGranted) {
             permissionsGranted()
         } else {
-            AlertDialog.Builder(this@MainActivity)
+            AlertDialog.Builder(this@MainActivity2)
                     .setTitle("Location permission is required for scanning Bluetooth peripherals")
                     .setMessage("Please grant permissions")
                     .setPositiveButton("Retry") { dialogInterface, i ->
@@ -127,6 +142,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun initBluetoothHandler() {
         BluetoothServer.getInstance(applicationContext)
+        sectionsPagerAdapter?.getItem(0)?.let {
+            (it as DeviceInformationFragment).update()
+        }
+
     }
 
     companion object {
