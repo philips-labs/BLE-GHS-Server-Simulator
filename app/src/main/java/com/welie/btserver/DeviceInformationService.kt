@@ -28,17 +28,24 @@ internal class DeviceInformationService(peripheralManager: PeripheralManager) : 
     init {
         service.addCharacteristic(manufacturerChar)
         service.addCharacteristic(modelNumberChar)
-
-        manufacturerChar.setValue(Build.MANUFACTURER)
-        modelNumberChar.setValue(Build.MODEL)
+        setManuanufacturer(Build.MODEL)
+        setModelNumber(Build.MODEL)
     }
 
     fun getManuanufacturer() : String {
-        return Build.MANUFACTURER; // manufacturerChar.getStringValue(0)
+        return manufacturerChar.getStringValue(0)
+    }
+
+    fun setManuanufacturer(mfgName: String) {
+        manufacturerChar.setValue(mfgName)
     }
 
     fun getModelNumber() : String {
-        return Build.MODEL; // manufacturerChar.getStringValue(0)
+        return manufacturerChar.getStringValue(0)
+    }
+
+    fun setModelNumber(modelNum: String) {
+        modelNumberChar.setValue(modelNum)
     }
 
 }

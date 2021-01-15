@@ -19,22 +19,30 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     private val handler = Handler(Looper.getMainLooper())
     private val notifyRunnable = Runnable { sendObservations() }
 
+    override fun onCentralConnected(central: Central) {
+        super.onCentralConnected(central)
+    }
+
     override fun onCentralDisconnected(central: Central) {
+
+        // Need to deal with service listeners when no one is connected... maybe also first connection
         if (noCentralsConnected()) {
             stopNotifying()
         }
     }
 
     override fun onNotifyingEnabled(central: Central, characteristic: BluetoothGattCharacteristic) {
-        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            sendObservations()
-        }
+        super.onNotifyingEnabled(central, characteristic)
+//        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
+//            sendObservations()
+//        }
     }
 
     override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
-        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            stopNotifying()
-        }
+        super.onNotifyingDisabled(central, characteristic)
+//        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
+//            stopNotifying()
+//        }
     }
 
     private fun stopNotifying() {
@@ -43,7 +51,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     // Right now not handling > 63 segment wrap around
-    private fun sendObservation(observation: SimpleNumericObservation) {
+    fun sendObservation(observation: SimpleNumericObservation) {
         val bytes = observation.serialize()
         val segmentSize = minimalMTU - 4
         val numSegs = Math.ceil((bytes.size / segmentSize.toFloat()).toDouble()).toInt()
@@ -91,10 +99,17 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
 
     companion object {
         private val GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb")
-        private val OBSERVATION_CHARACTERISTIC_UUID = UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
+        val OBSERVATION_CHARACTERISTIC_UUID = UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
         private val CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
         private const val OBSERVATION_DESCRIPTION = "Characteristic for ACOM Observation segments."
         private const val CONTROL_POINT_DESCRIPTION = "Control point for generic health sensor."
+
+        // If the BluetoothService has a running GHS service then return it
+        fun getInstance(): GenericHealthSensorService? {
+            val bleServer = BluetoothServer.getInstance()
+            val ghs = bleServer?.getServiceWithUUID(GHS_SERVICE_UUID)
+            return  ghs?.let {it as GenericHealthSensorService }
+        }
     }
 
     init {

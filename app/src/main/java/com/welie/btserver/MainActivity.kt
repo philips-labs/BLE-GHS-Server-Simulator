@@ -9,18 +9,34 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
+import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import timber.log.Timber
-import java.util.*
+import com.welie.btserver.generichealthservice.ObservationEmitter
+import com.welie.btserver.ui.main.DeviceInformationFragment
+import com.welie.btserver.ui.main.SectionsPagerAdapter
+import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
+
+    var sectionsPagerAdapter: SectionsPagerAdapter? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-    }
+        sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val viewPager: ViewPager = findViewById(R.id.view_pager)
+        viewPager.adapter = sectionsPagerAdapter
+        val tabs: TabLayout = findViewById(R.id.tabs)
+        tabs.setupWithViewPager(viewPager)
+        val fab: FloatingActionButton = findViewById(R.id.fab)
 
-    override fun onResume() {
-        super.onResume()
+        fab.setOnClickListener { view ->
+            Snackbar.make(view, "Do some global BLE stuff?", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+        }
         if (!isBluetoothEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
@@ -125,8 +141,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var observationEmitter: ObservationEmitter? = null
+
     private fun initBluetoothHandler() {
         BluetoothServer.getInstance(applicationContext)
+        observationEmitter = ObservationEmitter()
+        sectionsPagerAdapter?.getItem(0)?.let {
+            (it as DeviceInformationFragment).update()
+        }
+
     }
 
     companion object {
