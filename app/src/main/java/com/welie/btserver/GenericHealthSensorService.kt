@@ -72,7 +72,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     private fun sendObservations() {
-        val observation = SimpleNumericObservation(1.toShort(), ObservationType.ORAL_TEMPERATURE, 38.7f, 1, Unit.PERCENT, Calendar.getInstance().time)
+        val observation = SimpleNumericObservation(1.toShort(), ObservationType.ORAL_TEMPERATURE, 38.7f, 1, Unit.MDC_DIM_DEGC, Calendar.getInstance().time)
         Timber.i("Value ${observation.serialize().asHexString()}")
         sendObservation(observation)
         handler.postDelayed(notifyRunnable, 5000)
