@@ -13,7 +13,7 @@ import java.util.*
 
 class ObservationEmitter: ServiceListener {
 
-    val observations = listOf(SimpleNumericObservation(1.toShort(),
+    val observations = mutableListOf(SimpleNumericObservation(1.toShort(),
             ObservationType.ORAL_TEMPERATURE,
             38.7f,
             1,
@@ -25,6 +25,16 @@ class ObservationEmitter: ServiceListener {
 
     init {
         ghsService?.addListener(this)
+    }
+
+    fun addObservation(handle: Int, type: ObservationType, value: Float, precision: Int, unit: Unit) {
+        observations.add(
+                SimpleNumericObservation(handle.toShort(),
+                        type,
+                        value,
+                        precision,
+                        unit,
+                        Calendar.getInstance().time))
     }
 
     fun startEmitter() {
@@ -49,22 +59,28 @@ class ObservationEmitter: ServiceListener {
 
     // ServiceListener interface methods
 
+    // Someone has connected so we need to listen to the GHS service for events
     override fun onConnected(numberOfConnections: Int) {
         ghsService?.addListener(this)
     }
 
+    // If no connections then we no longer need to listen for events
     override fun onDisconnected(numberOfConnections: Int) {
         if (numberOfConnections == 0) {
+            // Just to be extra safe do a stop
+            stopEmitter()
             ghsService?.removeListener(this)
         }
     }
 
+    // If someone is listening for observation notifies then start emitting them
     override fun onNotifyingEnabled(characteristic: BluetoothGattCharacteristic) {
         if (characteristic.uuid == GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID) {
             startEmitter()
         }
     }
 
+    // If stopped listening for observation notifies then stop emitting them
     override fun onNotifyingDisabled(ccharacteristic: BluetoothGattCharacteristic) {
         stopEmitter()
     }
