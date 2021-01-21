@@ -14,10 +14,10 @@ import java.util.*
 object ObservationEmitter: ServiceListener {
 
     val observations = mutableListOf(SimpleNumericObservation(1.toShort(),
-            ObservationType.ORAL_TEMPERATURE,
+            ObservationType.MDC_TEMP_ORAL,
             38.7f,
             1,
-            Unit.PERCENT,
+            Unit.MDC_DIM_PERCENT,
             Calendar.getInstance().time))
     private val handler = Handler(Looper.getMainLooper())
     private val notifyRunnable = Runnable { sendObservations() }
