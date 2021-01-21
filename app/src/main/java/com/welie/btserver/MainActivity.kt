@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initBluetoothHandler() {
         BluetoothServer.getInstance(applicationContext)
-        observationEmitter = ObservationEmitter()
+        observationEmitter = ObservationEmitter
         sectionsPagerAdapter?.getItem(0)?.let {
             (it as DeviceInformationFragment).update()
         }

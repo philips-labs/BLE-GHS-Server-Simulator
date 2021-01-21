@@ -11,7 +11,7 @@ import com.welie.btserver.extensions.asHexString
 import timber.log.Timber
 import java.util.*
 
-class ObservationEmitter: ServiceListener {
+object ObservationEmitter: ServiceListener {
 
     val observations = mutableListOf(SimpleNumericObservation(1.toShort(),
             ObservationType.ORAL_TEMPERATURE,
@@ -21,7 +21,10 @@ class ObservationEmitter: ServiceListener {
             Calendar.getInstance().time))
     private val handler = Handler(Looper.getMainLooper())
     private val notifyRunnable = Runnable { sendObservations() }
-    private val ghsService = GenericHealthSensorService.getInstance()
+
+    private val ghsService: GenericHealthSensorService?
+        get() { return GenericHealthSensorService.getInstance() }
+
 
     init {
         ghsService?.addListener(this)
@@ -50,9 +53,7 @@ class ObservationEmitter: ServiceListener {
     private fun sendObservations() {
         observations.forEach {
             Timber.i("Emitting Value ${it.serialize().asHexString()}")
-            if (ghsService != null) {
-                ghsService.sendObservation(it)
-            }
+            ghsService?.sendObservation(it)
             handler.postDelayed(notifyRunnable, 5000)
         }
     }
