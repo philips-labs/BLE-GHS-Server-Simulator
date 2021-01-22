@@ -33,8 +33,6 @@ class DeviceInformationFragment : Fragment() {
 
     private var dialogInputView: EditText? = null
 
-    private var emitterRunning = false;
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -47,7 +45,6 @@ class DeviceInformationFragment : Fragment() {
         super.onResume()
         btnAdvName?.setOnClickListener { changeAdvName() }
         btnModelNumName?.setOnClickListener { changeModelNumber() }
-        btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
         update()
     }
 
@@ -82,17 +79,6 @@ class DeviceInformationFragment : Fragment() {
             hander.postDelayed({ update() }, 5000)
             Toast.makeText(context, "Changing Model # to $newName", Toast.LENGTH_LONG).show()
         }
-    }
-
-    private fun toggleEmitter() {
-        if (emitterRunning) {
-            ObservationEmitter.stopEmitter()
-            btnStartStopEmitter.text = getString(R.string.startEmitter)
-        } else {
-            ObservationEmitter.startEmitter()
-            btnStartStopEmitter.text = getString(R.string.stopEmitter)
-        }
-        emitterRunning = !emitterRunning
     }
 
     private fun doAlertDialog(title: String, initialText: String, onClick: DialogInterface.OnClickListener) {

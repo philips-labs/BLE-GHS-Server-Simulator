@@ -13,14 +13,13 @@ import java.util.*
 
 object ObservationEmitter: ServiceListener {
 
-    val observations = mutableListOf(SimpleNumericObservation(1.toShort(),
-            ObservationType.MDC_TEMP_ORAL,
-            38.7f,
-            1,
-            Unit.MDC_DIM_PERCENT,
-            Calendar.getInstance().time))
-    private val handler = Handler(Looper.getMainLooper())
+    var emitterPeriod = 5
+
+    val observations = mutableListOf<Observation>()
+    private val handler = Handler(Looper.myLooper())
     private val notifyRunnable = Runnable { sendObservations() }
+
+    private var lastHandle = 1
 
     private val ghsService: GenericHealthSensorService?
         get() { return GenericHealthSensorService.getInstance() }
@@ -28,6 +27,7 @@ object ObservationEmitter: ServiceListener {
 
     init {
         ghsService?.addListener(this)
+//        addBodyTempObservation(38.7f)
     }
 
     fun addObservation(handle: Int, type: ObservationType, value: Float, precision: Int, unit: Unit) {
@@ -38,6 +38,31 @@ object ObservationEmitter: ServiceListener {
                         precision,
                         unit,
                         Calendar.getInstance().time))
+    }
+
+    fun removeObservationType(type: ObservationType) {
+        observations.removeAll { it.type == type }
+    }
+
+    // Observation helper methods
+    fun addHRObservation(value: Float) {
+        addObservation(lastHandle, ObservationType.MDC_ECG_HEART_RATE, value, 1, Unit.MDC_DIM_BEAT_PER_MIN)
+        lastHandle++
+    }
+
+    fun addBodyTempObservation(value: Float) {
+        addObservation(lastHandle, ObservationType.MDC_TEMP_BODY, value, 1, Unit.MDC_DIM_DEGC)
+        lastHandle++
+    }
+
+    fun addPPGObservation(value: ByteArray) {
+        observations.add(
+                SampleArrayObservation(lastHandle.toShort(),
+                        ObservationType.MDC_PPG_TIME_PD_PP,
+                        value,
+                        Unit.MDC_DIM_INTL_UNIT,
+                        Calendar.getInstance().time))
+        lastHandle++
     }
 
     fun startEmitter() {
@@ -51,11 +76,13 @@ object ObservationEmitter: ServiceListener {
     }
 
     private fun sendObservations() {
+        Timber.i("Emitting ${observations.size} observations")
+        kotlin.random.Random.nextInt(0, 100)
         observations.forEach {
             Timber.i("Emitting Value ${it.serialize().asHexString()}")
             ghsService?.sendObservation(it)
-            handler.postDelayed(notifyRunnable, 5000)
         }
+        handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
 
     // ServiceListener interface methods

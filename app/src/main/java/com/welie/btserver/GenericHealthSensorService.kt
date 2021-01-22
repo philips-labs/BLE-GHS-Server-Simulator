@@ -7,6 +7,8 @@ import android.os.Handler
 import android.os.Looper
 import com.welie.btserver.extensions.asHexString
 import com.welie.btserver.extensions.convertHexStringtoByteArray
+import com.welie.btserver.generichealthservice.Observation
+import com.welie.btserver.generichealthservice.SimpleNumericObservation
 import timber.log.Timber
 import java.util.*
 
@@ -51,7 +53,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     // Right now not handling > 63 segment wrap around
-    fun sendObservation(observation: SimpleNumericObservation) {
+    fun sendObservation(observation: Observation) {
         val bytes = observation.serialize()
         val segmentSize = minimalMTU - 4
         val numSegs = Math.ceil((bytes.size / segmentSize.toFloat()).toDouble()).toInt()

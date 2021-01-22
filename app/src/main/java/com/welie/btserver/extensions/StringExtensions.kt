@@ -4,7 +4,6 @@
  */
 package com.welie.btserver.extensions
 
-import com.welie.btserver.SimpleNumericObservation
 import kotlin.math.pow
 import kotlin.math.roundToInt
 

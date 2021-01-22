@@ -475,6 +475,7 @@ enum class ObservationType(val value: Int) {
     MDC_OUTPUT_CARD_NONCTS(150496),
     MDC_PALPATION_HEART_RATE(149562),
     MDC_POWER_TCUT(188488),
+    MDC_PPG_TIME_PD_PP(0x00024840), // Period | Plethysmography | Pulse | Blood, CVS
     MDC_PRESS_AIR_AMBIENT(152836),
     MDC_PRESS_AIR_CYL(152892),
     MDC_PRESS_AIR_SUPPLY(152888),

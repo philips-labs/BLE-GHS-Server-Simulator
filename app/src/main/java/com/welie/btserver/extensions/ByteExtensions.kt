@@ -4,6 +4,8 @@
  */
 package com.welie.btserver.extensions
 
+import com.welie.btserver.BluetoothBytesParser
+
 fun Byte.asHexString(): String {
     var hexString = this.toUINT8().toString(16).toUpperCase()
     if (this.toUINT8() < 16) hexString = "0$hexString"
@@ -42,4 +44,16 @@ fun List<Byte>.formatHexBytes(seperator: String?): String {
 
 fun Byte.toUINT8(): Int {
     return this.toInt() and 0xFF
+}
+
+
+/*
+ * Read bytes and return the ByteArray of the length passed in.  This will increment the offset
+ *
+ * @return The DateTime read from the bytes. This will cause an exception if bytes run past end. Will return 0 epoch if unparsable
+ */
+fun BluetoothBytesParser.getByteArray(length: Int): ByteArray {
+    val array = bytes.copyOfRange(offset, offset + length)
+    offset += length
+    return array
 }

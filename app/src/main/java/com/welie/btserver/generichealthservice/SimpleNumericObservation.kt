@@ -1,72 +1,29 @@
-package com.welie.btserver
+package com.welie.btserver.generichealthservice
 
+import com.welie.btserver.BluetoothBytesParser
 import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT16
 import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT32
+import com.welie.btserver.ByteOrder
+import com.welie.btserver.ObservationType
+import com.welie.btserver.Unit
 import timber.log.Timber
 import java.util.*
 
-data class SimpleNumericObservation(val id: Short, val type: ObservationType, val value: Float, val valuePrecision: Int, val unit: Unit, val timestamp: Date) {
+data class SimpleNumericObservation(override val id: Short, override val type: ObservationType, override val value: Float, val valuePrecision: Int, override val unit: Unit, override val timestamp: Date): Observation() {
 
-    fun serialize(): ByteArray {
-        val handleParser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        handleParser.setIntValue(handleCode, FORMAT_UINT32)
-        handleParser.setIntValue(handleLength, FORMAT_UINT16)
-        handleParser.setIntValue(id.toInt(), FORMAT_UINT16)
-
-        val typeParser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        typeParser.setIntValue(typeCode, FORMAT_UINT32)
-        typeParser.setIntValue(typeLength, FORMAT_UINT16)
-        typeParser.setIntValue(type.value, FORMAT_UINT32)
-
-        val valueParser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        valueParser.setIntValue(valueCode, FORMAT_UINT32)
-        valueParser.setIntValue(valueLength, FORMAT_UINT16)
-        valueParser.setFloatValue(value, valuePrecision)
-
-        val unitParser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        unitParser.setIntValue(unitCode, FORMAT_UINT32)
-        unitParser.setIntValue(unitLength, FORMAT_UINT16)
-        unitParser.setIntValue(unit.value, FORMAT_UINT32)
-
-        val timestampParser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        timestampParser.setIntValue(timestampCode, FORMAT_UINT32)
-        timestampParser.setIntValue(timestampLength, FORMAT_UINT16)
-        timestampParser.setLong(timestamp.time)
-
-        return BluetoothBytesParser.mergeArrays(
-                handleParser.bytes,
-                typeParser.bytes,
-                valueParser.bytes,
-                unitParser.bytes,
-                timestampParser.bytes
-        )
-    }
+    override val valueByteArray: ByteArray
+        get() {
+            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+            parser.setIntValue(valueCode, FORMAT_UINT32)
+            parser.setIntValue(valueLength, FORMAT_UINT16)
+            parser.setFloatValue(value, valuePrecision)
+            return parser.bytes
+        }
 
     companion object {
-        private const val handleCode = 0x00010921
-        private const val handleLength = 2
-        private const val typeCode = 0x0001092F
-        private const val typeLength = 4
-        private const val valueCode = 0x00010A56
-        private const val valueLength = 4
-        private const val unitCode = 0x00010996
-        private const val unitLength = 4
-        private const val timestampCode = 0x00010990
-        private const val timestampLength = 8
 
         fun deserialize(bytes: ByteArray): SimpleNumericObservation {
             val parser = BluetoothBytesParser(bytes, 0, ByteOrder.BIG_ENDIAN)
-
-            // Parse id
-            val parsedHandleCode = parser.getIntValue(FORMAT_UINT32)
-            if (parsedHandleCode != handleCode) {
-                Timber.e("Expected handleCode but got %d", parsedHandleCode)
-            }
-            val parsedHandleLength = parser.getIntValue(FORMAT_UINT16)
-            if (parsedHandleLength != handleLength) {
-                Timber.e("Expected handleLength but got %d", parsedHandleLength)
-            }
-            val parsedId = parser.getIntValue(FORMAT_UINT16)!!
 
             // Parse type
             val parsedTypeCode = parser.getIntValue(FORMAT_UINT32)
@@ -81,6 +38,17 @@ data class SimpleNumericObservation(val id: Short, val type: ObservationType, va
             if (parsedType == ObservationType.UNKNOWN_STATUS_CODE) {
                 Timber.e("Unknown observation type")
             }
+
+            // Parse id
+            val parsedHandleCode = parser.getIntValue(FORMAT_UINT32)
+            if (parsedHandleCode != handleCode) {
+                Timber.e("Expected handleCode but got %d", parsedHandleCode)
+            }
+            val parsedHandleLength = parser.getIntValue(FORMAT_UINT16)
+            if (parsedHandleLength != handleLength) {
+                Timber.e("Expected handleLength but got %d", parsedHandleLength)
+            }
+            val parsedId = parser.getIntValue(FORMAT_UINT16)!!
 
             // Parse value
             val parsedValueCode = parser.getIntValue(FORMAT_UINT32)
