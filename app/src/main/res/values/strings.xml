@@ -13,4 +13,5 @@
     <string name="choiceTempObs">Include temperature observation</string>
     <string name="choiceHRObs">Include heart rate observation</string>
     <string name="choicePPGObs">Include PPG array observation</string>
+    <string name="choiceMergeObs">Merge observations into ACOM Object</string>
 </resources>

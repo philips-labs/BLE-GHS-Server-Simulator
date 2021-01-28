@@ -42,6 +42,16 @@
             android:text="@string/choicePPGObs"
             android:textColor="@android:color/black" />
 
+        <CheckBox
+            android:id="@+id/checkboxMergeObs"
+            android:layout_marginBottom="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:buttonTint="@color/cardview_dark_background"
+            android:text="@string/choiceMergeObs"
+            android:textColor="@android:color/black" />
+
         <Button
             android:id="@+id/btnStartStopEmitter"
             style="?android:attr/borderlessButtonStyle"

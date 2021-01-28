@@ -38,12 +38,13 @@ class GenericHealthSensorFragment : Fragment() {
         checkboxTempObs?.setOnClickListener { clickTempObs() }
         checkboxHRObs?.setOnClickListener { clickHRObs() }
         checkboxPPGObs?.setOnClickListener { clickPPGObs() }
+        checkboxMergeObs?.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
         btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
         update()
     }
 
-    // Maybe check emitter status and update, but for now KISS
     fun update() {
+        checkboxMergeObs.isChecked = ObservationEmitter.mergeObservations
     }
 
     fun clickTempObs() {
