@@ -1,8 +1,6 @@
 package com.welie.btserver.generichealthservice
 
-import com.welie.btserver.BluetoothBytesParser
-import com.welie.btserver.ByteOrder
-import com.welie.btserver.ObservationType
+import com.welie.btserver.*
 import com.welie.btserver.Unit
 import java.util.*
 
@@ -14,13 +12,12 @@ abstract class Observation() {
     abstract val unit: Unit
 
     fun serialize(): ByteArray {
-        return BluetoothBytesParser.mergeArrays(
+        return listOf(
                 typeByteArray,
                 handleByteArray,
                 valueByteArray,
                 unitByteArray,
-                timestampByteArray
-        )
+                timestampByteArray).merge()
     }
 
     abstract val valueByteArray: ByteArray

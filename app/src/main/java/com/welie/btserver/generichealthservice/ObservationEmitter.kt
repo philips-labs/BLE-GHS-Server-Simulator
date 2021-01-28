@@ -14,6 +14,12 @@ import java.util.*
 object ObservationEmitter: ServiceListener {
 
     var emitterPeriod = 5
+    /*
+     * If mergeObservations true observations are sent as one ACOM byte array.
+     * false means send each observation as a sepeate ACOM Object
+     */
+    // If false, e
+    var mergeObservations = true
 
     val observations = mutableListOf<Observation>()
     private val handler = Handler(Looper.myLooper())
@@ -27,7 +33,6 @@ object ObservationEmitter: ServiceListener {
 
     init {
         ghsService?.addListener(this)
-//        addBodyTempObservation(38.7f)
     }
 
     fun addObservation(handle: Int, type: ObservationType, value: Float, precision: Int, unit: Unit) {
@@ -78,9 +83,10 @@ object ObservationEmitter: ServiceListener {
     private fun sendObservations() {
         Timber.i("Emitting ${observations.size} observations")
         kotlin.random.Random.nextInt(0, 100)
-        observations.forEach {
-            Timber.i("Emitting Value ${it.serialize().asHexString()}")
-            ghsService?.sendObservation(it)
+        if (mergeObservations) {
+            ghsService?.sendObservations(observations)
+        } else {
+            observations.forEach { ghsService?.sendObservation(it) }
         }
         handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }

@@ -25,7 +25,7 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
         if (position == 0) {
             return DeviceInformationFragment.newInstance()
         } else if (position == 2) {
-            return GenericHealthSensorFragment.newInstance()
+            return GenericHealthSensorFragment()
         }
         // getItem is called to instantiate the fragment for the given page.
         // Return a PlaceholderFragment (defined as a static inner class below).
