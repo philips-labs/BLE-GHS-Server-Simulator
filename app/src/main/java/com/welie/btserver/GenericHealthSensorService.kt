@@ -76,8 +76,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
 
             // Send segment
             Timber.i("Sending <%s>", segment.asHexString())
-            observationCharacteristic.value = segment
-            notifyCharacteristicChanged(observationCharacteristic)
+            notifyCharacteristicChanged(segment, observationCharacteristic)
         }
     }
 

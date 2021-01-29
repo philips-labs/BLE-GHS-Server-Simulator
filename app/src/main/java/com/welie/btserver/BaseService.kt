@@ -23,8 +23,8 @@ internal abstract class BaseService(peripheralManager: PeripheralManager) : Serv
         return cudDescriptor
     }
 
-    protected fun notifyCharacteristicChanged(characteristic: BluetoothGattCharacteristic) {
-        peripheralManager.notifyCharacteristicChanged(characteristic)
+    protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
+        peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
     fun numberOfCentralsConnected(): Int {
