@@ -5,19 +5,25 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
+import com.welie.btserver.extensions.asACOMSegments
 import com.welie.btserver.extensions.asHexString
-import com.welie.btserver.extensions.convertHexStringtoByteArray
+import com.welie.btserver.extensions.merge
 import com.welie.btserver.generichealthservice.Observation
-import com.welie.btserver.generichealthservice.SimpleNumericObservation
 import timber.log.Timber
 import java.util.*
-import kotlin.math.min
 
 internal class GenericHealthSensorService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
 
+    private val handler = Handler(Looper.getMainLooper())
+
     override val service = BluetoothGattService(GHS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
-    private val observationCharacteristic = BluetoothGattCharacteristic(OBSERVATION_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY, 0)
-    private val controlCharacteristic = BluetoothGattCharacteristic(CONTROL_POINT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_WRITE)
+    private val observationCharacteristic = BluetoothGattCharacteristic(OBSERVATION_CHARACTERISTIC_UUID,
+            BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            0)
+    private val controlCharacteristic = BluetoothGattCharacteristic(
+            CONTROL_POINT_CHARACTERISTIC_UUID,
+            BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_INDICATE,
+            BluetoothGattCharacteristic.PERMISSION_WRITE)
 
     override fun onCentralDisconnected(central: Central) {
         super.onCentralDisconnected(central)
@@ -38,47 +44,22 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
         observationCharacteristic.getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
-    // Right now not handling > 63 segment wrap around
     fun sendObservation(observation: Observation) {
         sendBytesInSegments(observation.serialize())
     }
 
     fun sendObservations(observations: Collection<Observation>) {
         sendBytesInSegments(observations.map { it.serialize() }.merge())
-//        sendBytesInSegments(BluetoothBytesParser.mergeArrays ( *(observations.map { it.serialize() }).toTypedArray() ) )
     }
 
     private fun sendBytesInSegments(bytes: ByteArray) {
-        val segmentSize = peripheralManager.minimalMTU - 4
-        val numSegs = Math.ceil((bytes.size / segmentSize.toFloat()).toDouble()).toInt()
-        for (i in 0 until numSegs) {
-
-            // Compute the segment header byte (first/last seg, seg number)
-            val segmentNumber = i + 1
-            var segByte = segmentNumber shl 2
-            segByte = segByte or if (segmentNumber == 1) 0x01 else 0x0
-            segByte = segByte or if (segmentNumber == numSegs) 0x02 else 0x0
-
-            // Get the next segment data
-            val startIndex = i * segmentSize
-            val endIndex = Math.min(startIndex + segmentSize, bytes.size - 1)
-            val length = endIndex - startIndex
-            val segment = ByteArray(length + 1)
-            val segmentData = Arrays.copyOfRange(bytes, startIndex, endIndex)
-            segment[0] = segByte.toByte()
-            System.arraycopy(segmentData, 0, segment, 1, length)
-
-            // Send segment
-            Timber.i("Sending <%s>", segment.asHexString())
-            observationCharacteristic.value = segment
-            notifyCharacteristicChanged(observationCharacteristic)
-        }
+        bytes.asACOMSegments(peripheralManager.minimalMTU - 4).forEach { it.sendSegment() }
     }
 
     companion object {
-        private val GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb")
+        val GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_CHARACTERISTIC_UUID = UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
-        private val CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
+        val CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
         private const val OBSERVATION_DESCRIPTION = "Characteristic for ACOM Observation segments."
         private const val CONTROL_POINT_DESCRIPTION = "Control point for generic health sensor."
 
@@ -99,22 +80,12 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
         controlCharacteristic.addDescriptor(getCccDescriptor())
         controlCharacteristic.addDescriptor(getCudDescriptor(CONTROL_POINT_DESCRIPTION))
         controlCharacteristic.value = byteArrayOf(0x00)
-
-        val bytes : ByteArray = "00010921000200010001092F00040002E00800010A560004FF0001830001099600040004022000010990000800000176F68D0161".convertHexStringtoByteArray()
-        val test = SimpleNumericObservation.deserialize(bytes)
-        Timber.i("$test")
     }
-}
 
-val PeripheralManager.minimalMTU: Int
-    get() = min((getConnectedCentrals().minOfOrNull { it.currentMtu } ?: 26), 26)
+    fun ByteArray.sendSegment() {
+        Timber.i("Sending <%s>", this.asHexString())
+        observationCharacteristic.value = this
+        notifyCharacteristicChanged(observationCharacteristic)
+    }
 
-
-// Use fold instead of reduce so that empty list doesn't cause an exception
-fun List<ByteArray>.merge(): ByteArray {
-    return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
-}
-// Use fold instead of reduce so that empty list doesn't cause an exception
-fun ByteArray.merge(vararg arrays: ByteArray): ByteArray {
-    return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }

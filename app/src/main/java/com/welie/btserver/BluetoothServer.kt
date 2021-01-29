@@ -122,15 +122,15 @@ internal class BluetoothServer(private val context: Context) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
             Timber.e("not supporting advertising")
         }
-        bluetoothAdapter.name = "Nokia 8"
+        bluetoothAdapter.name = "GHS-HRM"
         peripheralManager = PeripheralManager(context, bluetoothManager, peripheralManagerCallback)
-        val dis = DeviceInformationService(peripheralManager)
+//        val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
-        val hrs = HeartRateService(peripheralManager)
+//        val hrs = HeartRateService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
-        serviceImplementations[dis.service] = dis
-        serviceImplementations[cts.service] = cts
-        serviceImplementations[hrs.service] = hrs
+//        serviceImplementations[dis.service] = dis
+//        serviceImplementations[cts.service] = cts
+//        serviceImplementations[hrs.service] = hrs
         serviceImplementations[ghs.service] = ghs
         setupServices()
         startAdvertising(ghs.service.uuid)

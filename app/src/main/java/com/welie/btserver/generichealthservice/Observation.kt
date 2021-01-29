@@ -3,6 +3,7 @@ package com.welie.btserver.generichealthservice
 import com.welie.btserver.*
 import com.welie.btserver.Unit
 import java.util.*
+import com.welie.btserver.extensions.merge
 
 abstract class Observation() {
     abstract val id: Short

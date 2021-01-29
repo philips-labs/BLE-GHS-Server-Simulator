@@ -15,7 +15,7 @@ data class SampleArrayObservation(override val id: Short, override val type: Obs
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(valueCode, BluetoothBytesParser.FORMAT_UINT32)
             parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT16)
-            return BluetoothBytesParser.mergeArrays(parser.bytes, value)
+            return parser.bytes + value
         }
 
     companion object {

@@ -672,18 +672,5 @@ class BluetoothBytesParser(
          * Characteristic value format type float (32-bit float)
          */
         const val FORMAT_FLOAT = 0x34
-
-        /**
-         * Merge multiple arrays intro one array
-         *
-         * @param arrays Arrays to merge
-         * @return Merge array
-         */
-        fun mergeArrays(vararg arrays: ByteArray): ByteArray {
-            var result = byteArrayOf()
-            arrays.forEach { result += it }
-
-            return result
-        }
     }
 }

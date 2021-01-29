@@ -13,6 +13,7 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.min
 
 class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, callback: PeripheralManagerCallback) {
     private val context: Context
@@ -122,7 +123,7 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
                         } else {
                             val temporaryBytes = writeLongTemporaryBytes[characteristic]
                             if (temporaryBytes != null && offset == temporaryBytes.size) {
-                                writeLongTemporaryBytes[characteristic] = BluetoothBytesParser.mergeArrays(temporaryBytes, value)
+                                writeLongTemporaryBytes[characteristic] = temporaryBytes +  value
                             } else {
                                 status = GattStatus.INVALID_OFFSET
                             }
@@ -302,6 +303,9 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
     val services: List<BluetoothGattService>
         get() = bluetoothGattServer.services
 
+    val minimalMTU: Int
+        get() = min((getConnectedCentrals().minOfOrNull { it.currentMtu } ?: MAX_MIN_MTU), MAX_MIN_MTU)
+
     /**
      * Notify all Centrals that a characteristic has changed
      *
@@ -438,6 +442,8 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
         private const val DEVICE_IS_NULL = "Device is null"
         private const val CHARACTERISTIC_VALUE_IS_NULL = "Characteristic value is null"
         private const val CENTRAL_IS_NULL = "Central is null"
+
+        private const val MAX_MIN_MTU = 23
     }
 
     init {

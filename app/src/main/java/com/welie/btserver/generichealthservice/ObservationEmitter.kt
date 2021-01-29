@@ -13,7 +13,7 @@ import java.util.*
 
 object ObservationEmitter: ServiceListener {
 
-    var emitterPeriod = 5
+    var emitterPeriod = 10
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
      * false means send each observation as a sepeate ACOM Object

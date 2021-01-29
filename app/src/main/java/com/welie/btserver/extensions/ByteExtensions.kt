@@ -5,9 +5,11 @@
 package com.welie.btserver.extensions
 
 import com.welie.btserver.BluetoothBytesParser
+import java.util.*
+import kotlin.math.ceil
 
 fun Byte.asHexString(): String {
-    var hexString = this.toUINT8().toString(16).toUpperCase()
+    var hexString = this.toUINT8().toString(16).toUpperCase(Locale.ROOT)
     if (this.toUINT8() < 16) hexString = "0$hexString"
     return hexString
 }
@@ -46,7 +48,6 @@ fun Byte.toUINT8(): Int {
     return this.toInt() and 0xFF
 }
 
-
 /*
  * Read bytes and return the ByteArray of the length passed in.  This will increment the offset
  *
@@ -56,4 +57,46 @@ fun BluetoothBytesParser.getByteArray(length: Int): ByteArray {
     val array = bytes.copyOfRange(offset, offset + length)
     offset += length
     return array
+}
+
+/*
+ * Merge the ByteArrays in the reciever into the returned ByteArray
+ * This could be done with a fold function, but the concat of each cause a lot of allocs
+ * So instead the method creates a large result ByteArray and copies each into it.
+ * The "optimized" Kotlin implementation is kept commented out for comparison and
+ * used fold instead of reduce so that empty list doesn't cause an exception
+ */
+fun List<ByteArray>.merge(): ByteArray {
+    // return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
+    val totalSize = fold(0, {result, byteArray -> result + byteArray.size} )
+    val mergedArray = ByteArray(totalSize)
+    var index = 0
+    forEach {
+        it.copyInto(mergedArray, index, 0, it.lastIndex)
+        index += it.size
+    }
+    return mergedArray
+}
+
+fun ByteArray.asACOMSegments(segmentSize: Int): List<ByteArray> {
+    val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
+    val result = ArrayList<ByteArray>(numSegs)
+    for (i in 0 until numSegs) {
+        // Compute the segment header byte (first/last seg, seg number)
+        val segmentNumber = i + 1
+        var segByte = segmentNumber shl 2
+        segByte = segByte or if (segmentNumber == 1) 0x01 else 0x0
+        segByte = segByte or if (segmentNumber == numSegs) 0x02 else 0x0
+
+        // Get the next segment data
+        val startIndex = i * segmentSize
+        val endIndex = (startIndex + segmentSize).coerceAtMost(lastIndex)
+        val length = endIndex - startIndex
+        val segment = ByteArray(length + 1)
+        val segmentData = copyOfRange(startIndex, endIndex)
+        segment[0] = segByte.toByte()
+        System.arraycopy(segmentData, 0, segment, 1, length)
+        result.add(segment)
+    }
+    return result
 }
