@@ -1,5 +1,8 @@
 package com.welie.btserver
 
+/**
+ * Official unit constants
+ */
 enum class Unit(val value: Int, symbol: String, description : String) {
     MDCX_DIM_MILLI_MOLE_PER_M_SQ_PER_SEC(269586, "mmol m-2 s-1", "milli mole per square meter per second"),
     MDCX_DIM_X_L_PER_KG_PER_MIN(269408, "L per kg per minute", "magnitude liters per kg per minute"),
