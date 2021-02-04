@@ -3,19 +3,16 @@ package com.welie.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-import android.os.Handler
-import android.os.Looper
-import com.welie.btserver.extensions.asACOMSegments
+
+import com.welie.btserver.extensions.asBLEDataSegments
 import com.welie.btserver.extensions.asHexString
 import com.welie.btserver.extensions.merge
 import com.welie.btserver.generichealthservice.Observation
+
 import timber.log.Timber
 import java.util.*
 
 internal class GenericHealthSensorService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
-
-    private val handler = Handler(Looper.getMainLooper())
-
     override val service = BluetoothGattService(GHS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
     private val observationCharacteristic = BluetoothGattCharacteristic(OBSERVATION_CHARACTERISTIC_UUID,
             BluetoothGattCharacteristic.PROPERTY_NOTIFY,
@@ -29,19 +26,15 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
         super.onCentralDisconnected(central)
         // Need to deal with service listeners when no one is connected... maybe also first connection
         if (noCentralsConnected()) {
-            stopNotifying()
+            observationCharacteristic.stopNotifiying()
         }
     }
 
     override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            stopNotifying()
+            observationCharacteristic.stopNotifiying()
         }
-    }
-
-    private fun stopNotifying() {
-        observationCharacteristic.getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
     fun sendObservation(observation: Observation) {
@@ -53,7 +46,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     private fun sendBytesInSegments(bytes: ByteArray) {
-        bytes.asACOMSegments(peripheralManager.minimalMTU - 4).forEach { it.sendSegment() }
+        bytes.asBLEDataSegments(peripheralManager.minimalMTU - 4).forEach { it.sendSegment() }
     }
 
     companion object {
@@ -65,27 +58,29 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
 
         // If the BluetoothService has a running GHS service then return it
         fun getInstance(): GenericHealthSensorService? {
-            val bleServer = BluetoothServer.getInstance()
-            val ghs = bleServer?.getServiceWithUUID(GHS_SERVICE_UUID)
-            return  ghs?.let {it as GenericHealthSensorService }
+            return BluetoothServer.getInstance()?.getServiceWithUUID(GHS_SERVICE_UUID)?.let {it as GenericHealthSensorService }
         }
     }
 
     init {
+        // Add the service
         service.addCharacteristic(observationCharacteristic)
         service.addCharacteristic(controlCharacteristic)
-        observationCharacteristic.addDescriptor(getCccDescriptor())
-        observationCharacteristic.addDescriptor(getCudDescriptor(OBSERVATION_DESCRIPTION))
-        observationCharacteristic.value = byteArrayOf(0x00)
-        controlCharacteristic.addDescriptor(getCccDescriptor())
-        controlCharacteristic.addDescriptor(getCudDescriptor(CONTROL_POINT_DESCRIPTION))
-        controlCharacteristic.value = byteArrayOf(0x00)
+        observationCharacteristic.initWithDescriptor(OBSERVATION_DESCRIPTION)
+        observationCharacteristic.initWithDescriptor(CONTROL_POINT_DESCRIPTION)
     }
 
     fun ByteArray.sendSegment() {
         Timber.i("Sending <%s>", this.asHexString())
-        observationCharacteristic.value = this
-        notifyCharacteristicChanged(observationCharacteristic)
+        notifyCharacteristicChanged(this, observationCharacteristic)
+    }
+    fun BluetoothGattCharacteristic.stopNotifiying() {
+        getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
+    fun BluetoothGattCharacteristic.initWithDescriptor(description: String) {
+        addDescriptor(getCccDescriptor())
+        addDescriptor(getCudDescriptor(description))
+        value = byteArrayOf(0x00)
+    }
 }

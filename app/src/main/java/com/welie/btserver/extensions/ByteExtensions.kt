@@ -78,7 +78,7 @@ fun List<ByteArray>.merge(): ByteArray {
     return mergedArray
 }
 
-fun ByteArray.asACOMSegments(segmentSize: Int): List<ByteArray> {
+fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
     val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
     val result = ArrayList<ByteArray>(numSegs)
     for (i in 0 until numSegs) {
