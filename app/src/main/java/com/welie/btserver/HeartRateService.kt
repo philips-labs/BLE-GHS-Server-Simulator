@@ -38,7 +38,7 @@ internal class HeartRateService(peripheralManager: PeripheralManager) : BaseServ
     private fun notifyHeartRate() {
         currentHR += (Math.random() * 10 - 5).toInt()
         measurement.value = byteArrayOf(0x00, currentHR.toByte())
-        notifyCharacteristicChanged(measurement)
+        notifyCharacteristicChanged(measurement.value, measurement)
         Timber.i("new hr: %d", currentHR)
         handler.postDelayed(notifyRunnable, 1000)
     }

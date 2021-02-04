@@ -312,24 +312,28 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
      * @param characteristic the characteristic for which to send a notification
      * @return true if the operation was enqueued, otherwise false
      */
-    fun notifyCharacteristicChanged(characteristic: BluetoothGattCharacteristic): Boolean {
+    fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
         Objects.requireNonNull(characteristic, CHARACTERISTIC_IS_NULL)
         if (doesNotSupportNotifying(characteristic)) return false
         var result = true
+
         for (device in connectedDevices) {
-            if (!notifyCharacteristicChanged(device, characteristic)) {
+            if (!notifyCharacteristicChanged(device, copyOf(value), characteristic)) {
                 result = false
             }
         }
         return result
     }
 
-    private fun notifyCharacteristicChanged(bluetoothDevice: BluetoothDevice, characteristic: BluetoothGattCharacteristic): Boolean {
+
+
+    private fun notifyCharacteristicChanged(bluetoothDevice: BluetoothDevice, value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
         Objects.requireNonNull(characteristic.value, CHARACTERISTIC_VALUE_IS_NULL)
 
         if (doesNotSupportNotifying(characteristic)) return false
         val confirm = supportsIndicate(characteristic)
         val result = commandQueue.add(Runnable {
+            characteristic.value = value
             if (!bluetoothGattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, confirm)) {
                 Timber.e("notifying characteristic changed failed for <%s>", characteristic.uuid)
                 completedCommand()
@@ -416,6 +420,10 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
      */
     private fun nonnullOf(source: ByteArray?): ByteArray {
         return source ?: ByteArray(0)
+    }
+
+    fun copyOf(source: ByteArray?): ByteArray {
+        return if (source == null) ByteArray(0) else Arrays.copyOf(source, source.size)
     }
 
     private fun supportsNotify(characteristic: BluetoothGattCharacteristic): Boolean {

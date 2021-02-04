@@ -29,7 +29,7 @@ internal class CurrentTimeService(peripheralManager: PeripheralManager) : BaseSe
 
     private fun notifyCurrentTime() {
         setCurrentTime()
-        notifyCharacteristicChanged(currentTime)
+        notifyCharacteristicChanged(currentTime.value, currentTime)
         handler.postDelayed(notifyRunnable, 1000)
     }
 
