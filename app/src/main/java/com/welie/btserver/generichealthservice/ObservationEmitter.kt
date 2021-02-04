@@ -51,7 +51,7 @@ object ObservationEmitter: ServiceListener {
 
     // Observation helper methods
     fun addHRObservation(value: Float) {
-        addObservation(lastHandle, ObservationType.MDC_ECG_HEART_RATE, value, 1, Unit.MDC_DIM_BEAT_PER_MIN)
+        addObservation(lastHandle, ObservationType.MDC_ECG_HEART_RATE, value, 0, Unit.MDC_DIM_BEAT_PER_MIN)
         lastHandle++
     }
 
