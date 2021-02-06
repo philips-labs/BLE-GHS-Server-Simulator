@@ -23,8 +23,6 @@ import kotlinx.android.synthetic.main.fragment_generic_health_sensor.*
  * create an instance of this fragment.
  */
 class GenericHealthSensorFragment : Fragment() {
-    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-    private val deviceInfoService = DeviceInformationService.getInstance()
 
     private var dialogInputView: EditText? = null
 
@@ -40,16 +38,19 @@ class GenericHealthSensorFragment : Fragment() {
         checkboxTempObs?.setOnClickListener { clickTempObs() }
         checkboxHRObs?.setOnClickListener { clickHRObs() }
         checkboxPPGObs?.setOnClickListener { clickPPGObs() }
+        checkboxMergeObs?.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
         btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
+        btnSingleShotEmit?.setOnClickListener { ObservationEmitter.singleShotEmit() }
         update()
     }
 
     fun update() {
+        checkboxMergeObs.isChecked = ObservationEmitter.mergeObservations
     }
 
     fun clickTempObs() {
         if (checkboxTempObs.isChecked) {
-            ObservationEmitter.addBodyTempObservation(38.7f)
+            ObservationEmitter.addObservationType(ObservationType.MDC_TEMP_BODY)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_TEMP_BODY)
         }
@@ -57,7 +58,7 @@ class GenericHealthSensorFragment : Fragment() {
 
     fun clickHRObs() {
         if (checkboxHRObs.isChecked) {
-            ObservationEmitter.addHRObservation(65f)
+            ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_ECG_HEART_RATE)
         }
@@ -65,40 +66,21 @@ class GenericHealthSensorFragment : Fragment() {
 
     fun clickPPGObs() {
 
-        val numberOfCycles = 5
-        val samplesPerSecond = 51
-        val sampleSeconds = 5
-        val buffer = ByteArray(samplesPerSecond * sampleSeconds)
-        for (i in 0..buffer.size - 1) {
-            // Straight sine function means one cycle every 2*pi samples:
-            // buffer[i] = sin(i);
-            // Multiply by 2*pi--now it's one cycle per sample:
-            // buffer[i] = sin((2 * pi) * i);
-            // Multiply by 1,000 samples per second--now it's 1,000 cycles per second:
-            // buffer[i] = sin(1000 * (2 * pi) * i);
-            // Divide by 44,100 samples per second--now it's 1,000 cycles per 44,100
-            // samples, which is just what we needed:
-            buffer[i] = (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 255).toInt().toByte()
+        if (checkboxPPGObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         }
-        // Now create a sample array observation
-        val sampleArray = buffer
-        ObservationEmitter.addPPGObservation(sampleArray)
-    }
 
-
-    private fun getAdvName(): String {
-        return bluetoothAdapter.name
-    }
-
-    private fun getModelNumber(): String {
-        return deviceInfoService?.getModelNumber() ?: "Not available"
     }
 
     private fun toggleEmitter() {
         if (emitterRunning) {
             ObservationEmitter.stopEmitter()
+            btnSingleShotEmit.isEnabled = true
             btnStartStopEmitter.text = getString(R.string.startEmitter)
         } else {
+            btnSingleShotEmit.isEnabled = false
             ObservationEmitter.emitterPeriod = 1
             ObservationEmitter.startEmitter()
             btnStartStopEmitter.text = getString(R.string.stopEmitter)
@@ -118,18 +100,5 @@ class GenericHealthSensorFragment : Fragment() {
         builder.setPositiveButton("OK", onClick)
         builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
         builder.show()
-    }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @return A new instance of fragment GenericHealthSensorFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance() =
-                GenericHealthSensorFragment().apply {}
     }
 }

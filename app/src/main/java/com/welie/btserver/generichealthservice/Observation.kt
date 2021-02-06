@@ -1,26 +1,24 @@
 package com.welie.btserver.generichealthservice
 
-import com.welie.btserver.BluetoothBytesParser
-import com.welie.btserver.ByteOrder
-import com.welie.btserver.ObservationType
-import com.welie.btserver.Unit
+import com.welie.btserver.*
+import com.welie.btserver.UnitCode
 import java.util.*
+import com.welie.btserver.extensions.merge
 
 abstract class Observation() {
     abstract val id: Short
     abstract val type: ObservationType
     abstract val timestamp: Date
     abstract val value: Any
-    abstract val unit: Unit
+    abstract val unitCode: UnitCode
 
     fun serialize(): ByteArray {
-        return BluetoothBytesParser.mergeArrays(
+        return listOf(
                 typeByteArray,
                 handleByteArray,
                 valueByteArray,
                 unitByteArray,
-                timestampByteArray
-        )
+                timestampByteArray).merge()
     }
 
     abstract val valueByteArray: ByteArray
@@ -47,9 +45,9 @@ abstract class Observation() {
     val unitByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(unitCode, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setIntValue(unitCodeId, BluetoothBytesParser.FORMAT_UINT32)
             parser.setIntValue(unitLength, BluetoothBytesParser.FORMAT_UINT16)
-            parser.setIntValue(unit.value, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
             return parser.bytes
         }
 
@@ -67,9 +65,7 @@ abstract class Observation() {
         internal const val handleLength = 2
         internal const val typeCode = 0x0001092F
         internal const val typeLength = 4
-        internal const val valueCode = 0x00010A56
-        internal const val valueLength = 4
-        internal const val unitCode = 0x00010996
+        internal const val unitCodeId = 0x00010996
         internal const val unitLength = 4
         internal const val timestampCode = 0x00010990
         internal const val timestampLength = 8

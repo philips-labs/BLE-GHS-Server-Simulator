@@ -42,6 +42,16 @@
             android:text="@string/choicePPGObs"
             android:textColor="@android:color/black" />
 
+        <CheckBox
+            android:id="@+id/checkboxMergeObs"
+            android:layout_marginBottom="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:buttonTint="@color/cardview_dark_background"
+            android:text="@string/choiceMergeObs"
+            android:textColor="@android:color/black" />
+
         <Button
             android:id="@+id/btnStartStopEmitter"
             style="?android:attr/borderlessButtonStyle"
@@ -49,12 +59,26 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
+            android:layout_marginBottom="16dp"
             android:background="@color/cardview_dark_background"
             android:fontFamily="sans-serif-medium"
             android:text="@string/startEmitter"
             android:textAllCaps="false"
             android:textColor="@android:color/white" />
 
+        <Button
+            android:id="@+id/btnSingleShotEmit"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/cardview_dark_background"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/singleShotEmit"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
