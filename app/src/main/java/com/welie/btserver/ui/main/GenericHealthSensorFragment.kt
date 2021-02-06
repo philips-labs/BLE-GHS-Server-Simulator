@@ -40,6 +40,7 @@ class GenericHealthSensorFragment : Fragment() {
         checkboxPPGObs?.setOnClickListener { clickPPGObs() }
         checkboxMergeObs?.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
         btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
+        btnSingleShotEmit?.setOnClickListener { ObservationEmitter.singleShotEmit() }
         update()
     }
 
@@ -49,7 +50,7 @@ class GenericHealthSensorFragment : Fragment() {
 
     fun clickTempObs() {
         if (checkboxTempObs.isChecked) {
-            ObservationEmitter.addBodyTempObservation(38.7f)
+            ObservationEmitter.addObservationType(ObservationType.MDC_TEMP_BODY)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_TEMP_BODY)
         }
@@ -57,7 +58,7 @@ class GenericHealthSensorFragment : Fragment() {
 
     fun clickHRObs() {
         if (checkboxHRObs.isChecked) {
-            ObservationEmitter.addHRObservation(65f)
+            ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_ECG_HEART_RATE)
         }
@@ -66,24 +67,7 @@ class GenericHealthSensorFragment : Fragment() {
     fun clickPPGObs() {
 
         if (checkboxPPGObs.isChecked) {
-            val numberOfCycles = 5
-            val samplesPerSecond = 51
-            val sampleSeconds = 5
-            val buffer = ByteArray(samplesPerSecond * sampleSeconds)
-            for (i in 0..buffer.size - 1) {
-                // Straight sine function means one cycle every 2*pi samples:
-                // buffer[i] = sin(i);
-                // Multiply by 2*pi--now it's one cycle per sample:
-                // buffer[i] = sin((2 * pi) * i);
-                // Multiply by 1,000 samples per second--now it's 1,000 cycles per second:
-                // buffer[i] = sin(1000 * (2 * pi) * i);
-                // Divide by 44,100 samples per second--now it's 1,000 cycles per 44,100
-                // samples, which is just what we needed:
-                buffer[i] = (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 255).toInt().toByte()
-            }
-            // Now create a sample array observation
-            val sampleArray = buffer
-            ObservationEmitter.addPPGObservation(sampleArray)
+            ObservationEmitter.addObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         }
@@ -93,8 +77,10 @@ class GenericHealthSensorFragment : Fragment() {
     private fun toggleEmitter() {
         if (emitterRunning) {
             ObservationEmitter.stopEmitter()
+            btnSingleShotEmit.isEnabled = true
             btnStartStopEmitter.text = getString(R.string.startEmitter)
         } else {
+            btnSingleShotEmit.isEnabled = false
             ObservationEmitter.emitterPeriod = 1
             ObservationEmitter.startEmitter()
             btnStartStopEmitter.text = getString(R.string.stopEmitter)

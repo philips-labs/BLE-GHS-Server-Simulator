@@ -10,6 +10,7 @@
     <string name="change">Change</string>
     <string name="startEmitter">Start emitter</string>
     <string name="stopEmitter">Stop emitter</string>
+    <string name="singleShotEmit">Emit Once</string>
     <string name="choiceTempObs">Include temperature observation</string>
     <string name="choiceHRObs">Include heart rate observation</string>
     <string name="choicePPGObs">Include PPG array observation</string>

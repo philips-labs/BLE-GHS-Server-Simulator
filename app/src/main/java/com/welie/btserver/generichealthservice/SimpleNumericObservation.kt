@@ -5,11 +5,11 @@ import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT16
 import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT32
 import com.welie.btserver.ByteOrder
 import com.welie.btserver.ObservationType
-import com.welie.btserver.Unit
+import com.welie.btserver.UnitCode
 import timber.log.Timber
 import java.util.*
 
-data class SimpleNumericObservation(override val id: Short, override val type: ObservationType, override val value: Float, val valuePrecision: Int, override val unit: Unit, override val timestamp: Date): Observation() {
+data class SimpleNumericObservation(override val id: Short, override val type: ObservationType, override val value: Float, val valuePrecision: Int, override val unitCode: UnitCode, override val timestamp: Date): Observation() {
 
     override val valueByteArray: ByteArray
         get() {
@@ -21,6 +21,9 @@ data class SimpleNumericObservation(override val id: Short, override val type: O
         }
 
     companion object {
+
+        internal const val valueCode = 0x00010A56
+        internal const val valueLength = 4
 
         fun deserialize(bytes: ByteArray): SimpleNumericObservation {
             val parser = BluetoothBytesParser(bytes, 0, ByteOrder.BIG_ENDIAN)
@@ -64,15 +67,15 @@ data class SimpleNumericObservation(override val id: Short, override val type: O
 
             // Parse unit
             val parsedUnitCode = parser.getIntValue(FORMAT_UINT32)
-            if (parsedUnitCode != unitCode) {
+            if (parsedUnitCode != unitCodeId) {
                 Timber.e("Expected unitCode but got %d", parsedUnitCode)
             }
             val parsedUnitLength = parser.getIntValue(FORMAT_UINT16)
             if (parsedUnitLength != unitLength) {
                 Timber.e("Expected unitLength but got %d", parsedUnitLength)
             }
-            val parsedUnit = Unit.fromValue(parser.getIntValue(FORMAT_UINT32)!!)
-            if (parsedUnit === Unit.UNKNOWN_CODE) {
+            val parsedUnit = UnitCode.fromValue(parser.getIntValue(FORMAT_UINT32)!!)
+            if (parsedUnit === UnitCode.UNKNOWN_CODE) {
                 Timber.e("Unknown unit type")
             }
 

@@ -59,12 +59,26 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
+            android:layout_marginBottom="16dp"
             android:background="@color/cardview_dark_background"
             android:fontFamily="sans-serif-medium"
             android:text="@string/startEmitter"
             android:textAllCaps="false"
             android:textColor="@android:color/white" />
 
+        <Button
+            android:id="@+id/btnSingleShotEmit"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/cardview_dark_background"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/singleShotEmit"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 

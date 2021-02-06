@@ -963,10 +963,7 @@ enum class ObservationType(val value: Int) {
 
     companion object {
         fun fromValue(value: Int): ObservationType {
-            for (type in values()) {
-                if (type.value == value) return type
-            }
-            return UNKNOWN_STATUS_CODE
+            return values().find { it.value == value } ?: UNKNOWN_STATUS_CODE
         }
     }
 }

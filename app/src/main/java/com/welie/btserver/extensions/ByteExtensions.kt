@@ -60,22 +60,14 @@ fun BluetoothBytesParser.getByteArray(length: Int): ByteArray {
 }
 
 /*
- * Merge the ByteArrays in the reciever into the returned ByteArray
+ * Merge the ByteArrays in the receiver into the returned ByteArray
  * This could be done with a fold function, but the concat of each cause a lot of allocs
  * So instead the method creates a large result ByteArray and copies each into it.
  * The "optimized" Kotlin implementation is kept commented out for comparison and
  * used fold instead of reduce so that empty list doesn't cause an exception
  */
 fun List<ByteArray>.merge(): ByteArray {
-    // return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
-    val totalSize = fold(0, {result, byteArray -> result + byteArray.size} )
-    val mergedArray = ByteArray(totalSize)
-    var index = 0
-    forEach {
-        it.copyInto(mergedArray, index, 0, it.lastIndex)
-        index += it.size
-    }
-    return mergedArray
+     return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }
 
 fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
@@ -90,7 +82,7 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
 
         // Get the next segment data
         val startIndex = i * segmentSize
-        val endIndex = (startIndex + segmentSize).coerceAtMost(lastIndex)
+        val endIndex = (startIndex + segmentSize).coerceAtMost(lastIndex + 1)
         val length = endIndex - startIndex
         val segment = ByteArray(length + 1)
         val segmentData = copyOfRange(startIndex, endIndex)
