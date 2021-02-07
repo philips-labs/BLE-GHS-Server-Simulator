@@ -94,17 +94,4 @@ class DeviceInformationFragment : Fragment() {
         builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
         builder.show()
     }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @return A new instance of fragment DeviceInformationFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance() =
-                DeviceInformationFragment().apply {}
-    }
 }

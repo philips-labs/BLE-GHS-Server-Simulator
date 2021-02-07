@@ -4,8 +4,6 @@ import com.welie.btserver.BluetoothBytesParser
 import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT16
 import com.welie.btserver.BluetoothBytesParser.Companion.FORMAT_UINT32
 import com.welie.btserver.ByteOrder
-import com.welie.btserver.ObservationType
-import com.welie.btserver.UnitCode
 import timber.log.Timber
 import java.util.*
 

@@ -1,14 +1,17 @@
-package com.welie.btserver
+package com.welie.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
+import com.welie.btserver.BaseService
+import com.welie.btserver.BluetoothServer
+import com.welie.btserver.Central
+import com.welie.btserver.PeripheralManager
 import com.welie.btserver.extensions.asBLEDataSegments
 import com.welie.btserver.extensions.asHexString
 import com.welie.btserver.extensions.merge
-import com.welie.btserver.generichealthservice.Observation
 import timber.log.Timber
 import java.util.*
 

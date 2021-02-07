@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.os.Handler
 import android.os.Looper
 import com.welie.btserver.*
-import com.welie.btserver.GenericHealthSensorService
-import com.welie.btserver.UnitCode
 import timber.log.Timber
 import java.util.*
 
@@ -74,15 +72,6 @@ object ObservationEmitter: ServiceListener {
                 Calendar.getInstance().time)
     }
 
-    fun ObservationType.randomNumericValue(): Float {
-        return when(this) {
-            ObservationType.MDC_ECG_HEART_RATE ->  kotlin.random.Random.nextInt(60, 70).toFloat()
-            ObservationType.MDC_TEMP_BODY ->  kotlin.random.Random.nextInt(358, 370).toFloat() / 10f
-            else -> Float.NaN
-        }
-    }
-
-
     fun startEmitter() {
         Timber.i("Starting GHS Observtaion Emitter")
         handler.post(notifyRunnable)
@@ -148,7 +137,16 @@ object ObservationEmitter: ServiceListener {
 
 }
 
+fun ObservationType.randomNumericValue(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE ->  kotlin.random.Random.nextInt(60, 70).toFloat()
+        ObservationType.MDC_TEMP_BODY ->  kotlin.random.Random.nextInt(358, 370).toFloat() / 10f
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
+        else -> Float.NaN
+    }
+}
 
+// TODO: For now the sample array is just totally random and alway a 255 element byte array
 fun ObservationType.randomSampleArray(): ByteArray {
     val numberOfCycles = 5
     val samplesPerSecond = kotlin.random.Random.nextInt(40, 70)
@@ -169,7 +167,8 @@ fun ObservationType.randomSampleArray(): ByteArray {
 fun ObservationType.numericPrecision(): Int {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  0
-        ObservationType.MDC_TEMP_BODY ->  1
+        ObservationType.MDC_TEMP_BODY,
+            ObservationType.MDC_SPO2_OXYGENATION_RATIO->  1
         else -> 0
     }
 }
@@ -178,6 +177,7 @@ fun ObservationType.unitCode(): UnitCode {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
         ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }

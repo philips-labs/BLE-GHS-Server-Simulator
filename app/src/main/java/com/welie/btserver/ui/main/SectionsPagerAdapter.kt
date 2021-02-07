@@ -7,37 +7,35 @@ import androidx.fragment.app.FragmentPagerAdapter
 import com.welie.btserver.R
 
 private val TAB_TITLES = arrayOf(
-        R.string.tab_text_1,
-        R.string.tab_text_2,
-        R.string.tab_text_3,
-        R.string.tab_text_4
-)
+        R.string.tab_text_ble_info,
+        R.string.tab_text_observations,
+        R.string.tab_text_experimental
+        )
 
-/**
- * A [FragmentPagerAdapter] that returns a fragment corresponding to
- * one of the sections/tabs/pages.
- */
 class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
     : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     override fun getItem(position: Int): Fragment {
-
-        if (position == 0) {
-            return DeviceInformationFragment.newInstance()
-        } else if (position == 2) {
-            return GenericHealthSensorFragment()
+       return when (position) {
+            0 -> DeviceInformationFragment()
+            1 -> ObservationsFragment()
+            2 -> ExperimentalFragment()
+            else -> PlaceholderFragment.newInstance(position)
         }
-        // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment (defined as a static inner class below).
-        return PlaceholderFragment.newInstance(position)
     }
 
-    override fun getPageTitle(position: Int): CharSequence? {
+    override fun getPageTitle(position: Int): CharSequence {
         return context.resources.getString(TAB_TITLES[position])
     }
 
     override fun getCount(): Int {
         // Show 2 total pages.
         return TAB_TITLES.size;
+    }
+
+    fun updatePages() {
+        getItem(0).let {
+            (it as DeviceInformationFragment).update()
+        }
     }
 }

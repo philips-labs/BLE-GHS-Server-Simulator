@@ -6,6 +6,7 @@ import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.Handler
 import android.os.ParcelUuid
+import com.welie.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
@@ -122,7 +123,7 @@ internal class BluetoothServer(private val context: Context) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
             Timber.e("not supporting advertising")
         }
-        bluetoothAdapter.name = "GHS-HRM"
+        bluetoothAdapter.name = "GHS-Simulator"
         peripheralManager = PeripheralManager(context, bluetoothManager, peripheralManagerCallback)
 //        val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)

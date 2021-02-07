@@ -3,12 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.main.GenericHealthSensorFragment">
+    tools:context=".ui.main.ObservationsFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:orientation="vertical"
         android:paddingTop="32dp">
 
@@ -18,9 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:buttonTint="@color/cardview_dark_background"
-            android:text="@string/choiceTempObs"
-            android:textColor="@android:color/black" />
+            android:text="@string/choiceTempObs" />
 
         <CheckBox
             android:id="@+id/checkboxHRObs"
@@ -28,9 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:buttonTint="@color/cardview_dark_background"
-            android:text="@string/choiceHRObs"
-            android:textColor="@android:color/black" />
+            android:text="@string/choiceHRObs" />
 
         <CheckBox
             android:id="@+id/checkboxPPGObs"
@@ -38,9 +35,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:buttonTint="@color/cardview_dark_background"
-            android:text="@string/choicePPGObs"
-            android:textColor="@android:color/black" />
+            android:text="@string/choicePPGObs" />
+
+        <CheckBox
+            android:id="@+id/checkboxSPO2Obs"
+            android:layout_marginBottom="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/choiceSPO2Obs" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginBottom="16dp"
+            android:background="#20FFFFFF"/>
 
         <CheckBox
             android:id="@+id/checkboxMergeObs"
@@ -48,9 +57,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:buttonTint="@color/cardview_dark_background"
-            android:text="@string/choiceMergeObs"
-            android:textColor="@android:color/black" />
+            android:text="@string/choiceMergeObs" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#20FFFFFF"/>
 
         <Button
             android:id="@+id/btnStartStopEmitter"
@@ -59,12 +73,12 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/cardview_dark_background"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            android:background="#10FFFFFF"
             android:fontFamily="sans-serif-medium"
             android:text="@string/startEmitter"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/btnSingleShotEmit"
@@ -74,11 +88,10 @@
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
             android:layout_marginBottom="16dp"
-            android:background="@color/cardview_dark_background"
+            android:background="#10FFFFFF"
             android:fontFamily="sans-serif-medium"
             android:text="@string/singleShotEmit"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            android:textAllCaps="false" />
 
     </LinearLayout>
 

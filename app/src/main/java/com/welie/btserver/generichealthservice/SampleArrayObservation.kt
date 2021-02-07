@@ -2,8 +2,6 @@ package com.welie.btserver.generichealthservice
 
 import com.welie.btserver.BluetoothBytesParser
 import com.welie.btserver.ByteOrder
-import com.welie.btserver.ObservationType
-import com.welie.btserver.UnitCode
 import com.welie.btserver.extensions.getByteArray
 import timber.log.Timber
 import java.util.*

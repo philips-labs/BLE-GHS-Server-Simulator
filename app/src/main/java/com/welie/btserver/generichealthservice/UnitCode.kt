@@ -1,4 +1,4 @@
-package com.welie.btserver
+package com.welie.btserver.generichealthservice
 
 enum class UnitCode(val value: Int, symbol: String, description : String) {
     MDCX_DIM_MILLI_MOLE_PER_M_SQ_PER_SEC(269586, "mmol m-2 s-1", "milli mole per square meter per second"),

@@ -1,7 +1,6 @@
 package com.welie.btserver.ui.main
 
 import android.app.AlertDialog
-import android.bluetooth.BluetoothAdapter
 import android.content.DialogInterface
 import android.os.Bundle
 import android.text.InputType
@@ -10,19 +9,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
-import com.welie.btserver.DeviceInformationService
-import com.welie.btserver.ObservationType
+import com.welie.btserver.generichealthservice.ObservationType
 import com.welie.btserver.R
 import com.welie.btserver.generichealthservice.ObservationEmitter
-import kotlinx.android.synthetic.main.fragment_generic_health_sensor.*
+import kotlinx.android.synthetic.main.fragment_observations.*
 
 
 /**
  * A simple [Fragment] subclass.
- * Use the [GenericHealthSensorFragment.newInstance] factory method to
+ * Use the [ObservationsFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class GenericHealthSensorFragment : Fragment() {
+class ObservationsFragment : Fragment() {
 
     private var dialogInputView: EditText? = null
 
@@ -30,7 +28,7 @@ class GenericHealthSensorFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_generic_health_sensor, container, false)
+        return inflater.inflate(R.layout.fragment_observations, container, false)
     }
 
     override fun onResume() {
@@ -38,6 +36,7 @@ class GenericHealthSensorFragment : Fragment() {
         checkboxTempObs?.setOnClickListener { clickTempObs() }
         checkboxHRObs?.setOnClickListener { clickHRObs() }
         checkboxPPGObs?.setOnClickListener { clickPPGObs() }
+        checkboxSPO2Obs?.setOnClickListener { clickSPO2Obs() }
         checkboxMergeObs?.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
         btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
         btnSingleShotEmit?.setOnClickListener { ObservationEmitter.singleShotEmit() }
@@ -65,13 +64,20 @@ class GenericHealthSensorFragment : Fragment() {
     }
 
     fun clickPPGObs() {
-
         if (checkboxPPGObs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         }
+    }
 
+    // TODO: Confirm MDC_SPO2_OXYGENATION_RATIO... just using it for now here and receiver demo app
+    fun clickSPO2Obs() {
+        if (checkboxSPO2Obs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
+        }
     }
 
     private fun toggleEmitter() {

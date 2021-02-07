@@ -1,7 +1,6 @@
 package com.welie.btserver.generichealthservice
 
 import com.welie.btserver.*
-import com.welie.btserver.UnitCode
 import java.util.*
 import com.welie.btserver.extensions.merge
 
