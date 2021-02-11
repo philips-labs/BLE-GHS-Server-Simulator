@@ -3,7 +3,8 @@ package com.welie.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.GattStatus
 
 interface ServiceListener {
     fun onCharacteristicRead(characteristic: BluetoothGattCharacteristic)
@@ -18,14 +19,14 @@ interface ServiceListener {
 
 internal interface Service {
     val service: BluetoothGattService
-    fun onCharacteristicRead(central: Central, characteristic: BluetoothGattCharacteristic)
-    fun onCharacteristicWrite(central: Central, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus
-    fun onDescriptorRead(central: Central, descriptor: BluetoothGattDescriptor)
-    fun onDescriptorWrite(central: Central, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus
-    fun onNotifyingEnabled(central: Central, characteristic: BluetoothGattCharacteristic)
-    fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic)
-    fun onCentralConnected(central: Central)
-    fun onCentralDisconnected(central: Central)
+    fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic)
+    fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus
+    fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor)
+    fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus
+    fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic)
+    fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic)
+    fun onCentralConnected(central: BluetoothCentral)
+    fun onCentralDisconnected(central: BluetoothCentral)
 
     fun addListener(listener: ServiceListener)
     fun removeListener(listener: ServiceListener)

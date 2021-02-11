@@ -5,17 +5,17 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.btserver.BaseService
 import com.welie.btserver.BluetoothServer
-import com.welie.btserver.Central
-import com.welie.btserver.PeripheralManager
 import com.welie.btserver.extensions.asBLEDataSegments
 import com.welie.btserver.extensions.asHexString
 import com.welie.btserver.extensions.merge
 import timber.log.Timber
 import java.util.*
 
-internal class GenericHealthSensorService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
+internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -28,7 +28,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
             BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_INDICATE,
             BluetoothGattCharacteristic.PERMISSION_WRITE)
 
-    override fun onCentralDisconnected(central: Central) {
+    override fun onCentralDisconnected(central: BluetoothCentral) {
         super.onCentralDisconnected(central)
         // Need to deal with service listeners when no one is connected... maybe also first connection
         if (noCentralsConnected()) {
@@ -36,7 +36,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
         }
     }
 
-    override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+    override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             stopNotifying()
@@ -44,7 +44,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     private fun stopNotifying() {
-        observationCharacteristic.getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        observationCharacteristic.getDescriptor(CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
     fun sendObservation(observation: Observation) {
@@ -56,7 +56,7 @@ internal class GenericHealthSensorService(peripheralManager: PeripheralManager) 
     }
 
     private fun sendBytesInSegments(bytes: ByteArray) {
-        bytes.asBLEDataSegments(peripheralManager.minimalMTU - 4).forEach { it.sendSegment() }
+        bytes.asBLEDataSegments(minimalMTU - 4).forEach { it.sendSegment() }
     }
 
     companion object {

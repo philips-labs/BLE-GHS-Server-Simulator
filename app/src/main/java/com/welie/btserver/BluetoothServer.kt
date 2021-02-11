@@ -6,6 +6,10 @@ import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.Handler
 import android.os.ParcelUuid
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.BluetoothPeripheralManager
+import com.welie.blessed.BluetoothPeripheralManagerCallback
+import com.welie.blessed.GattStatus
 import com.welie.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -15,29 +19,29 @@ internal class BluetoothServer(private val context: Context) {
     private val handler = Handler()
     var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
-    private val peripheralManager: PeripheralManager
-    private val peripheralManagerCallback: PeripheralManagerCallback = object : PeripheralManagerCallback {
-        override fun onServiceAdded(status: Int, service: BluetoothGattService) {}
-        override fun onCharacteristicRead(central: Central, characteristic: BluetoothGattCharacteristic) {
+    private val peripheralManager: BluetoothPeripheralManager
+    private val peripheralManagerCallback: BluetoothPeripheralManagerCallback = object : BluetoothPeripheralManagerCallback() {
+        override fun onServiceAdded(status: GattStatus?, service: BluetoothGattService) {}
+        override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
             val serviceImplementation = serviceImplementations[characteristic.service]
             serviceImplementation?.onCharacteristicRead(central, characteristic)
         }
 
-        override fun onCharacteristicWrite(central: Central, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
             val serviceImplementation = serviceImplementations[characteristic.service]
             return if (serviceImplementation != null) {
                 serviceImplementation.onCharacteristicWrite(central, characteristic, value)
             } else GattStatus.REQUEST_NOT_SUPPORTED
         }
 
-        override fun onDescriptorRead(central: Central, descriptor: BluetoothGattDescriptor) {
+        override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
             val characteristic = Objects.requireNonNull(descriptor.characteristic, "Descriptor has no Characteristic")
             val service = Objects.requireNonNull(characteristic.service, "Characteristic has no Service")
             val serviceImplementation = serviceImplementations[service]
             serviceImplementation?.onDescriptorRead(central, descriptor)
         }
 
-        override fun onDescriptorWrite(central: Central, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
+        override fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
             val characteristic = Objects.requireNonNull(descriptor.characteristic, "Descriptor has no Characteristic")
             val service = Objects.requireNonNull(characteristic.service, "Characteristic has no Service")
             val serviceImplementation = serviceImplementations[service]
@@ -46,23 +50,23 @@ internal class BluetoothServer(private val context: Context) {
             } else GattStatus.REQUEST_NOT_SUPPORTED
         }
 
-        override fun onNotifyingEnabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+        override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
             val serviceImplementation = serviceImplementations[characteristic.service]
             serviceImplementation?.onNotifyingEnabled(central, characteristic)
         }
 
-        override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+        override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
             val serviceImplementation = serviceImplementations[characteristic.service]
             serviceImplementation?.onNotifyingDisabled(central, characteristic)
         }
 
-        override fun onCentralConnected(central: Central) {
+        override fun onCentralConnected(central: BluetoothCentral) {
             for (serviceImplementation in serviceImplementations.values) {
                 serviceImplementation.onCentralConnected(central)
             }
         }
 
-        override fun onCentralDisconnected(central: Central) {
+        override fun onCentralDisconnected(central: BluetoothCentral) {
             for (serviceImplementation in serviceImplementations.values) {
                 serviceImplementation.onCentralDisconnected(central)
             }
@@ -124,7 +128,7 @@ internal class BluetoothServer(private val context: Context) {
             Timber.e("not supporting advertising")
         }
         bluetoothAdapter.name = "GHS-Simulator"
-        peripheralManager = PeripheralManager(context, bluetoothManager, peripheralManagerCallback)
+        peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
 //        val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
 //        val hrs = HeartRateService(peripheralManager)

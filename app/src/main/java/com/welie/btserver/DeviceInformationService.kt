@@ -3,9 +3,10 @@ package com.welie.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.os.Build
+import com.welie.blessed.BluetoothPeripheralManager
 import java.util.*
 
-internal class DeviceInformationService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
+internal class DeviceInformationService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(DIS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
     private val manufacturerChar = BluetoothGattCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
