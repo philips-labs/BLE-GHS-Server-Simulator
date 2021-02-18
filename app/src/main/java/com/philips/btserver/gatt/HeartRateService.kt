@@ -7,7 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.btserver.BaseService
+import com.philips.btserver.BaseService
 import timber.log.Timber
 import java.util.*
 

@@ -1,10 +1,10 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.os.Handler
 import android.os.Looper
-import com.welie.btserver.*
+import com.philips.btserver.ServiceListener
 import timber.log.Timber
 import java.util.*
 
@@ -186,17 +186,17 @@ fun ObservationType.numericPrecision(): Int {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  0
         ObservationType.MDC_TEMP_BODY,
-            ObservationType.MDC_SPO2_OXYGENATION_RATIO->  1
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO ->  1
         else -> 0
     }
 }
 
 fun ObservationType.unitCode(): UnitCode {
     return when(this) {
-        ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
-        ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
+        ObservationType.MDC_ECG_HEART_RATE -> UnitCode.MDC_DIM_BEAT_PER_MIN
+        ObservationType.MDC_TEMP_BODY -> UnitCode.MDC_DIM_DEGC
         ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
-        ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
+        ObservationType.MDC_PPG_TIME_PD_PP -> UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
 }

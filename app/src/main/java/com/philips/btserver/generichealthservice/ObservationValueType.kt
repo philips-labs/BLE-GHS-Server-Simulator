@@ -1,4 +1,4 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 enum class ObservationValueType(val value: Int) {
     MDC_ATTR_NU_VAL_OBS_SIMP(0x00010A56),  // Simple-Nu-Observed-Value

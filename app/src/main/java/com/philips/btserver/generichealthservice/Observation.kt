@@ -1,9 +1,8 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 import com.welie.blessed.BluetoothBytesParser
-import com.welie.btserver.*
 import java.util.*
-import com.welie.btserver.extensions.merge
+import com.philips.btserver.extensions.merge
 import java.nio.ByteOrder
 
 abstract class Observation() {

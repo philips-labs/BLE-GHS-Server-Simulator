@@ -14,7 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import com.welie.btserver.BluetoothServer
+import com.philips.btserver.BluetoothServer
 import com.welie.btserver.R
 import java.util.ArrayList
 

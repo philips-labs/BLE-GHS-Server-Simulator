@@ -1,4 +1,4 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 
 import com.welie.blessed.BluetoothBytesParser

@@ -9,9 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
-import com.welie.btserver.generichealthservice.ObservationType
+import com.philips.btserver.generichealthservice.ObservationType
 import com.welie.btserver.R
-import com.welie.btserver.generichealthservice.ObservationEmitter
+import com.philips.btserver.generichealthservice.ObservationEmitter
 import kotlinx.android.synthetic.main.fragment_observations.*
 
 

@@ -1,4 +1,4 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 enum class ObservationType(val value: Int) {
     MDC_ACCELERATION_INDEX(150612),
