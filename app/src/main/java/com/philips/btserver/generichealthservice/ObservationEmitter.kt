@@ -14,6 +14,10 @@ object ObservationEmitter: ServiceListener {
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
      * false means send each observation as a sepeate ACOM Object
+     *
+     * Currently given there is no actual ACOM wrapper what this means from a data package
+     * standpoint is that all observations are bundled as an array and sent in the same
+     * sequence of packets (packets start on send of first, packets end at send of last)
      */
     var mergeObservations = true
 
@@ -44,7 +48,6 @@ object ObservationEmitter: ServiceListener {
     /*
      * ObservationEmitter options
      */
-
 
     fun shortTypeCodes(enable: Boolean) {
     }
@@ -111,7 +114,6 @@ object ObservationEmitter: ServiceListener {
     private fun sendObservations(singleShot: Boolean) {
         Timber.i("Emitting ${observations.size} observations")
         generateObservationsToSend()
-        kotlin.random.Random.nextInt(0, 100)
         if (mergeObservations) {
             ghsService?.sendObservations(observations)
         } else {
@@ -120,7 +122,7 @@ object ObservationEmitter: ServiceListener {
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
 
-    // ServiceListener interface methods
+    // BEGIN - ServiceListener interface methods
 
     // Someone has connected so we need to listen to the GHS service for events
     override fun onConnected(numberOfConnections: Int) {
@@ -139,7 +141,7 @@ object ObservationEmitter: ServiceListener {
     // If someone is listening for observation notifies then start emitting them
     override fun onNotifyingEnabled(characteristic: BluetoothGattCharacteristic) {
         if (characteristic.uuid == GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID) {
-            // For now don't start automatically...
+            // For now don't start automatically... uncomment if behavior desired
             //startEmitter()
         }
     }
@@ -157,6 +159,8 @@ object ObservationEmitter: ServiceListener {
 
     override fun onDescriptorWrite(descriptor: BluetoothGattDescriptor, value: ByteArray) {}
 
+    // END - ServiceListener interface methods
+
 }
 
 fun ObservationType.randomNumericValue(): Float {
@@ -168,21 +172,13 @@ fun ObservationType.randomNumericValue(): Float {
     }
 }
 
-// TODO: For now the sample array is just totally random and alway a 255 element byte array
+// TODO: For now regardless of type the sample array is just totally random and alway a 255 element byte array
 fun ObservationType.randomSampleArray(): ByteArray {
     val numberOfCycles = 5
     val samplesPerSecond = kotlin.random.Random.nextInt(40, 70)
     val sampleSeconds = 5
     val buffer = ByteArray(samplesPerSecond * sampleSeconds)
-    for (i in 0..buffer.size - 1) {
-        // Straight sine function means one cycle every 2*pi samples:
-        // buffer[i] = sin(i);
-        // Multiply by 2*pi--now it's one cycle per sample:
-        // buffer[i] = sin((2 * pi) * i);
-        // Multiply by 1,000 samples per second--now it's 1,000 cycles per second:
-        // buffer[i] = sin(1000 * (2 * pi) * i);
-        buffer[i] = (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 200).toInt().toByte()
-    }
+    buffer.fillWith { i -> (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 200).toInt().toByte() }
     return buffer
 }
 
@@ -203,4 +199,8 @@ fun ObservationType.unitCode(): UnitCode {
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
+}
+
+fun ByteArray.fillWith(action: (Int) -> Byte) {
+    for (i in 0..size - 1) { this[i] = action(i) }
 }

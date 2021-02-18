@@ -1,4 +1,4 @@
-package com.welie.btserver.ui.main
+package com.philips.btserver.ui
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

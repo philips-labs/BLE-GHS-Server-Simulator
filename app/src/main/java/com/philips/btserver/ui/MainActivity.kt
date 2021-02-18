@@ -1,4 +1,4 @@
-package com.welie.btserver
+package com.philips.btserver.ui
 
 import android.Manifest
 import android.app.AlertDialog
@@ -14,8 +14,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
-import com.welie.btserver.ui.main.SectionsPagerAdapter
+import com.welie.btserver.BluetoothServer
+import com.welie.btserver.R
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {

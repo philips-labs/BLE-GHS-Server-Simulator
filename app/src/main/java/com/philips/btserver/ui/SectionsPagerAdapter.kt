@@ -1,9 +1,13 @@
-package com.welie.btserver.ui.main
+package com.philips.btserver.ui
 
 import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import com.philips.btserver.ui.DeviceInformationFragment
+import com.philips.btserver.ui.ExperimentalFragment
+import com.philips.btserver.ui.ObservationsFragment
+import com.philips.btserver.ui.PlaceholderFragment
 import com.welie.btserver.R
 
 private val TAB_TITLES = arrayOf(

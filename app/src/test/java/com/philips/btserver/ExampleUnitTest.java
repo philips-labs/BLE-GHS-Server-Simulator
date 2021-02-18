@@ -1,4 +1,4 @@
-package com.welie.btserver;
+package com.philips.btserver;
 
 import org.junit.Test;
 
