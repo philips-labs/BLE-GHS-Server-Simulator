@@ -8,7 +8,7 @@ import com.philips.btserverapp.DeviceInformationFragment
 import com.philips.btserverapp.ExperimentalFragment
 import com.philips.btserverapp.ObservationsFragment
 import com.philips.btserverapp.PlaceholderFragment
-import com.welie.btserver.R
+import com.philips.btserver.R
 
 private val TAB_TITLES = arrayOf(
         R.string.tab_text_ble_info,
