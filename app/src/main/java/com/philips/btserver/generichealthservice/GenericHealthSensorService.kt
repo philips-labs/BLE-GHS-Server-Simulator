@@ -35,6 +35,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         }
     }
 
+    override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        ObservationEmitter.startEmitter()
+    }
+
     override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
