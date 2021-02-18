@@ -31,19 +31,19 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     override fun onCentralDisconnected(central: BluetoothCentral) {
         super.onCentralDisconnected(central)
         if (noCentralsConnected()) {
-            stopNotifying()
+            ObservationEmitter.stopEmitter()
         }
+    }
+
+    override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        ObservationEmitter.startEmitter()
     }
 
     override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            stopNotifying()
+            ObservationEmitter.stopEmitter()
         }
-    }
-
-    private fun stopNotifying() {
-        observationCharacteristic.getDescriptor(CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
     fun sendObservation(observation: Observation) {

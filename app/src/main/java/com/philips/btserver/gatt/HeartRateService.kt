@@ -48,7 +48,6 @@ internal class HeartRateService(peripheralManager: BluetoothPeripheralManager) :
 
     private fun stopNotifying() {
         handler.removeCallbacks(notifyRunnable)
-        measurement.getDescriptor(CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
     companion object {

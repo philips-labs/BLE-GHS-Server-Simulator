@@ -95,7 +95,7 @@ internal class BluetoothServer(context: Context) {
         }
     }
 
-    fun getServiceWithUUID(serviceUUID: UUID): Service? {
+    fun getServiceWithUUID(serviceUUID: UUID): BaseService? {
         return serviceImplementations.entries.find { it.key.uuid == serviceUUID }?.value
     }
 

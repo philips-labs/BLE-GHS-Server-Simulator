@@ -25,21 +25,20 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
             val dis = bleServer?.getServiceWithUUID(DIS_SERVICE_UUID)
             return  dis?.let {it as DeviceInformationService }
         }
-
     }
 
     init {
         service.addCharacteristic(manufacturerChar)
         service.addCharacteristic(modelNumberChar)
-        setManuanufacturer(Build.MODEL)
+        setManufacturer(Build.MANUFACTURER)
         setModelNumber(Build.MODEL)
     }
 
-    fun getManuanufacturer() : String {
+    fun getManufacturer() : String {
         return manufacturerChar.getStringValue(0)
     }
 
-    fun setManuanufacturer(mfgName: String) {
+    fun setManufacturer(mfgName: String) {
         manufacturerChar.setValue(mfgName)
     }
 
@@ -50,5 +49,4 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     fun setModelNumber(modelNum: String) {
         modelNumberChar.setValue(modelNum)
     }
-
 }
