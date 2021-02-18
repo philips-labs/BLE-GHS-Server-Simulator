@@ -1,11 +1,10 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.os.Handler
 import android.os.Looper
-import com.welie.btserver.*
-import com.welie.btserver.extensions.fillWith
+import com.philips.btserver.ServiceListener
 import timber.log.Timber
 import java.util.*
 
@@ -200,4 +199,8 @@ fun ObservationType.unitCode(): UnitCode {
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
+}
+
+fun ByteArray.fillWith(action: (Int) -> Byte) {
+    for (i in 0..size - 1) { this[i] = action(i) }
 }

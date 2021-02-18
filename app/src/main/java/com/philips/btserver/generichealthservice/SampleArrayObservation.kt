@@ -1,7 +1,6 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 import com.welie.blessed.BluetoothBytesParser
-import com.welie.btserver.extensions.getByteArray
 import timber.log.Timber
 import java.nio.ByteOrder
 import java.util.*

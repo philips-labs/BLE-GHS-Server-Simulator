@@ -8,8 +8,8 @@ import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
-import com.welie.btserver.BaseService
-import com.welie.btserver.extensions.asHexString
+import com.philips.btserver.BaseService
+import com.philips.btserver.extensions.asHexString
 import timber.log.Timber
 import java.nio.ByteOrder
 import java.util.*

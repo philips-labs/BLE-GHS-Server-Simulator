@@ -2,7 +2,7 @@
  * Copyright (c) Koninklijke Philips N.V. 2020.
  * All rights reserved.
  */
-package com.welie.btserver.extensions
+package com.philips.btserver.extensions
 
 import com.welie.blessed.BluetoothBytesParser
 import java.util.*

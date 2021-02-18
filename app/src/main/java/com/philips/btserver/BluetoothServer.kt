@@ -1,4 +1,4 @@
-package com.welie.btserver
+package com.philips.btserver
 
 import android.bluetooth.*
 import android.bluetooth.le.AdvertiseData
@@ -10,7 +10,7 @@ import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback
 import com.welie.blessed.GattStatus
-import com.welie.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*

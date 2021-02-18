@@ -1,20 +1,19 @@
-package com.welie.btserver.generichealthservice
+package com.philips.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import android.os.Handler
 import android.os.Looper
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.btserver.BaseService
-import com.welie.btserver.BluetoothServer
-import com.welie.btserver.extensions.asBLEDataSegments
-import com.welie.btserver.extensions.asHexString
-import com.welie.btserver.extensions.merge
+import com.philips.btserver.BaseService
+import com.philips.btserver.BluetoothServer
+import com.philips.btserver.extensions.asBLEDataSegments
+import com.philips.btserver.extensions.asHexString
+import com.philips.btserver.extensions.merge
 import timber.log.Timber
 import java.util.*
 

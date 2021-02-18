@@ -1,4 +1,4 @@
-package com.welie.btserver
+package com.philips.btserver
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor

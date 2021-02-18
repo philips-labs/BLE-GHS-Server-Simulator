@@ -2,7 +2,7 @@
  * Copyright (c) Koninklijke Philips N.V. 2020.
  * All rights reserved.
  */
-package com.welie.btserver.extensions
+package com.philips.btserver.extensions
 
 import kotlin.math.pow
 import kotlin.math.roundToInt
