@@ -92,3 +92,7 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
     }
     return result
 }
+
+fun ByteArray.fillWith(action: (Int) -> Byte) {
+    for (i in 0..size - 1) { this[i] = action(i) }
+}
