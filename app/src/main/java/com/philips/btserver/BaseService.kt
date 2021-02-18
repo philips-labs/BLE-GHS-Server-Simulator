@@ -60,9 +60,9 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
 
     open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {}
 
-    open fun onCentralConnected(central: BluetoothCentral) {}
+    override fun onCentralConnected(central: BluetoothCentral) {}
 
-    open fun onCentralDisconnected(central: BluetoothCentral) {}
+    override fun onCentralDisconnected(central: BluetoothCentral) {}
 
 
     companion object {

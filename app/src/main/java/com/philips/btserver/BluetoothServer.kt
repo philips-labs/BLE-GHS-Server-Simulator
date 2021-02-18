@@ -72,6 +72,10 @@ internal class BluetoothServer(context: Context) {
         connectionListeners.remove(connectionListner)
     }
 
+    fun numberOfCentralsConnected(): Int {
+        return peripheralManager.getConnectedCentrals().size
+    }
+
     fun startAdvertising(serviceUUID: UUID) {
         val advertiseSettings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -97,10 +101,6 @@ internal class BluetoothServer(context: Context) {
 
     fun getServiceWithUUID(serviceUUID: UUID): BaseService? {
         return serviceImplementations.entries.find { it.key.uuid == serviceUUID }?.value
-    }
-
-    fun numberOfCentralsConnected(): Int {
-        return peripheralManager.getConnectedCentrals().size
     }
 
     private val serviceImplementations = HashMap<BluetoothGattService, BaseService>()
