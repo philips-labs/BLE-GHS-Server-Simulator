@@ -18,7 +18,7 @@ object ObservationEmitter: ServiceListener {
     var mergeObservations = true
 
     val observations = mutableListOf<Observation>()
-    private val handler = Handler(Looper.myLooper())
+    private val handler = Handler(Looper.myLooper() ?: Looper.getMainLooper())
     private val notifyRunnable = Runnable { sendObservations(false) }
 
     private var lastHandle = 1
@@ -27,7 +27,6 @@ object ObservationEmitter: ServiceListener {
 
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
-
 
     init {
         ghsService?.addListener(this)
@@ -42,6 +41,29 @@ object ObservationEmitter: ServiceListener {
         observations.removeAll { it.type == type }
     }
 
+    /*
+     * ObservationEmitter options
+     */
+
+
+    fun shortTypeCodes(enable: Boolean) {
+    }
+
+    fun omitFixedLengthTypes(omit: Boolean) {
+    }
+
+    fun omitHandleTLV(omit: Boolean) {
+    }
+
+    fun omitUnitCode(omit: Boolean) {
+    }
+
+    fun enableObservationArrayType(enable: Boolean) {
+    }
+
+    /*
+     * Private methods
+     */
     private fun generateObservationsToSend() {
         observations.clear()
         observations.addAll(typesToEmit.mapNotNull { randomObservationOfType(it) })

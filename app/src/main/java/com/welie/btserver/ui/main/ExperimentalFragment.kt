@@ -6,7 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.welie.btserver.R
+import com.welie.btserver.generichealthservice.ObservationEmitter
+import com.welie.btserver.generichealthservice.ObservationType
 import kotlinx.android.synthetic.main.fragment_experimental.*
+import kotlinx.android.synthetic.main.fragment_observations.*
 
 /**
  * A simple [Fragment] subclass.
@@ -22,6 +25,15 @@ class ExperimentalFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_experimental, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkboxShortTypeCodes?.setOnClickListener { ObservationEmitter.shortTypeCodes(checkboxShortTypeCodes.isChecked) }
+        choiceOmitFixedLengthTypes?.setOnClickListener { ObservationEmitter.omitFixedLengthTypes(choiceOmitFixedLengthTypes.isChecked) }
+        choiceOmitHandleTLV?.setOnClickListener { ObservationEmitter.omitHandleTLV(choiceOmitHandleTLV.isChecked) }
+        choiceOmitUnitCode?.setOnClickListener { ObservationEmitter.omitUnitCode(choiceOmitUnitCode.isChecked) }
+        choiceObsArrayType?.setOnClickListener { ObservationEmitter.enableObservationArrayType(choiceObsArrayType.isChecked) }
     }
 
 }

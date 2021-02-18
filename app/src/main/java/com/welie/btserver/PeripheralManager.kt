@@ -15,7 +15,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 
-class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, callback: PeripheralManagerCallback) {
+class PeripheralManager(context: Context,
+                        bluetoothManager:
+                        BluetoothManager,
+                        callback: PeripheralManagerCallback) {
     private val context: Context
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothManager: BluetoothManager
@@ -30,7 +33,26 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
     private var commandQueueBusy = false
     private val connectedCentralsMap: MutableMap<String, Central> = ConcurrentHashMap()
 
-    private val bluetoothGattServerCallback: BluetoothGattServerCallback = object : BluetoothGattServerCallback() {
+    private val bluetoothGattServerCallback: BluetoothGattServerCallback = object: BluetoothGattServerCallback() {
+
+        override fun onCharacteristicReadRequest(device: BluetoothDevice,
+                                                 requestId: Int,
+                                                 offset: Int,
+                                                 characteristic: BluetoothGattCharacteristic) {
+            Timber.i("read request for characteristic <%s> with offset %d", characteristic.uuid, offset)
+            mainHandler.post {
+                val central = getCentral(device)
+                if (central != null) {
+                    if (offset == 0) {
+                        callback.onCharacteristicRead(central, characteristic)
+                    }
+
+                    // If data is longer than MTU - 1, cut the array. Only ATT_MTU - 1 bytes can be sent in Long Read.
+                    val value = copyOf(nonnullOf(characteristic.value), offset, central.currentMtu - 1)
+                    bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
+                }
+            }
+        }
 
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -76,22 +98,6 @@ class PeripheralManager(context: Context, bluetoothManager: BluetoothManager, ca
         override fun onServiceAdded(status: Int, service: BluetoothGattService) {
             mainHandler.post { callback.onServiceAdded(status, service) }
             completedCommand()
-        }
-
-        override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, characteristic: BluetoothGattCharacteristic) {
-            Timber.i("read request for characteristic <%s> with offset %d", characteristic.uuid, offset)
-            mainHandler.post {
-                val central = getCentral(device)
-                if (central != null) {
-                    if (offset == 0) {
-                        callback.onCharacteristicRead(central, characteristic)
-                    }
-
-                    // If data is longer than MTU - 1, cut the array. Only ATT_MTU - 1 bytes can be sent in Long Read.
-                    val value = copyOf(nonnullOf(characteristic.value), offset, central.currentMtu - 1)
-                    bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
-                }
-            }
         }
 
         private fun copyOf(source: ByteArray, offset: Int, maxSize: Int): ByteArray {

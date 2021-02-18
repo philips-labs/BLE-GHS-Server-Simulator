@@ -58,7 +58,7 @@ class DeviceInformationFragment : Fragment() {
     }
 
     private fun getModelNumber(): String {
-        return deviceInfoService?.getModelNumber() ?: "Not available"
+        return deviceInfoService?.getModelNumber() ?: "Model Number"
     }
 
     private fun changeAdvName() {

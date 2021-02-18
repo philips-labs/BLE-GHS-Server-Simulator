@@ -1,7 +1,5 @@
 package com.welie.btserver.generichealthservice
 
-import com.welie.btserver.generichealthservice.ObservationType
-
 enum class ObservationValueType(val value: Int) {
     MDC_ATTR_NU_VAL_OBS_SIMP(0x00010A56),  // Simple-Nu-Observed-Value
     MDC_ATTR_NU_CMPD_VAL_OBS(0x0001094B),  // Compound-Nu-Observed-Value, Numeric and derived objects
@@ -24,8 +22,8 @@ enum class ObservationValueType(val value: Int) {
 fun ObservationType.valueType(): ObservationValueType {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE,
-            ObservationType.MDC_SPO2_OXYGENATION_RATIO,
-            ObservationType.MDC_TEMP_BODY-> ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO,
+        ObservationType.MDC_TEMP_BODY-> ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP
         ObservationType.MDC_PPG_TIME_PD_PP-> ObservationValueType.MDC_ATTR_SA_VAL_OBS
         else -> ObservationValueType.UNKNOWN_TYPE_VAL_OBS
 
