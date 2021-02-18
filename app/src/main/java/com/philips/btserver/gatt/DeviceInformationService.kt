@@ -1,9 +1,11 @@
-package com.welie.btserver
+package com.philips.btserver.gatt
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.os.Build
 import com.welie.blessed.BluetoothPeripheralManager
+import com.welie.btserver.BaseService
+import com.welie.btserver.BluetoothServer
 import java.util.*
 
 internal class DeviceInformationService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {

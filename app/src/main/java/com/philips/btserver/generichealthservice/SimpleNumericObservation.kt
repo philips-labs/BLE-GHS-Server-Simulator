@@ -8,7 +8,12 @@ import timber.log.Timber
 import java.nio.ByteOrder
 import java.util.*
 
-data class SimpleNumericObservation(override val id: Short, override val type: ObservationType, override val value: Float, val valuePrecision: Int, override val unitCode: UnitCode, override val timestamp: Date): Observation() {
+data class SimpleNumericObservation(override val id: Short,
+                                    override val type: ObservationType,
+                                    override val value: Float,
+                                    val valuePrecision: Int,
+                                    override val unitCode: UnitCode,
+                                    override val timestamp: Date): Observation() {
 
     override val valueByteArray: ByteArray
         get() {

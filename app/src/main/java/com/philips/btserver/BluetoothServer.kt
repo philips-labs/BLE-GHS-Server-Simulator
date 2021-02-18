@@ -4,8 +4,8 @@ import android.bluetooth.*
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
-import android.os.Handler
 import android.os.ParcelUuid
+import com.philips.btserver.gatt.CurrentTimeService
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback

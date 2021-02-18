@@ -1,4 +1,4 @@
-package com.welie.btserver
+package com.philips.btserver.gatt
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
@@ -8,6 +8,7 @@ import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
+import com.welie.btserver.BaseService
 import com.welie.btserver.extensions.asHexString
 import timber.log.Timber
 import java.nio.ByteOrder

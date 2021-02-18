@@ -1,4 +1,4 @@
-package com.welie.btserver.ui.main
+package com.philips.btserver.ui
 
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
@@ -13,9 +13,8 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.welie.btserver.DeviceInformationService
+import com.philips.btserver.gatt.DeviceInformationService
 import com.welie.btserver.R
-import com.welie.btserver.generichealthservice.ObservationEmitter
 import kotlinx.android.synthetic.main.fragment_device_information.*
 
 
@@ -58,7 +57,7 @@ class DeviceInformationFragment : Fragment() {
     }
 
     private fun getModelNumber(): String {
-        return deviceInfoService?.getModelNumber() ?: "Not available"
+        return deviceInfoService?.getModelNumber() ?: "Model Number"
     }
 
     private fun changeAdvName() {

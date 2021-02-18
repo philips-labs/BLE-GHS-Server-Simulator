@@ -1,4 +1,4 @@
-package com.welie.btserver.ui.main
+package com.philips.btserver.ui
 
 import android.app.AlertDialog
 import android.content.DialogInterface
