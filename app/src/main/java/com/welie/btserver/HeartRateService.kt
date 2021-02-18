@@ -5,10 +5,12 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
 import android.os.Looper
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.BluetoothPeripheralManager
 import timber.log.Timber
 import java.util.*
 
-internal class HeartRateService(peripheralManager: PeripheralManager) : BaseService(peripheralManager) {
+internal class HeartRateService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(HRS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
     private val measurement = BluetoothGattCharacteristic(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_READ)
@@ -17,19 +19,19 @@ internal class HeartRateService(peripheralManager: PeripheralManager) : BaseServ
     private val notifyRunnable = Runnable { notifyHeartRate() }
     private var currentHR = 80
 
-    override fun onCentralDisconnected(central: Central) {
+    override fun onCentralDisconnected(central: BluetoothCentral) {
         if (noCentralsConnected()) {
             stopNotifying()
         }
     }
 
-    override fun onNotifyingEnabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+    override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         if (characteristic.uuid == HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID) {
             notifyHeartRate()
         }
     }
 
-    override fun onNotifyingDisabled(central: Central, characteristic: BluetoothGattCharacteristic) {
+    override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         if (characteristic.uuid == HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID) {
             stopNotifying()
         }
@@ -45,7 +47,7 @@ internal class HeartRateService(peripheralManager: PeripheralManager) : BaseServ
 
     private fun stopNotifying() {
         handler.removeCallbacks(notifyRunnable)
-        measurement.getDescriptor(PeripheralManager.CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        measurement.getDescriptor(CCC_DESCRIPTOR_UUID).value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
     }
 
     companion object {

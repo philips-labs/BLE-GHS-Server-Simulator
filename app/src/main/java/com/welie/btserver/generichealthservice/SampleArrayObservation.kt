@@ -1,9 +1,9 @@
 package com.welie.btserver.generichealthservice
 
-import com.welie.btserver.BluetoothBytesParser
-import com.welie.btserver.ByteOrder
+import com.welie.blessed.BluetoothBytesParser
 import com.welie.btserver.extensions.getByteArray
 import timber.log.Timber
+import java.nio.ByteOrder
 import java.util.*
 
 data class SampleArrayObservation(override val id: Short,
@@ -17,7 +17,7 @@ data class SampleArrayObservation(override val id: Short,
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(valueCode, BluetoothBytesParser.FORMAT_UINT32)
             parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT16)
-            return parser.bytes + value
+            return parser.value + value
         }
 
     companion object {

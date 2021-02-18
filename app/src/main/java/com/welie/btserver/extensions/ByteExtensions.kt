@@ -4,7 +4,7 @@
  */
 package com.welie.btserver.extensions
 
-import com.welie.btserver.BluetoothBytesParser
+import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
 
@@ -54,7 +54,7 @@ fun Byte.toUINT8(): Int {
  * @return The DateTime read from the bytes. This will cause an exception if bytes run past end. Will return 0 epoch if unparsable
  */
 fun BluetoothBytesParser.getByteArray(length: Int): ByteArray {
-    val array = bytes.copyOfRange(offset, offset + length)
+    val array = value.copyOfRange(offset, offset + length)
     offset += length
     return array
 }
