@@ -33,7 +33,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar" >
         <activity
-            android:name="com.philips.btserver.ui.MainActivity"
+            android:name="com.philips.btserverapp.MainActivity"
             android:label="@string/title_activity_main2" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

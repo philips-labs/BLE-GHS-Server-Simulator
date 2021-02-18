@@ -1,4 +1,4 @@
-package com.philips.btserver.ui
+package com.philips.btserverapp
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

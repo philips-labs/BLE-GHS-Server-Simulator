@@ -1,4 +1,4 @@
-package com.philips.btserver.ui
+package com.philips.btserverapp
 
 import android.app.AlertDialog
 import android.content.DialogInterface
