@@ -30,6 +30,8 @@
 
     <string name="obsSizesTitle">Object sizes:</string>
     <string name="simpleNumericObs">Simple numeric observation: 142 bytes</string>
+    <string name="central_connected">(Connected)</string>
+    <string name="central_disconnected">(Disconnected)</string>
 
 
 </resources>

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Service {
+internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Service, BluetoothServerConnectionListener {
     protected val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
     private val listeners = mutableSetOf<ServiceListener>()
 

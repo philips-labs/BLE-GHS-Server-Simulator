@@ -15,11 +15,19 @@ import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
 
+interface BluetoothServerConnectionListener {
+    fun onCentralConnected(central: BluetoothCentral)
+    fun onCentralDisconnected(central: BluetoothCentral)
+}
+
 internal class BluetoothServer(context: Context) {
 
     var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
     private val peripheralManager: BluetoothPeripheralManager
+
+    // Listners for central connect/disconnects
+    private val connectionListeners = mutableListOf<BluetoothServerConnectionListener>()
 
     private val peripheralManagerCallback: BluetoothPeripheralManagerCallback = object : BluetoothPeripheralManagerCallback() {
         override fun onServiceAdded(status: GattStatus, service: BluetoothGattService) {}
@@ -48,16 +56,20 @@ internal class BluetoothServer(context: Context) {
         }
 
         override fun onCentralConnected(central: BluetoothCentral) {
-            for (serviceImplementation in serviceImplementations.values) {
-                serviceImplementation.onCentralConnected(central)
-            }
+            (connectionListeners + serviceImplementations.values).forEach { it.onCentralConnected(central) }
         }
 
         override fun onCentralDisconnected(central: BluetoothCentral) {
-            for (serviceImplementation in serviceImplementations.values) {
-                serviceImplementation.onCentralDisconnected(central)
-            }
+            (connectionListeners + connectionListeners).forEach { it.onCentralDisconnected(central) }
         }
+    }
+
+    fun addConnectionListener(connectionListner: BluetoothServerConnectionListener) {
+        connectionListeners.add(connectionListner)
+    }
+
+    fun removeConnectionListener(connectionListner: BluetoothServerConnectionListener) {
+        connectionListeners.remove(connectionListner)
     }
 
     fun startAdvertising(serviceUUID: UUID) {
@@ -87,7 +99,11 @@ internal class BluetoothServer(context: Context) {
         return serviceImplementations.entries.find { it.key.uuid == serviceUUID }?.value
     }
 
-    private val serviceImplementations = HashMap<BluetoothGattService, Service>()
+    fun numberOfCentralsConnected(): Int {
+        return peripheralManager.getConnectedCentrals().size
+    }
+
+    private val serviceImplementations = HashMap<BluetoothGattService, BaseService>()
 
     companion object {
         private var instance: BluetoothServer? = null

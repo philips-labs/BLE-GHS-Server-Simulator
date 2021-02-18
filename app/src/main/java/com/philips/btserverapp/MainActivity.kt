@@ -9,16 +9,19 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.TextView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
 import com.philips.btserver.BluetoothServer
+import com.philips.btserver.BluetoothServerConnectionListener
 import com.philips.btserver.R
+import com.welie.blessed.BluetoothCentral
 import java.util.ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
 
     private lateinit var sectionsPagerAdapter: SectionsPagerAdapter
 
@@ -141,12 +144,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initBluetoothHandler() {
-        BluetoothServer.getInstance(applicationContext)
+        val btServer = BluetoothServer.getInstance(applicationContext)
+        btServer?.addConnectionListener(this)
         sectionsPagerAdapter.updatePages()
     }
 
     companion object {
         private const val REQUEST_ENABLE_BT = 1
         private const val ACCESS_LOCATION_REQUEST = 2
+    }
+
+    override fun onCentralConnected(central: BluetoothCentral) {
+        val titleView: TextView = findViewById(R.id.title)
+        titleView.text = "${getString(R.string.app_name)} ${getString(R.string.central_connected)}"
+    }
+
+    override fun onCentralDisconnected(central: BluetoothCentral) {
+        val titleView: TextView = findViewById(R.id.title)
+        if (BluetoothServer.getInstance()?.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
     }
 }
