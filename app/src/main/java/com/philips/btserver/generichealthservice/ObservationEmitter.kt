@@ -1,14 +1,12 @@
 package com.philips.btserver.generichealthservice
 
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
+
 import android.os.Handler
 import android.os.Looper
-import com.philips.btserver.ServiceListener
 import timber.log.Timber
 import java.util.*
 
-object ObservationEmitter: ServiceListener {
+object ObservationEmitter {
 
     var emitterPeriod = 10
     /*
@@ -31,10 +29,6 @@ object ObservationEmitter: ServiceListener {
 
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
-
-    init {
-        ghsService?.addListener(this)
-    }
 
     fun addObservationType(type: ObservationType) {
         typesToEmit.add(type)
@@ -121,45 +115,6 @@ object ObservationEmitter: ServiceListener {
         }
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
-
-    // BEGIN - ServiceListener interface methods
-
-    // Someone has connected so we need to listen to the GHS service for events
-    override fun onConnected(numberOfConnections: Int) {
-        ghsService?.addListener(this)
-    }
-
-    // If no connections then we no longer need to listen for events
-    override fun onDisconnected(numberOfConnections: Int) {
-        if (numberOfConnections == 0) {
-            // Since stopping is under UI control, don't as this gets UI out of sync and should be under user control (or broadcast state)
-            // stopEmitter()
-            ghsService?.removeListener(this)
-        }
-    }
-
-    // If someone is listening for observation notifies then start emitting them
-    override fun onNotifyingEnabled(characteristic: BluetoothGattCharacteristic) {
-        if (characteristic.uuid == GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID) {
-            // For now don't start automatically... uncomment if behavior desired
-            //startEmitter()
-        }
-    }
-
-    // If stopped listening for observation notifies then stop emitting them
-    override fun onNotifyingDisabled(ccharacteristic: BluetoothGattCharacteristic) {
-        stopEmitter()
-    }
-
-    override fun onCharacteristicRead(characteristic: BluetoothGattCharacteristic) {}
-
-    override fun onCharacteristicWrite(characteristic: BluetoothGattCharacteristic, value: ByteArray) {}
-
-    override fun onDescriptorRead(descriptor: BluetoothGattDescriptor) {}
-
-    override fun onDescriptorWrite(descriptor: BluetoothGattDescriptor, value: ByteArray) {}
-
-    // END - ServiceListener interface methods
 
 }
 

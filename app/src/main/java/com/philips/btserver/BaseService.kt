@@ -10,15 +10,14 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Service {
-    protected val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
-    private val listeners = mutableSetOf<ServiceListener>()
+internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) {
+    val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
 
-    fun getCccDescriptor() : BluetoothGattDescriptor {
-            val cccDescriptor = BluetoothGattDescriptor(CCC_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
-            cccDescriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-            return cccDescriptor
-        }
+    fun getCccDescriptor(): BluetoothGattDescriptor {
+        val cccDescriptor = BluetoothGattDescriptor(CCC_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
+        cccDescriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        return cccDescriptor
+    }
 
     fun getCudDescriptor(defaultValue: String): BluetoothGattDescriptor {
         val cudDescriptor = BluetoothGattDescriptor(CUD_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
@@ -39,53 +38,36 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
     }
 
     val minimalMTU: Int
-        get() = min((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu } ?: MAX_MIN_MTU), MAX_MIN_MTU)
+        get() = min((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu }
+                ?: MAX_MIN_MTU), MAX_MIN_MTU)
 
-    abstract override val service: BluetoothGattService
-    override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-        listeners.forEach { it.onCharacteristicRead(characteristic) }
+    abstract val service: BluetoothGattService
+
+    open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
     }
-    override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
-        listeners.forEach { it.onCharacteristicWrite(characteristic, value) }
+
+    open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
         return GattStatus.SUCCESS
     }
 
-    override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
-        listeners.forEach { it.onDescriptorRead(descriptor) }
-    }
+    open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {}
 
-    override fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
-        listeners.forEach { it.onDescriptorWrite(descriptor, value) }
+    open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
         return GattStatus.SUCCESS
     }
 
-    override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-        listeners.forEach { it.onNotifyingEnabled(characteristic) }
-    }
+    open fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {}
 
-    override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-        listeners.forEach { it.onNotifyingDisabled(characteristic) }
-    }
+    open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {}
 
-    override fun onCentralConnected(central: BluetoothCentral) {
-        listeners.forEach {it.onConnected(numberOfCentralsConnected())}
-    }
+    open fun onCentralConnected(central: BluetoothCentral) {}
 
-    override fun onCentralDisconnected(central: BluetoothCentral) {
-        listeners.forEach {it.onDisconnected(numberOfCentralsConnected())}
-    }
+    open fun onCentralDisconnected(central: BluetoothCentral) {}
 
-    override fun addListener(listener: ServiceListener) {
-        listeners.add(listener)
-    }
-
-    override fun removeListener(listener: ServiceListener) {
-        listeners.remove(listener)
-    }
 
     companion object {
-        val CUD_DESCRIPTOR_UUID = UUID.fromString("00002901-0000-1000-8000-00805f9b34fb")
-        val CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        val CUD_DESCRIPTOR_UUID: UUID = UUID.fromString("00002901-0000-1000-8000-00805f9b34fb")
+        val CCC_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val MAX_MIN_MTU = 23
     }
 }

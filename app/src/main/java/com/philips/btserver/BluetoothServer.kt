@@ -83,11 +83,11 @@ internal class BluetoothServer(context: Context) {
         }
     }
 
-    fun getServiceWithUUID(serviceUUID: UUID): Service? {
+    fun getServiceWithUUID(serviceUUID: UUID): BaseService? {
         return serviceImplementations.entries.find { it.key.uuid == serviceUUID }?.value
     }
 
-    private val serviceImplementations = HashMap<BluetoothGattService, Service>()
+    private val serviceImplementations = HashMap<BluetoothGattService, BaseService>()
 
     companion object {
         private var instance: BluetoothServer? = null
