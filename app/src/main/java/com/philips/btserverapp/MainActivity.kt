@@ -1,4 +1,4 @@
-package com.philips.btserver.ui
+package com.philips.btserverapp
 
 import android.Manifest
 import android.app.AlertDialog
@@ -15,7 +15,7 @@ import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
 import com.philips.btserver.BluetoothServer
-import com.welie.btserver.R
+import com.philips.btserver.R
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {

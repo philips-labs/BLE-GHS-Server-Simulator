@@ -1,4 +1,4 @@
-package com.philips.btserver.ui
+package com.philips.btserverapp
 
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
@@ -14,7 +14,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.philips.btserver.gatt.DeviceInformationService
-import com.welie.btserver.R
+import com.philips.btserver.R
 import kotlinx.android.synthetic.main.fragment_device_information.*
 
 
