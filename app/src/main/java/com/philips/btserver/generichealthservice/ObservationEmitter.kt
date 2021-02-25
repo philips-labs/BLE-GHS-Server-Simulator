@@ -8,7 +8,76 @@ import java.util.*
 
 object ObservationEmitter {
 
-    var emitterPeriod = 10
+    /*
+     * ObservationEmitter public property configuration options
+     */
+
+    /*
+     * A "short" type code is to experiment with using 2-byte (16-bit) observation type
+     * codes rather than 4-byte full MDC codes... however, this implies the receiver can
+     * map them back to MDC codes, which potentially dilutes the saving of 2 bytes from each
+     * type code element. However if
+     */
+    var useShortTypeCodes: Boolean = false
+
+    /*
+     * Omitting length on TLVs where the "Ts" (types) are of known, fixed length.
+     * The types that have a known length are:
+     *      Handle
+     *      Unit Code
+     *
+     * Notes:
+     *
+     * Multiple time lengths (4, 6, 8 bytes) are being investigated/supported. However,
+     * it is assumed that timestamps (and timezone) will end up being a fixed length type.
+     *
+     * As more of the ACOM model is implemented, more types will be included and any
+     * that are fixed length are assumed to be included in this list
+     */
+    var omitFixedLengthTypes = false
+
+    /*
+     * Although specified as required the handle is only used if the object is referenced
+     * in another object. This is not the case in a vast majority of use cases, so allow
+     * the handle element to not be included, unless it will be used in another reference.
+     *
+     * This also implies that handle should (can?) not be the first element.
+     *
+     */
+    var omitHandleTLV = false
+
+    /*
+     * For many observation types (heart rate, blood pressure, spO2, etc) the units are
+     * known and standard, with alternative units being an exception/edge case.
+     *
+     * This allows the omission ot the unit code in which case the receiver can assume
+     * the "standard" unit (e.g. for heart rate bpm, for temperatures degrees centigrade...
+     * etc... though for measurues like weight there would need to be agreement on grams or
+     * kilograms)
+     */
+    var omitUnitCode = false
+
+    /*
+     * Experiment with a type for an observation array observation (or compound observation observation)
+     * This is an "enhanced" concept of the Compound Numeric Observation as it allows for an array
+     * of full observations. From this a number of issues to explore arise such as timestamps being
+     * duplicated in each observation in the array.
+     *
+     * Why this is important vs. simply using a Compound Numeric Observation can be demonstrated with the
+     * following example:
+     *
+     * A fetal heart monitor reading for the maternal and fetal HRs could be expressed with a
+     * Compound Numeric Observation (with the typeList [maternalHRType, fetalHRType] and the
+     * valueList [maternalHR, fetalHR]. However for each HR there is other meta information that
+     * needs to be associated (e.g. signal quality). These could be aggregated and included in
+     * the supplemental information for the compound measurement. However, this would require
+     * subtypes for aggregation (e..g a term for maternalSignalQuality, fetalSignalQuality).
+     *
+     * With the maternal and fetal heart rates for a given moment stored as a observation array each
+     * could maintain their own supplemental terms for signal quality.
+     */
+    var enableObservationArrayType = false
+
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
      * false means send each observation as a sepeate ACOM Object
@@ -19,7 +88,15 @@ object ObservationEmitter {
      */
     var mergeObservations = true
 
-    val observations = mutableListOf<Observation>()
+    // Interval to emit observations (in seconds)
+    var emitterPeriod = 10
+
+
+    /*
+     * ObservationEmitter private properties
+     */
+
+    private val observations = mutableListOf<Observation>()
     private val handler = Handler(Looper.myLooper() ?: Looper.getMainLooper())
     private val notifyRunnable = Runnable { sendObservations(false) }
 
@@ -29,6 +106,10 @@ object ObservationEmitter {
 
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
+
+    /*
+     * Public methods
+     */
 
     fun addObservationType(type: ObservationType) {
         typesToEmit.add(type)
@@ -40,27 +121,9 @@ object ObservationEmitter {
     }
 
     /*
-     * ObservationEmitter options
-     */
-
-    fun shortTypeCodes(enable: Boolean) {
-    }
-
-    fun omitFixedLengthTypes(omit: Boolean) {
-    }
-
-    fun omitHandleTLV(omit: Boolean) {
-    }
-
-    fun omitUnitCode(omit: Boolean) {
-    }
-
-    fun enableObservationArrayType(enable: Boolean) {
-    }
-
-    /*
      * Private methods
      */
+
     private fun generateObservationsToSend() {
         observations.clear()
         observations.addAll(typesToEmit.mapNotNull { randomObservationOfType(it) })

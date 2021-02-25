@@ -28,11 +28,11 @@ class ExperimentalFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        checkboxShortTypeCodes?.setOnClickListener { ObservationEmitter.shortTypeCodes(checkboxShortTypeCodes.isChecked) }
-        choiceOmitFixedLengthTypes?.setOnClickListener { ObservationEmitter.omitFixedLengthTypes(choiceOmitFixedLengthTypes.isChecked) }
-        choiceOmitHandleTLV?.setOnClickListener { ObservationEmitter.omitHandleTLV(choiceOmitHandleTLV.isChecked) }
-        choiceOmitUnitCode?.setOnClickListener { ObservationEmitter.omitUnitCode(choiceOmitUnitCode.isChecked) }
-        choiceObsArrayType?.setOnClickListener { ObservationEmitter.enableObservationArrayType(choiceObsArrayType.isChecked) }
+        checkboxShortTypeCodes?.setOnClickListener { ObservationEmitter.useShortTypeCodes = checkboxShortTypeCodes.isChecked }
+        choiceOmitFixedLengthTypes?.setOnClickListener { ObservationEmitter.omitFixedLengthTypes = choiceOmitFixedLengthTypes.isChecked }
+        choiceOmitHandleTLV?.setOnClickListener { ObservationEmitter.omitHandleTLV = choiceOmitHandleTLV.isChecked }
+        choiceOmitUnitCode?.setOnClickListener { ObservationEmitter.omitUnitCode = choiceOmitUnitCode.isChecked }
+        choiceObsArrayType?.setOnClickListener { ObservationEmitter.enableObservationArrayType = choiceObsArrayType.isChecked }
     }
 
 }
