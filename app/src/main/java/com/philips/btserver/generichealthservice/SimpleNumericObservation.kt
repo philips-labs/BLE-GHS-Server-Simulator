@@ -16,13 +16,7 @@ data class SimpleNumericObservation(override val id: Short,
                                     override val timestamp: Date): Observation() {
 
     override val valueByteArray: ByteArray
-        get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(valueCode, FORMAT_UINT32)
-            parser.setIntValue(valueLength, FORMAT_UINT16)
-            parser.setFloatValue(value, valuePrecision)
-            return parser.value
-        }
+        get() { return encodeTLV(valueCode, valueLength, value, valuePrecision) }
 
     companion object {
 

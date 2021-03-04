@@ -102,7 +102,7 @@ abstract class Observation() {
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
-        get() { return encodeTLV(handleCode, handleLength, id.toInt(), true) }
+        get() { return encodeTLV(handleCode, handleLength, id) }
 
     // Made public for ObservationTest
     val typeByteArray: ByteArray
@@ -112,17 +112,18 @@ abstract class Observation() {
     val unitByteArray: ByteArray
         get() { return encodeTLV(unitCodeId, unitLength, unitCode.value) }
 
-    // Used by fixed length, integer fields (handle, type, unit)
-    private fun encodeTLV(type: Int, length: Int, value: Int, isValueShort: Boolean = false): ByteArray {
+    // Used by fixed length, Short/Int/Long/Float fields (handle, type, unit)
+    protected fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
         val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
         parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
-        if (!omitFixedLengthTypes) parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
-        parser.setIntValue(value,
-                if (isValueShort)
-                    BluetoothBytesParser.FORMAT_UINT16
-                else
-                    BluetoothBytesParser.FORMAT_UINT32 )
-
+        parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+        when (value) {
+            is Int -> parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+            is Short -> parser.setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
+            is Long -> parser.setLong(value)
+            is Float -> parser.setFloatValue(value, precision)
+            else -> error("Unsupported value type sent to encodeTLV()")
+        }
         return parser.value
     }
 
