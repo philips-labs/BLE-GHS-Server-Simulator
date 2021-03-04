@@ -44,10 +44,9 @@ class ObservationTest {
                     BluetoothBytesParser.FORMAT_UINT32 )
         return parser.value
     }
-
-
+    
     fun handle_byte_array_for(id: Short): ByteArray {
-        return encodeTLV(Observation.handleCode, Observation.handleLength, id.toInt())
+        return encodeTLV(Observation.handleCode, Observation.handleLength, id.toInt(), true)
     }
 
     @Test
@@ -57,7 +56,7 @@ class ObservationTest {
     }
 
     fun type_byte_array_for(type: ObservationType): ByteArray {
-        return encodeTLV(Observation.typeCode, Observation.typeLength, type.value, false)
+        return encodeTLV(Observation.typeCode, Observation.typeLength, type.value)
     }
 
     @Test

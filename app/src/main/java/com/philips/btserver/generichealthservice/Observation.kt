@@ -102,7 +102,7 @@ abstract class Observation() {
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
-        get() { return encodeTLV(handleCode, handleLength, id.toInt()) }
+        get() { return encodeTLV(handleCode, handleLength, id.toInt(), true) }
 
     // Made public for ObservationTest
     val typeByteArray: ByteArray
@@ -113,11 +113,16 @@ abstract class Observation() {
         get() { return encodeTLV(unitCodeId, unitLength, unitCode.value) }
 
     // Used by fixed length, integer fields (handle, type, unit)
-    private fun encodeTLV(type: Int, length: Int, value: Int): ByteArray {
+    private fun encodeTLV(type: Int, length: Int, value: Int, isValueShort: Boolean = false): ByteArray {
         val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
         parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
         if (!omitFixedLengthTypes) parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
-        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setIntValue(value,
+                if (isValueShort)
+                    BluetoothBytesParser.FORMAT_UINT16
+                else
+                    BluetoothBytesParser.FORMAT_UINT32 )
+
         return parser.value
     }
 
