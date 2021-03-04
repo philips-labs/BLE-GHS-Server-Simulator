@@ -100,34 +100,28 @@ abstract class Observation() {
     private val omitFixedLengthTypes: Boolean
         get() { return experimentalOptions.get(ExperimentalFeature.omitFixedLengthTypes.bit) }
 
-    private val handleByteArray: ByteArray
-        get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(handleCode, BluetoothBytesParser.FORMAT_UINT32)
-            if (!omitFixedLengthTypes) parser.setIntValue(handleLength, BluetoothBytesParser.FORMAT_UINT16)
-            parser.setIntValue(id.toInt(), BluetoothBytesParser.FORMAT_UINT16)
-            return parser.value
-        }
+    // Made public for ObservationTest
+    val handleByteArray: ByteArray
+        get() { return encodeTLV(handleCode, handleLength, id.toInt()) }
 
-    private val typeByteArray: ByteArray
-        get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(typeCode, BluetoothBytesParser.FORMAT_UINT32)
-            if (!omitFixedLengthTypes) parser.setIntValue(typeLength, BluetoothBytesParser.FORMAT_UINT16)
-            parser.setIntValue(type.value, BluetoothBytesParser.FORMAT_UINT32)
-            return parser.value
-        }
+    // Made public for ObservationTest
+    val typeByteArray: ByteArray
+        get() { return encodeTLV(typeCode, typeLength, type.value) }
 
-
+    // Made public for ObservationTest
     val unitByteArray: ByteArray
-        get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(unitCodeId, BluetoothBytesParser.FORMAT_UINT32)
-            if (!omitFixedLengthTypes) parser.setIntValue(unitLength, BluetoothBytesParser.FORMAT_UINT16)
-            parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
-            return parser.value
-        }
+        get() { return encodeTLV(unitCodeId, unitLength, unitCode.value) }
 
+    // Used by fixed length, integer fields (handle, type, unit)
+    private fun encodeTLV(type: Int, length: Int, value: Int): ByteArray {
+        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
+        if (!omitFixedLengthTypes) parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        return parser.value
+    }
+
+    // Made public for ObservationTest
     val timestampByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)

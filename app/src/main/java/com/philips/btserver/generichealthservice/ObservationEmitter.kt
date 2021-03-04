@@ -200,7 +200,6 @@ fun ObservationType.unitCode(): UnitCode {
     }
 }
 
-
 fun ObservationType.shortUnitCode(): UnitCode {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
