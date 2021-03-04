@@ -12,24 +12,10 @@ object ObservationEmitter {
      */
 
     /*
-     * A "short" type code is to experiment with using 2-byte (16-bit) observation type
-     * codes rather than 4-byte full MDC codes... however, this implies the receiver can
-     * map them back to MDC codes, which potentially dilutes the saving of 2 bytes from each
-     * type code element. However, an assumption of the IEEE 10101 partition space can be made
-     * to allow short codes. In this case setting useShortTypeCodes will simply use the least
-     * significant 16-bits of the full code (note all example observations fall under
-     * partition 2).
-     */
-
-
-    var useShortTypeCodes: Boolean = false
-
-    /*
      * Experimental configuration options for observation data format
      */
 
-
-    var experimentalObservationOptions = BitSet(3)
+    var experimentalObservationOptions = BitSet()
 
     var omitFixedLengthTypes: Boolean
         get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitFixedLengthTypes.bit) }
@@ -42,6 +28,10 @@ object ObservationEmitter {
     var omitUnitCode: Boolean
         get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitUnitCode.bit) }
         set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitUnitCode.bit, bool)}
+
+    var useShortTypeCodes: Boolean
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.useShortTypeCodes.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.useShortTypeCodes.bit, bool)}
 
     /*
      * Experiment with a type for an observation array observation (or compound observation observation)
@@ -115,11 +105,13 @@ object ObservationEmitter {
     }
 
     private fun randomObservationOfType(type: ObservationType): Observation? {
-        return when(type.valueType()) {
+        val obs = when(type.valueType()) {
             ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type)
             ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type)
             else -> null
         }
+        obs?.experimentalOptions = experimentalObservationOptions
+        return obs
     }
 
     private fun randomSimpleNumericObservation(type: ObservationType): Observation {

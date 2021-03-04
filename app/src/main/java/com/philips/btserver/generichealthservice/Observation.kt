@@ -25,7 +25,7 @@ abstract class Observation() {
      * Experimental serialization options
      */
 
-    var experimentalOptions = BitSet(3)
+    var experimentalOptions = BitSet()
 
     enum class ExperimentalFeature(val bit: Int) {
         /*
@@ -33,6 +33,8 @@ abstract class Observation() {
          * The types that have a known length are:
          *      Handle
          *      Unit Code
+         *      Value type code
+         *      Timestamp (see notes below)
          *
          * Notes:
          *
@@ -66,6 +68,18 @@ abstract class Observation() {
          *
          */
         omitUnitCode(2),
+
+        /*
+         * A "short" type code is to experiment with using 2-byte (16-bit) observation type
+         * codes rather than 4-byte full MDC codes... however, this implies the receiver can
+         * map them back to MDC codes, which potentially dilutes the saving of 2 bytes from each
+         * type code element. However, an assumption of the IEEE 10101 partition space can be made
+         * to allow short codes. In this case setting useShortTypeCodes will simply use the least
+         * significant 16-bits of the full code (note all example observations fall under
+         * partition 2).
+         */
+        useShortTypeCodes(3),
+
     }
 
     fun serializeWithExperimentalOptions(): ByteArray {
@@ -83,11 +97,14 @@ abstract class Observation() {
 
     abstract val valueByteArray: ByteArray
 
+    private val omitFixedLengthTypes: Boolean
+        get() { return experimentalOptions.get(ExperimentalFeature.omitFixedLengthTypes.bit) }
+
     private val handleByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(handleCode, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setIntValue(handleLength, BluetoothBytesParser.FORMAT_UINT16)
+            if (!omitFixedLengthTypes) parser.setIntValue(handleLength, BluetoothBytesParser.FORMAT_UINT16)
             parser.setIntValue(id.toInt(), BluetoothBytesParser.FORMAT_UINT16)
             return parser.value
         }
@@ -96,7 +113,7 @@ abstract class Observation() {
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(typeCode, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setIntValue(typeLength, BluetoothBytesParser.FORMAT_UINT16)
+            if (!omitFixedLengthTypes) parser.setIntValue(typeLength, BluetoothBytesParser.FORMAT_UINT16)
             parser.setIntValue(type.value, BluetoothBytesParser.FORMAT_UINT32)
             return parser.value
         }
@@ -106,7 +123,7 @@ abstract class Observation() {
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(unitCodeId, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setIntValue(unitLength, BluetoothBytesParser.FORMAT_UINT16)
+            if (!omitFixedLengthTypes) parser.setIntValue(unitLength, BluetoothBytesParser.FORMAT_UINT16)
             parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
             return parser.value
         }
@@ -115,7 +132,7 @@ abstract class Observation() {
         get() {
             val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
             parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
+            if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
             parser.setLong(timestamp.time)
             return parser.value
         }
