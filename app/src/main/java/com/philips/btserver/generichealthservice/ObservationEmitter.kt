@@ -1,6 +1,5 @@
 package com.philips.btserver.generichealthservice
 
-
 import android.os.Handler
 import android.os.Looper
 import timber.log.Timber
@@ -16,46 +15,33 @@ object ObservationEmitter {
      * A "short" type code is to experiment with using 2-byte (16-bit) observation type
      * codes rather than 4-byte full MDC codes... however, this implies the receiver can
      * map them back to MDC codes, which potentially dilutes the saving of 2 bytes from each
-     * type code element. However if
+     * type code element. However, an assumption of the IEEE 10101 partition space can be made
+     * to allow short codes. In this case setting useShortTypeCodes will simply use the least
+     * significant 16-bits of the full code (note all example observations fall under
+     * partition 2).
      */
+
+
     var useShortTypeCodes: Boolean = false
 
     /*
-     * Omitting length on TLVs where the "Ts" (types) are of known, fixed length.
-     * The types that have a known length are:
-     *      Handle
-     *      Unit Code
-     *
-     * Notes:
-     *
-     * Multiple time lengths (4, 6, 8 bytes) are being investigated/supported. However,
-     * it is assumed that timestamps (and timezone) will end up being a fixed length type.
-     *
-     * As more of the ACOM model is implemented, more types will be included and any
-     * that are fixed length are assumed to be included in this list
+     * Experimental configuration options for observation data format
      */
-    var omitFixedLengthTypes = false
 
-    /*
-     * Although specified as required the handle is only used if the object is referenced
-     * in another object. This is not the case in a vast majority of use cases, so allow
-     * the handle element to not be included, unless it will be used in another reference.
-     *
-     * This also implies that handle should (can?) not be the first element.
-     *
-     */
-    var omitHandleTLV = false
 
-    /*
-     * For many observation types (heart rate, blood pressure, spO2, etc) the units are
-     * known and standard, with alternative units being an exception/edge case.
-     *
-     * This allows the omission ot the unit code in which case the receiver can assume
-     * the "standard" unit (e.g. for heart rate bpm, for temperatures degrees centigrade...
-     * etc... though for measurues like weight there would need to be agreement on grams or
-     * kilograms)
-     */
-    var omitUnitCode = false
+    var experimentalObservationOptions = BitSet(3)
+
+    var omitFixedLengthTypes: Boolean
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitFixedLengthTypes.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitFixedLengthTypes.bit, bool)}
+
+    var omitHandleTLV: Boolean
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitHandleTLV.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitHandleTLV.bit, bool)}
+
+    var omitUnitCode: Boolean
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitUnitCode.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitUnitCode.bit, bool)}
 
     /*
      * Experiment with a type for an observation array observation (or compound observation observation)
@@ -80,7 +66,7 @@ object ObservationEmitter {
 
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
-     * false means send each observation as a sepeate ACOM Object
+     * false means send each observation as a separate ACOM Object
      *
      * Currently given there is no actual ACOM wrapper what this means from a data package
      * standpoint is that all observations are bundled as an array and sent in the same
@@ -90,7 +76,6 @@ object ObservationEmitter {
 
     // Interval to emit observations (in seconds)
     var emitterPeriod = 10
-
 
     /*
      * ObservationEmitter private properties
@@ -142,7 +127,7 @@ object ObservationEmitter {
                 type,
                 type.randomNumericValue(),
                 type.numericPrecision(),
-                type.unitCode(),
+                if (useShortTypeCodes) type.shortUnitCode() else type.unitCode(),
                 Calendar.getInstance().time)
     }
 
@@ -150,7 +135,7 @@ object ObservationEmitter {
         return SampleArrayObservation(lastHandle++.toShort(),
                 type,
                 type.randomSampleArray(),
-                type.unitCode(),
+                type.emitterUnitCode(),
                 Calendar.getInstance().time)
     }
 
@@ -179,6 +164,10 @@ object ObservationEmitter {
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
 
+}
+
+fun ObservationType.emitterUnitCode(): UnitCode {
+    return if (ObservationEmitter.useShortTypeCodes) shortUnitCode() else unitCode()
 }
 
 fun ObservationType.randomNumericValue(): Float {
@@ -216,6 +205,17 @@ fun ObservationType.unitCode(): UnitCode {
         ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
+    }
+}
+
+
+fun ObservationType.shortUnitCode(): UnitCode {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
+        ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
+        ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
+        else -> unitCode()
     }
 }
 

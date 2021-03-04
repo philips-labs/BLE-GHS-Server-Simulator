@@ -21,6 +21,66 @@ abstract class Observation() {
                 timestampByteArray).merge()
     }
 
+    /*
+     * Experimental serialization options
+     */
+
+    var experimentalOptions = BitSet(3)
+
+    enum class ExperimentalFeature(val bit: Int) {
+        /*
+         * Omitting length on TLVs where the "Ts" (types) are of known, fixed length.
+         * The types that have a known length are:
+         *      Handle
+         *      Unit Code
+         *
+         * Notes:
+         *
+         * Multiple time lengths (4, 6, 8 bytes) are being investigated/supported. However,
+         * it is assumed that timestamps (and timezone) will end up being a fixed length type.
+         *
+         * As more of the ACOM model is implemented, more types will be included and any
+         * that are fixed length are assumed to be included in this list
+         */
+        omitFixedLengthTypes(0),
+
+
+        /*
+         * Although specified as required the handle is only used if the object is referenced
+         * in another object. This is not the case in a vast majority of use cases, so allow
+         * the handle element to not be included, unless it will be used in another reference.
+         *
+         * This also implies that handle should (can?) not be the first element.
+         *
+         */
+        omitHandleTLV(1),
+
+        /*
+         * For many observation types (heart rate, blood pressure, spO2, etc) the units are
+         * known and standard, with alternative units being an exception/edge case.
+         *
+         * This allows the omission ot the unit code in which case the receiver can assume
+         * the "standard" unit (e.g. for heart rate bpm, for temperatures degrees centigrade...
+         * etc... though for measures like weight there would need to be agreement on grams or
+         * kilograms)
+         *
+         */
+        omitUnitCode(2),
+    }
+
+    fun serializeWithExperimentalOptions(): ByteArray {
+        val serializeArray = mutableListOf(typeByteArray)
+        if (!experimentalOptions.get(ExperimentalFeature.omitHandleTLV.bit)) {
+            serializeArray.add(handleByteArray)
+        }
+        serializeArray.add(valueByteArray)
+        if (!experimentalOptions.get(ExperimentalFeature.omitUnitCode.bit) && type.isKnownUnitCode()) {
+            serializeArray.add(unitByteArray)
+        }
+        serializeArray.add(timestampByteArray)
+        return serializeArray.merge()
+    }
+
     abstract val valueByteArray: ByteArray
 
     private val handleByteArray: ByteArray
@@ -70,4 +130,8 @@ abstract class Observation() {
         internal const val timestampCode = 0x00010990
         internal const val timestampLength = 8
     }
+}
+
+fun ObservationType.isKnownUnitCode(): Boolean {
+    return this == ObservationType.MDC_ECG_HEART_RATE
 }
