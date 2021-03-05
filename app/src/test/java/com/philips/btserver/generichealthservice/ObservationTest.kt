@@ -12,6 +12,7 @@ class ObservationTest {
 
     private val observationType = ObservationType.MDC_ECG_HEART_RATE
     private val randomValue = ObservationType.MDC_ECG_HEART_RATE.randomNumericValue()
+    private val randomSampleArray = ObservationType.MDC_PPG_TIME_PD_PP.randomSampleArray()
     private val now = Date()
 
     @Test
@@ -21,6 +22,16 @@ class ObservationTest {
         Assert.assertEquals(observationType, obs.type)
         Assert.assertEquals(randomValue, obs.value)
         Assert.assertEquals(observationType.numericPrecision(), obs.valuePrecision)
+        Assert.assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
+        Assert.assertEquals(now, obs.timestamp)
+    }
+
+    @Test
+    fun sample_array_observation_instantiation() {
+        val obs = create_sample_array_observation()
+        Assert.assertEquals(100.toShort(), obs.id)
+        Assert.assertEquals(observationType, obs.type)
+        Assert.assertArrayEquals(randomSampleArray, obs.value)
         Assert.assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
         Assert.assertEquals(now, obs.timestamp)
     }
@@ -63,6 +74,16 @@ class ObservationTest {
     fun simple_numeric_observation_serialize_mergedByteArray() {
         val obs = create_simple_numeric_observation()
         Assert.assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
+    }
+
+    /*
+     * Tests for full (no serialization options) SampleArrayObservation serialization
+     */
+
+    @Test
+    fun sample_array_observation_serialize_valueByteArray() {
+        val obs = create_sample_array_observation()
+        Assert.assertArrayEquals(sample_array_value_byte_array_for(obs.value), obs.valueByteArray )
     }
 
     /*
@@ -199,7 +220,15 @@ class ObservationTest {
                 timestamp = now)
     }
 
-    // Do not use the Observation encodeTLV() method in order to ensure it hasn't been broken
+    private fun create_sample_array_observation(): SampleArrayObservation {
+        return SampleArrayObservation(
+                id = 100,
+                type = observationType,
+                value = randomSampleArray,
+                unitCode = UnitCode.MDC_DIM_BEAT_PER_MIN,
+                timestamp = now)
+    }
+
     private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
         return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(type, length, value, precision)
     }
@@ -232,6 +261,10 @@ class ObservationTest {
                 unit_byte_array_for(obs.unitCode),
                 this.timestamp_byte_array_for(obs.timestamp)).merge()
     }
+
+    private fun sample_array_value_byte_array_for(sampleArray: ByteArray): ByteArray {
+        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(sampleArray)
+    }
 }
 
 fun BluetoothBytesParser.encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
@@ -245,4 +278,10 @@ fun BluetoothBytesParser.encodeTLV(type: Int, length: Int, value: Number, precis
         else -> error("Unsupported value type sent to encodeTLV()")
     }
     return this.value
+}
+
+fun BluetoothBytesParser.encodeTLV(value: ByteArray): ByteArray {
+    setIntValue(SampleArrayObservation.valueCode, BluetoothBytesParser.FORMAT_UINT32)
+    setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT16)
+    return this.value + value
 }
