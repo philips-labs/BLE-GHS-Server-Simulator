@@ -18,20 +18,20 @@ object ObservationEmitter {
     var experimentalObservationOptions = BitSet()
 
     var omitFixedLengthTypes: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitFixedLengthTypes.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitFixedLengthTypes.bit, bool)}
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitFixedLengthTypes.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitFixedLengthTypes.bit, bool)}
 
     var omitHandleTLV: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitHandleTLV.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitHandleTLV.bit, bool)}
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitHandleTLV.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitHandleTLV.bit, bool)}
 
     var omitUnitCode: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.omitUnitCode.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.omitUnitCode.bit, bool)}
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitUnitCode.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitUnitCode.bit, bool)}
 
     var useShortTypeCodes: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.useShortTypeCodes.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.useShortTypeCodes.bit, bool)}
+        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.UseShortTypeCodes.bit) }
+        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.UseShortTypeCodes.bit, bool)}
 
     /*
      * Experiment with a type for an observation array observation (or compound observation observation)

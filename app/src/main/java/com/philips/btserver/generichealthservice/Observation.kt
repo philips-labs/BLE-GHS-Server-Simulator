@@ -5,7 +5,7 @@ import java.util.*
 import com.philips.btserver.extensions.merge
 import java.nio.ByteOrder
 
-abstract class Observation() {
+abstract class Observation {
     abstract val id: Short
     abstract val type: ObservationType
     abstract val timestamp: Date
@@ -44,7 +44,7 @@ abstract class Observation() {
          * As more of the ACOM model is implemented, more types will be included and any
          * that are fixed length are assumed to be included in this list
          */
-        omitFixedLengthTypes(0),
+        OmitFixedLengthTypes(0),
 
 
         /*
@@ -55,7 +55,7 @@ abstract class Observation() {
          * This also implies that handle should (can?) not be the first element.
          *
          */
-        omitHandleTLV(1),
+        OmitHandleTLV(1),
 
         /*
          * For many observation types (heart rate, blood pressure, spO2, etc) the units are
@@ -67,36 +67,36 @@ abstract class Observation() {
          * kilograms)
          *
          */
-        omitUnitCode(2),
+        OmitUnitCode(2),
 
         /*
          * A "short" type code is to experiment with using 2-byte (16-bit) observation type
          * codes rather than 4-byte full MDC codes... however, this implies the receiver can
          * map them back to MDC codes, which potentially dilutes the saving of 2 bytes from each
          * type code element. However, an assumption of the IEEE 10101 partition space can be made
-         * to allow short codes. In this case setting useShortTypeCodes will simply use the least
+         * to allow short codes. In this case setting UseShortTypeCodes will simply use the least
          * significant 16-bits of the full code (note all example observations fall under
          * partition 2).
          */
-        useShortTypeCodes(3),
+        UseShortTypeCodes(3),
 
     }
 
     var omitFixedLengthTypes: Boolean
-        get() { return experimentalOptions.get(ExperimentalFeature.omitFixedLengthTypes.bit) }
-        set(bool) { experimentalOptions.set(ExperimentalFeature.omitFixedLengthTypes.bit, bool) }
+        get() { return experimentalOptions.get(ExperimentalFeature.OmitFixedLengthTypes.bit) }
+        set(bool) { experimentalOptions.set(ExperimentalFeature.OmitFixedLengthTypes.bit, bool) }
 
     var omitHandleTLV: Boolean
-        get() { return experimentalOptions.get(ExperimentalFeature.omitHandleTLV.bit) }
-        set(bool) { experimentalOptions.set(ExperimentalFeature.omitHandleTLV.bit, bool) }
+        get() = experimentalOptions.get(ExperimentalFeature.OmitHandleTLV.bit)
+        set(bool) { experimentalOptions.set(ExperimentalFeature.OmitHandleTLV.bit, bool) }
 
     var omitUnitCode: Boolean
-        get() { return experimentalOptions.get(ExperimentalFeature.omitUnitCode.bit) }
-        set(bool) { experimentalOptions.set(ExperimentalFeature.omitUnitCode.bit, bool) }
+        get() = experimentalOptions.get(ExperimentalFeature.OmitUnitCode.bit)
+        set(bool) { experimentalOptions.set(ExperimentalFeature.OmitUnitCode.bit, bool) }
 
     var useShortTypeCodes: Boolean
-        get() { return experimentalOptions.get(ExperimentalFeature.useShortTypeCodes.bit) }
-        set(bool) { experimentalOptions.set(ExperimentalFeature.useShortTypeCodes.bit, bool) }
+        get() = experimentalOptions.get(ExperimentalFeature.UseShortTypeCodes.bit)
+        set(bool) { experimentalOptions.set(ExperimentalFeature.UseShortTypeCodes.bit, bool) }
 
     fun serializeWithExperimentalOptions(): ByteArray {
         val typeBytes = if (useShortTypeCodes) experimentalTypeByteArray else typeByteArray

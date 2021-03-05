@@ -111,10 +111,10 @@ class ObservationTest {
         val obs = create_simple_numeric_observation()
         val optionsBitSet = BitSet()
 
-        optionsBitSet.set(Observation.ExperimentalFeature.omitFixedLengthTypes.bit, true)
-        optionsBitSet.set(Observation.ExperimentalFeature.omitHandleTLV.bit, true)
-        optionsBitSet.set(Observation.ExperimentalFeature.omitUnitCode.bit, true)
-        optionsBitSet.set(Observation.ExperimentalFeature.useShortTypeCodes.bit, true)
+        optionsBitSet.set(Observation.ExperimentalFeature.OmitFixedLengthTypes.bit, true)
+        optionsBitSet.set(Observation.ExperimentalFeature.OmitHandleTLV.bit, true)
+        optionsBitSet.set(Observation.ExperimentalFeature.OmitUnitCode.bit, true)
+        optionsBitSet.set(Observation.ExperimentalFeature.UseShortTypeCodes.bit, true)
         obs.experimentalOptions = optionsBitSet
 
         Assert.assertTrue(obs.omitFixedLengthTypes)
