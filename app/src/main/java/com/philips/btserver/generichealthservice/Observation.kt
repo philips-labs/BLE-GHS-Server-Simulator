@@ -82,13 +82,30 @@ abstract class Observation() {
 
     }
 
+    var omitFixedLengthTypes: Boolean
+        get() { return experimentalOptions.get(ExperimentalFeature.omitFixedLengthTypes.bit) }
+        set(bool) { experimentalOptions.set(ExperimentalFeature.omitFixedLengthTypes.bit, bool) }
+
+    var omitHandleTLV: Boolean
+        get() { return experimentalOptions.get(ExperimentalFeature.omitHandleTLV.bit) }
+        set(bool) { experimentalOptions.set(ExperimentalFeature.omitHandleTLV.bit, bool) }
+
+    var omitUnitCode: Boolean
+        get() { return experimentalOptions.get(ExperimentalFeature.omitUnitCode.bit) }
+        set(bool) { experimentalOptions.set(ExperimentalFeature.omitUnitCode.bit, bool) }
+
+    var useShortTypeCodes: Boolean
+        get() { return experimentalOptions.get(ExperimentalFeature.useShortTypeCodes.bit) }
+        set(bool) { experimentalOptions.set(ExperimentalFeature.useShortTypeCodes.bit, bool) }
+
     fun serializeWithExperimentalOptions(): ByteArray {
-        val serializeArray = mutableListOf(typeByteArray)
-        if (!experimentalOptions.get(ExperimentalFeature.omitHandleTLV.bit)) {
+        val typeBytes = if (useShortTypeCodes) experimentalTypeByteArray else typeByteArray
+        val serializeArray = mutableListOf(typeBytes)
+        if (!omitHandleTLV) {
             serializeArray.add(handleByteArray)
         }
         serializeArray.add(valueByteArray)
-        if (!experimentalOptions.get(ExperimentalFeature.omitUnitCode.bit) && type.isKnownUnitCode()) {
+        if (!(omitUnitCode && type.isKnownUnitCode())) {
             serializeArray.add(unitByteArray)
         }
         serializeArray.add(timestampByteArray)
@@ -96,9 +113,6 @@ abstract class Observation() {
     }
 
     abstract val valueByteArray: ByteArray
-
-    private val omitFixedLengthTypes: Boolean
-        get() { return experimentalOptions.get(ExperimentalFeature.omitFixedLengthTypes.bit) }
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
@@ -108,6 +122,17 @@ abstract class Observation() {
     val typeByteArray: ByteArray
         get() { return encodeTLV(typeCode, typeLength, type.value) }
 
+    // If type code is in partition two, 2 bytes otherwise normal 4 byte type code
+    val experimentalTypeByteArray: ByteArray
+        get() {
+            return if (type.isShortTypeCode()) {
+                encodeTLV(typeCode, shortTypeLength, type.shortTypeValue())
+            } else {
+                typeByteArray
+            }
+        }
+
+
     // Made public for ObservationTest
     val unitByteArray: ByteArray
         get() { return encodeTLV(unitCodeId, unitLength, unitCode.value) }
@@ -116,7 +141,9 @@ abstract class Observation() {
     protected fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
         val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
         parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+        if (!(omitFixedLengthTypes && isFixedLengthType(type))) {
+            parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+        }
         when (value) {
             is Int -> parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
             is Short -> parser.setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
@@ -125,6 +152,13 @@ abstract class Observation() {
             else -> error("Unsupported value type sent to encodeTLV()")
         }
         return parser.value
+    }
+
+    /*
+     * Concrete classes can override for types (like sample arrays) that are not fixed length
+     */
+    open fun isFixedLengthType(type: Int): Boolean {
+        return true
     }
 
     // Made public for ObservationTest
@@ -142,6 +176,7 @@ abstract class Observation() {
         internal const val handleLength = 2
         internal const val typeCode = 0x0001092F
         internal const val typeLength = 4
+        internal const val shortTypeLength = 2
         internal const val unitCodeId = 0x00010996
         internal const val unitLength = 4
         internal const val timestampCode = 0x00010990
@@ -151,4 +186,14 @@ abstract class Observation() {
 
 fun ObservationType.isKnownUnitCode(): Boolean {
     return this == ObservationType.MDC_ECG_HEART_RATE
+}
+
+// MDC Codes in partition 2 can have high order 16-bits masked out and partition 2 assumed
+fun ObservationType.isShortTypeCode(): Boolean {
+    return (this.value shr 16) == 0x2
+}
+
+// MDC Codes in partition 2 can have high order 16-bits masked out and partition 2 assumed
+fun ObservationType.shortTypeValue(): Short {
+    return (this.value and 0xFFFF).toShort()
 }
