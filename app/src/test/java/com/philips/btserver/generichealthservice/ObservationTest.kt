@@ -10,19 +10,9 @@ import java.util.*
 
 class ObservationTest {
 
-    val observationType = ObservationType.MDC_ECG_HEART_RATE
-    val randomValue = ObservationType.MDC_ECG_HEART_RATE.randomNumericValue()
-    val now = Date()
-
-    fun create_simple_numeric_observation(): SimpleNumericObservation {
-        return SimpleNumericObservation(
-                id = 100,
-                type = observationType,
-                value = randomValue,
-                valuePrecision = observationType.numericPrecision(),
-                unitCode = UnitCode.MDC_DIM_BEAT_PER_MIN,
-                timestamp = now)
-    }
+    private val observationType = ObservationType.MDC_ECG_HEART_RATE
+    private val randomValue = ObservationType.MDC_ECG_HEART_RATE.randomNumericValue()
+    private val now = Date()
 
     @Test
     fun simple_numeric_observation_instantiation() {
@@ -35,25 +25,6 @@ class ObservationTest {
         Assert.assertEquals(now, obs.timestamp)
     }
 
-    // Do not use the Observation encodeTLV() method in order to ensure it hasn't been broken
-    private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
-        when (value) {
-            is Int -> parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
-            is Short -> parser.setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
-            is Long -> parser.setLong(value)
-            is Float -> parser.setFloatValue(value, precision)
-            else -> error("Unsupported value type sent to encodeTLV()")
-        }
-        return parser.value
-    }
-
-    fun handle_byte_array_for(id: Short): ByteArray {
-        return encodeTLV(Observation.handleCode, Observation.handleLength, id)
-    }
-
     /*
      * Tests for full (no serialization options) SimpleNumericObservation serialization
      */
@@ -64,18 +35,10 @@ class ObservationTest {
         Assert.assertArrayEquals(handle_byte_array_for(obs.id), obs.handleByteArray)
     }
 
-    fun type_byte_array_for(type: ObservationType): ByteArray {
-        return encodeTLV(Observation.typeCode, Observation.typeLength, type.value)
-    }
-
     @Test
     fun observation_serialize_typeByteArray() {
         val obs = create_simple_numeric_observation()
         Assert.assertArrayEquals(type_byte_array_for(obs.type), obs.typeByteArray)
-    }
-
-    fun unit_byte_array_for(unitCode: UnitCode): ByteArray {
-        return encodeTLV(Observation.unitCodeId, Observation.unitLength, unitCode.value)
     }
 
     @Test
@@ -84,18 +47,10 @@ class ObservationTest {
         Assert.assertArrayEquals(unit_byte_array_for(obs.unitCode), obs.unitByteArray)
     }
 
-    fun timestamp_byte_array_for(timestamp: Date): ByteArray {
-        return encodeTLV(Observation.timestampCode, Observation.timestampLength, timestamp.time)
-    }
-
     @Test
     fun observation_serialize_timestampByteArray() {
         val obs = create_simple_numeric_observation()
         Assert.assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestampByteArray)
-    }
-
-    fun simple_numeric_value_byte_array_for(value: Float, precision: Int): ByteArray {
-        return encodeTLV(SimpleNumericObservation.valueCode, SimpleNumericObservation.valueLength, value, precision)
     }
 
     @Test
@@ -104,20 +59,10 @@ class ObservationTest {
         Assert.assertArrayEquals(simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision), obs.valueByteArray )
     }
 
-    fun simple_numeric_observation_serialize_byte_array(obs: SimpleNumericObservation): ByteArray {
-        return listOf(
-                type_byte_array_for(obs.type),
-                handle_byte_array_for(obs.id),
-                simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision),
-                unit_byte_array_for(obs.unitCode),
-                timestamp_byte_array_for(obs.timestamp)).merge()
-
-    }
-
     @Test
     fun simple_numeric_observation_serialize_mergedByteArray() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
+        Assert.assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
     }
 
     /*
@@ -205,8 +150,8 @@ class ObservationTest {
         val obs = create_simple_numeric_observation()
 
         obs.omitHandleTLV = true
-        var tlvBytes = obs.serialize()
-        var tvBytes = obs.serializeWithExperimentalOptions()
+        val tlvBytes = obs.serialize()
+        val tvBytes = obs.serializeWithExperimentalOptions()
         Assert.assertEquals(tlvBytes.size - 8, tvBytes.size)
         // If handle was skipped, handle tlv type will not exist
         Assert.assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)) )
@@ -239,5 +184,62 @@ class ObservationTest {
         val typeByteTest = listOf(typeBytes.copyOfRange(0, 4), byteArrayOf(0x0, 0x2), typeBytes.copyOfRange(8, 10)).merge()
         Assert.assertArrayEquals(typeByteTest, shortTypeBytes)
     }
+    
+    /*
+     * Private test support and utility methods
+     */
 
+    private fun create_simple_numeric_observation(): SimpleNumericObservation {
+        return SimpleNumericObservation(
+                id = 100,
+                type = observationType,
+                value = randomValue,
+                valuePrecision = observationType.numericPrecision(),
+                unitCode = UnitCode.MDC_DIM_BEAT_PER_MIN,
+                timestamp = now)
+    }
+
+    // Do not use the Observation encodeTLV() method in order to ensure it hasn't been broken
+    private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
+        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+        when (value) {
+            is Int -> parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+            is Short -> parser.setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
+            is Long -> parser.setLong(value)
+            is Float -> parser.setFloatValue(value, precision)
+            else -> error("Unsupported value type sent to encodeTLV()")
+        }
+        return parser.value
+    }
+
+    private fun handle_byte_array_for(id: Short): ByteArray {
+        return encodeTLV(Observation.handleCode, Observation.handleLength, id)
+    }
+
+    private fun type_byte_array_for(type: ObservationType): ByteArray {
+        return encodeTLV(Observation.typeCode, Observation.typeLength, type.value)
+    }
+
+    private fun unit_byte_array_for(unitCode: UnitCode): ByteArray {
+        return encodeTLV(Observation.unitCodeId, Observation.unitLength, unitCode.value)
+    }
+
+    private fun timestamp_byte_array_for(timestamp: Date): ByteArray {
+        return encodeTLV(Observation.timestampCode, Observation.timestampLength, timestamp.time)
+    }
+
+    private fun simple_numeric_value_byte_array_for(value: Float, precision: Int): ByteArray {
+        return encodeTLV(SimpleNumericObservation.valueCode, SimpleNumericObservation.valueLength, value, precision)
+    }
+
+    private fun simple_numeric_observation_serialize_byte_array(obs: SimpleNumericObservation): ByteArray {
+        return listOf(
+                type_byte_array_for(obs.type),
+                handle_byte_array_for(obs.id),
+                this.simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision),
+                unit_byte_array_for(obs.unitCode),
+                this.timestamp_byte_array_for(obs.timestamp)).merge()
+    }
 }
