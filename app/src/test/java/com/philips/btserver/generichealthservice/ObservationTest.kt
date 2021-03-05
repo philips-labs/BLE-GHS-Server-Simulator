@@ -184,7 +184,7 @@ class ObservationTest {
         val typeByteTest = listOf(typeBytes.copyOfRange(0, 4), byteArrayOf(0x0, 0x2), typeBytes.copyOfRange(8, 10)).merge()
         Assert.assertArrayEquals(typeByteTest, shortTypeBytes)
     }
-    
+
     /*
      * Private test support and utility methods
      */
@@ -201,17 +201,7 @@ class ObservationTest {
 
     // Do not use the Observation encodeTLV() method in order to ensure it hasn't been broken
     private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
-        when (value) {
-            is Int -> parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
-            is Short -> parser.setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
-            is Long -> parser.setLong(value)
-            is Float -> parser.setFloatValue(value, precision)
-            else -> error("Unsupported value type sent to encodeTLV()")
-        }
-        return parser.value
+        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(type, length, value, precision)
     }
 
     private fun handle_byte_array_for(id: Short): ByteArray {
@@ -242,4 +232,17 @@ class ObservationTest {
                 unit_byte_array_for(obs.unitCode),
                 this.timestamp_byte_array_for(obs.timestamp)).merge()
     }
+}
+
+fun BluetoothBytesParser.encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
+    setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
+    setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
+    when (value) {
+        is Int -> setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        is Short -> setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
+        is Long -> setLong(value)
+        is Float -> setFloatValue(value, precision)
+        else -> error("Unsupported value type sent to encodeTLV()")
+    }
+    return this.value
 }
