@@ -3,7 +3,7 @@ package com.philips.btserver.generichealthservice
 import com.philips.btserver.extensions.findFirst
 import com.philips.btserver.extensions.merge
 import com.welie.blessed.BluetoothBytesParser
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Test
 import java.nio.ByteOrder
 import java.util.*
@@ -16,24 +16,24 @@ class ObservationTest {
     private val now = Date()
 
     @Test
-    fun simple_numeric_observation_instantiation() {
+    fun `When a SimpleNumericObservation is instantiated, then all properties are initialized correctly`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertEquals(100.toShort(), obs.id)
-        Assert.assertEquals(observationType, obs.type)
-        Assert.assertEquals(randomValue, obs.value)
-        Assert.assertEquals(observationType.numericPrecision(), obs.valuePrecision)
-        Assert.assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
-        Assert.assertEquals(now, obs.timestamp)
+        assertEquals(100.toShort(), obs.id)
+        assertEquals(observationType, obs.type)
+        assertEquals(randomValue, obs.value)
+        assertEquals(observationType.numericPrecision(), obs.valuePrecision)
+        assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
+        assertEquals(now, obs.timestamp)
     }
 
     @Test
-    fun sample_array_observation_instantiation() {
+    fun `When a SampleArrayObservation is instantiated, then all properties are initialized correctly`() {
         val obs = create_sample_array_observation()
-        Assert.assertEquals(100.toShort(), obs.id)
-        Assert.assertEquals(observationType, obs.type)
-        Assert.assertArrayEquals(randomSampleArray, obs.value)
-        Assert.assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
-        Assert.assertEquals(now, obs.timestamp)
+        assertEquals(100.toShort(), obs.id)
+        assertEquals(observationType, obs.type)
+        assertArrayEquals(randomSampleArray, obs.value)
+        assertEquals(UnitCode.MDC_DIM_BEAT_PER_MIN, obs.unitCode)
+        assertEquals(now, obs.timestamp)
     }
 
     /*
@@ -41,39 +41,39 @@ class ObservationTest {
      */
 
     @Test
-    fun observation_serialize_handleByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the handle byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(handle_byte_array_for(obs.id), obs.handleByteArray)
+        assertArrayEquals(handle_byte_array_for(obs.id), obs.handleByteArray)
     }
 
     @Test
-    fun observation_serialize_typeByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the type byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(type_byte_array_for(obs.type), obs.typeByteArray)
+        assertArrayEquals(type_byte_array_for(obs.type), obs.typeByteArray)
     }
 
     @Test
-    fun observation_serialize_unitByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the unit code byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(unit_byte_array_for(obs.unitCode), obs.unitByteArray)
+        assertArrayEquals(unit_byte_array_for(obs.unitCode), obs.unitByteArray)
     }
 
     @Test
-    fun observation_serialize_timestampByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the timestamp byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestampByteArray)
+        assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestampByteArray)
     }
 
     @Test
-    fun simple_numeric_observation_serialize_valueByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the value byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision), obs.valueByteArray )
+        assertArrayEquals(simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision), obs.valueByteArray )
     }
 
     @Test
-    fun simple_numeric_observation_serialize_mergedByteArray() {
+    fun `When a SimpleNumericObservation is instantiated, then the fully merged byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        Assert.assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
+        assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
     }
 
     /*
@@ -81,9 +81,9 @@ class ObservationTest {
      */
 
     @Test
-    fun sample_array_observation_serialize_valueByteArray() {
+    fun `When a SampleArrayObservation is instantiated, then the value samples array byte array representation is correct`() {
         val obs = create_sample_array_observation()
-        Assert.assertArrayEquals(sample_array_value_byte_array_for(obs.value), obs.valueByteArray )
+        assertArrayEquals(sample_array_value_byte_array_for(obs.value), obs.valueByteArray )
     }
 
     /*
@@ -91,7 +91,7 @@ class ObservationTest {
      */
 
     @Test
-    fun simple_numeric_obs_experimental_accessor_setting() {
+    fun `When the experimental option experimental properties are set individually, then ensure the properties are actually set`() {
         // setting via accessors
         val obs = create_simple_numeric_observation()
         obs.omitFixedLengthTypes = true
@@ -99,14 +99,14 @@ class ObservationTest {
         obs.omitUnitCode = true
         obs.useShortTypeCodes = true
 
-        Assert.assertTrue(obs.omitFixedLengthTypes)
-        Assert.assertTrue(obs.omitHandleTLV)
-        Assert.assertTrue(obs.omitUnitCode)
-        Assert.assertTrue(obs.useShortTypeCodes)
+        assertTrue(obs.omitFixedLengthTypes)
+        assertTrue(obs.omitHandleTLV)
+        assertTrue(obs.omitUnitCode)
+        assertTrue(obs.useShortTypeCodes)
     }
 
     @Test
-    fun simple_numeric_obs_experimental_bits_setting() {
+    fun `When the experimental option experimental properties are set in a group BitSet, then ensure the properties are actually set`() {
         // Setting via bit set ("in bulk"... used by ObservationEmitter)
         val obs = create_simple_numeric_observation()
         val optionsBitSet = BitSet()
@@ -117,93 +117,93 @@ class ObservationTest {
         optionsBitSet.set(Observation.ExperimentalFeature.UseShortTypeCodes.bit, true)
         obs.experimentalOptions = optionsBitSet
 
-        Assert.assertTrue(obs.omitFixedLengthTypes)
-        Assert.assertTrue(obs.omitHandleTLV)
-        Assert.assertTrue(obs.omitUnitCode)
-        Assert.assertTrue(obs.useShortTypeCodes)
+        assertTrue(obs.omitFixedLengthTypes)
+        assertTrue(obs.omitHandleTLV)
+        assertTrue(obs.omitUnitCode)
+        assertTrue(obs.useShortTypeCodes)
     }
 
     @Test
     // Note: validating based on length skipped, vs. contents of byte array
-    fun simple_numeric_obs_experimental_omit_fixed_length_types() {
+    fun `When the experimental option omit fixed lengths is set, then the length values are skipped in the byte array`() {
         val obs = create_simple_numeric_observation()
 
         obs.omitFixedLengthTypes = false
         var tlvBytes = obs.handleByteArray
         obs.omitFixedLengthTypes = true
         var tvBytes = obs.handleByteArray
-        Assert.assertEquals(tlvBytes.size - 2, tvBytes.size)
+        assertEquals(tlvBytes.size - 2, tvBytes.size)
 
         obs.omitFixedLengthTypes = false
         tlvBytes = obs.typeByteArray
         obs.omitFixedLengthTypes = true
         tvBytes = obs.typeByteArray
-        Assert.assertEquals(tlvBytes.size - 2, tvBytes.size)
+        assertEquals(tlvBytes.size - 2, tvBytes.size)
 
         obs.omitFixedLengthTypes = false
         tlvBytes = obs.unitByteArray
         obs.omitFixedLengthTypes = true
         tvBytes = obs.unitByteArray
-        Assert.assertEquals(tlvBytes.size - 2, tvBytes.size)
+        assertEquals(tlvBytes.size - 2, tvBytes.size)
 
         obs.omitFixedLengthTypes = false
         tlvBytes = obs.timestampByteArray
         obs.omitFixedLengthTypes = true
         tvBytes = obs.timestampByteArray
-        Assert.assertEquals(tlvBytes.size - 2, tvBytes.size)
+        assertEquals(tlvBytes.size - 2, tvBytes.size)
 
         obs.omitFixedLengthTypes = false
         tlvBytes = obs.valueByteArray
         obs.omitFixedLengthTypes = true
         tvBytes = obs.valueByteArray
-        Assert.assertEquals(tlvBytes.size - 2, tvBytes.size)
+        assertEquals(tlvBytes.size - 2, tvBytes.size)
 
         // Ensure all the lengths are gone (all fixed length)
         obs.omitFixedLengthTypes = false
         tlvBytes = obs.serialize()
         obs.omitFixedLengthTypes = true
         tvBytes = obs.serializeWithExperimentalOptions()
-        Assert.assertEquals(tlvBytes.size - 10, tvBytes.size)
+        assertEquals(tlvBytes.size - 10, tvBytes.size)
     }
 
     @Test
-    fun simple_numeric_obs_experimental_omit_handle_tlv() {
+    fun `When the experimental option omit handle TLV is set, then the handle TLV is skipped in the byte array`() {
         val obs = create_simple_numeric_observation()
 
         obs.omitHandleTLV = true
         val tlvBytes = obs.serialize()
         val tvBytes = obs.serializeWithExperimentalOptions()
-        Assert.assertEquals(tlvBytes.size - 8, tvBytes.size)
+        assertEquals(tlvBytes.size - 8, tvBytes.size)
         // If handle was skipped, handle tlv type will not exist
-        Assert.assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)) )
+        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)) )
     }
 
     @Test
-    fun simple_numeric_obs_experimental_omit_known_unit_codes_tlv() {
+    fun `When the experimental option omit known unit code TLV is set, then the unit code TLV is skipped in the byte array for known observation types`() {
         // test observation is heart rate which is a known unit code of BPM
         val obs = create_simple_numeric_observation()
 
         obs.omitUnitCode = true
         val tlvBytes = obs.serialize()
         val tvBytes = obs.serializeWithExperimentalOptions()
-        Assert.assertEquals(tlvBytes.size - 10, tvBytes.size)
+        assertEquals(tlvBytes.size - 10, tvBytes.size)
         // If handle was skipped, unit code tlv type will not exist
-        Assert.assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x96.toByte())) )
+        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x96.toByte())) )
     }
 
     @Test
-    fun simple_numeric_obs_experimental_use_short_type_codes_tlv() {
+    fun `When the experimental option use short type code TLV is set, then the 16-bit (omit MDC partition) is used in the byte array for observation type`() {
         // test observation is heart rate which is a known unit code of BPM
         val obs = create_simple_numeric_observation()
 
         obs.useShortTypeCodes = true
         val shortTypeBytes = obs.experimentalTypeByteArray
         val typeBytes = obs.typeByteArray
-        Assert.assertEquals(typeBytes.size - 2, shortTypeBytes.size)
+        assertEquals(typeBytes.size - 2, shortTypeBytes.size)
 
         // Test that type code is least sig. 2 bytes of the full type code in TLV
         val typeByteTest = listOf(typeBytes.copyOfRange(0, 4), byteArrayOf(0x0, 0x2), typeBytes.copyOfRange(8, 10)).merge()
-        Assert.assertArrayEquals(typeByteTest, shortTypeBytes)
+        assertArrayEquals(typeByteTest, shortTypeBytes)
     }
 
     /*
