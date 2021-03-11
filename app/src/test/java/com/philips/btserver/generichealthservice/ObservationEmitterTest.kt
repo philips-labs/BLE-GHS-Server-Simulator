@@ -1,15 +1,19 @@
 package com.philips.btserver.generichealthservice
 
+import android.os.Build
 import android.os.Looper
 import android.os.Looper.myLooper
 import io.mockk.*
 import org.junit.*
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.O_MR1])
 public class ObservationEmitterTest {
 
-    @BeforeTest
+    @Before
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
 //        every { peripheral.address } returns DEFAULT_DEVICE_ADDRESS
@@ -21,7 +25,7 @@ public class ObservationEmitterTest {
 //        handler.addListener(currentTimeServiceHandlerListener)
     }
 
-    @AfterTest
+    @After
     fun tearDown() {
         unmockkObject(ObservationEmitter)
     }

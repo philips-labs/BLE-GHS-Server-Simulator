@@ -965,5 +965,9 @@ enum class ObservationType(val value: Int) {
         fun fromValue(value: Int): ObservationType {
             return values().find { it.value == value } ?: UNKNOWN_STATUS_CODE
         }
+
+        fun fromString(string: String): ObservationType {
+            return valueOf(string) ?: UNKNOWN_STATUS_CODE
+        }
     }
 }
