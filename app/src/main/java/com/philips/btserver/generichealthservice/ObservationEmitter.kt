@@ -95,6 +95,20 @@ object ObservationEmitter {
         observations.removeAll { it.type == type }
     }
 
+    fun startEmitter() {
+        Timber.i("Starting GHS Observtaion Emitter")
+        handler.post(notifyRunnable)
+    }
+
+    fun stopEmitter() {
+        Timber.i("Stopping GHS Observtaion Emitter")
+        handler.removeCallbacks(notifyRunnable)
+    }
+
+    fun singleShotEmit() {
+        sendObservations(true)
+    }
+
     /*
      * Private methods
      */
@@ -129,20 +143,6 @@ object ObservationEmitter {
                 type.randomSampleArray(),
                 type.emitterUnitCode(),
                 Calendar.getInstance().time)
-    }
-
-    fun startEmitter() {
-        Timber.i("Starting GHS Observtaion Emitter")
-        handler.post(notifyRunnable)
-    }
-
-    fun stopEmitter() {
-        Timber.i("Stopping GHS Observtaion Emitter")
-        handler.removeCallbacks(notifyRunnable)
-    }
-
-    fun singleShotEmit() {
-        sendObservations(true)
     }
 
     private fun sendObservations(singleShot: Boolean) {
