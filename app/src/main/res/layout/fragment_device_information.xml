@@ -19,12 +19,12 @@
             android:orientation="horizontal">
 
             <TextView
-                    android:id="@+id/hello"
+                    android:id="@+id/lblAdvName"
                     android:layout_width="150dp"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:textSize="16dp"
-                    android:text="@string/hello_blank_fragment" />
+                    android:text="@string/advertisment_name" />
 
             <Button
                 android:id="@+id/btnAdvName"
@@ -46,13 +46,13 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/hello2"
+                android:id="@+id/lblModelNumber"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="sans-serif-medium"
                 android:textSize="16dp"
-                android:text="@string/hello_blank_fragment" />
+                android:text="@string/model_number" />
 
             <Button
                 android:id="@+id/btnModelNumName"

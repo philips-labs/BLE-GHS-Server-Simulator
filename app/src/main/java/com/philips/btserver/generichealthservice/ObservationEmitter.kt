@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver.generichealthservice
 
 import android.os.Handler
@@ -6,10 +10,6 @@ import timber.log.Timber
 import java.util.*
 
 object ObservationEmitter {
-
-    /*
-     * ObservationEmitter public property configuration options
-     */
 
     /*
      * Experimental configuration options for observation data format
@@ -180,7 +180,7 @@ fun ObservationType.randomNumericValue(): Float {
     }
 }
 
-// TODO: For now regardless of type the sample array is just totally random and alway a 255 element byte array
+// For now regardless of type the sample array is just totally random and alway a 255 element byte array (thus observation type is unused)
 fun ObservationType.randomSampleArray(): ByteArray {
     val numberOfCycles = 5
     val samplesPerSecond = kotlin.random.Random.nextInt(40, 70)
@@ -220,5 +220,5 @@ fun ObservationType.shortUnitCode(): UnitCode {
 }
 
 fun ByteArray.fillWith(action: (Int) -> Byte) {
-    for (i in 0..size - 1) { this[i] = action(i) }
+    for (i in 0 until size) { this[i] = action(i) }
 }

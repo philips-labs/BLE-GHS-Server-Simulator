@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserverapp
 
 import android.os.Bundle
@@ -8,18 +12,8 @@ import android.view.ViewGroup
 import com.philips.btserver.R
 import com.philips.btserver.generichealthservice.ObservationEmitter
 import kotlinx.android.synthetic.main.fragment_experimental.*
-import kotlinx.android.synthetic.main.fragment_observations.*
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ExperimentalFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ExperimentalFragment : Fragment() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {

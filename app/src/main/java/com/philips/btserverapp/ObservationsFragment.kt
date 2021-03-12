@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserverapp
 
 import android.app.AlertDialog
@@ -14,16 +18,9 @@ import com.philips.btserver.R
 import com.philips.btserver.generichealthservice.ObservationEmitter
 import kotlinx.android.synthetic.main.fragment_observations.*
 
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ObservationsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ObservationsFragment : Fragment() {
 
     private var dialogInputView: EditText? = null
-
     private var emitterRunning = false;
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -31,15 +28,19 @@ class ObservationsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_observations, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        checkboxTempObs.setOnClickListener { clickTempObs() }
+        checkboxHRObs.setOnClickListener { clickHRObs() }
+        checkboxPPGObs.setOnClickListener { clickPPGObs() }
+        checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
+        checkboxMergeObs.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
+        btnStartStopEmitter.setOnClickListener { toggleEmitter() }
+        btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
+    }
+
     override fun onResume() {
         super.onResume()
-        checkboxTempObs?.setOnClickListener { clickTempObs() }
-        checkboxHRObs?.setOnClickListener { clickHRObs() }
-        checkboxPPGObs?.setOnClickListener { clickPPGObs() }
-        checkboxSPO2Obs?.setOnClickListener { clickSPO2Obs() }
-        checkboxMergeObs?.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
-        btnStartStopEmitter?.setOnClickListener { toggleEmitter() }
-        btnSingleShotEmit?.setOnClickListener { ObservationEmitter.singleShotEmit() }
         update()
     }
 

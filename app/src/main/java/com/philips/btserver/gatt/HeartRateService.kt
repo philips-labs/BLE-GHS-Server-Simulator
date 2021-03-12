@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver.gatt
 
 import android.bluetooth.BluetoothGattCharacteristic

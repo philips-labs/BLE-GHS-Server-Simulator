@@ -1,12 +1,13 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
-import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
-import android.os.Handler
-import android.os.Looper
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService

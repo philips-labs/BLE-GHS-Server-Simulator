@@ -83,7 +83,7 @@ class ObservationEmitterTest {
         // Then
         assert(checkCapturedForHeartRateObservation(obsSlot.captured))
     }
-    
+
     @Test
     fun emitter_single_shot_sample_array() {
         ObservationEmitter.reset()

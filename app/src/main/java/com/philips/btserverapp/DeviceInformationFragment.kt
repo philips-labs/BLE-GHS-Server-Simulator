@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserverapp
 
 import android.app.AlertDialog
@@ -17,13 +21,6 @@ import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
 import kotlinx.android.synthetic.main.fragment_device_information.*
 
-
-/**
- * A simple [Fragment] subclass.
- * Use the [DeviceInformationFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-
 class DeviceInformationFragment : Fragment() {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -34,7 +31,6 @@ class DeviceInformationFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_device_information, container, false)
 
 
@@ -48,8 +44,8 @@ class DeviceInformationFragment : Fragment() {
     }
 
     fun update() {
-        hello?.text = getAdvName()
-        hello2?.text = getModelNumber()
+        lblAdvName?.text = getAdvName()
+        lblModelNumber?.text = getModelNumber()
     }
 
     private fun getAdvName(): String {
@@ -57,7 +53,7 @@ class DeviceInformationFragment : Fragment() {
     }
 
     private fun getModelNumber(): String {
-        return deviceInfoService?.getModelNumber() ?: "Model Number"
+        return deviceInfoService?.getModelNumber() ?: getString(R.string.model_number)
     }
 
     private fun changeAdvName() {

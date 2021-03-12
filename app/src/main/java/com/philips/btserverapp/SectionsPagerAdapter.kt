@@ -1,13 +1,13 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserverapp
 
 import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import com.philips.btserverapp.DeviceInformationFragment
-import com.philips.btserverapp.ExperimentalFragment
-import com.philips.btserverapp.ObservationsFragment
-import com.philips.btserverapp.PlaceholderFragment
 import com.philips.btserver.R
 
 private val TAB_TITLES = arrayOf(
@@ -24,7 +24,7 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
             0 -> DeviceInformationFragment()
             1 -> ObservationsFragment()
             2 -> ExperimentalFragment()
-            else -> PlaceholderFragment.newInstance(position)
+            else -> error(R.string.invalid_section_number)
         }
     }
 
