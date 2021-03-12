@@ -13,9 +13,7 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asBLEDataSegments
-import com.philips.btserver.extensions.asHexString
 import com.philips.btserver.extensions.merge
-import timber.log.Timber
 import java.util.*
 
 internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -86,7 +84,6 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     }
 
     fun ByteArray.sendSegment() {
-        Timber.i("Sending <%s>", this.asHexString())
         observationCharacteristic.value = this
         notifyCharacteristicChanged(this, observationCharacteristic)
     }
