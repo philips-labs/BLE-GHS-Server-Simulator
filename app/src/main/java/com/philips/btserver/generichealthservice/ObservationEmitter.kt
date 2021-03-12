@@ -79,6 +79,7 @@ object ObservationEmitter {
 
     private val typesToEmit = mutableSetOf<ObservationType>()
 
+    // Made public for unit testing
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
 
@@ -107,6 +108,14 @@ object ObservationEmitter {
 
     fun singleShotEmit() {
         sendObservations(true)
+    }
+
+    fun reset() {
+        typesToEmit.clear()
+        observations.clear()
+        lastHandle = 1
+        experimentalObservationOptions = BitSet()
+        mergeObservations = true
     }
 
     /*
