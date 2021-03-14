@@ -1,3 +1,5 @@
+[![Android CI](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml)
+
 # bluetooth-server-example (working title)
 
 **Description**:  
