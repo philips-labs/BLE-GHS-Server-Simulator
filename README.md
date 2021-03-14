@@ -61,9 +61,9 @@ Document any known significant shortcomings with the software.
 ## Contact / Getting help
 
 For further questions on this project, contact one of:
-Abdul Nabi - lead author - abdul.nabi@philips.com
-Erik Moll - development of the Bluetooth SIG GHS and IEEE ACOM specifications - erik.moll@philips.com
-Martijn van Wely - lead author of the Blessed / Mjolnir framework - martijn.van.welie@philips.com
+* Abdul Nabi - lead author - abdul.nabi@philips.com
+* Erik Moll - development of the Bluetooth SIG GHS and IEEE ACOM specifications - erik.moll@philips.com
+* Martijn van Welie - lead author of the Blessed / Mjolnir framework - martijn.van.welie@philips.com
 
 ## License
 
