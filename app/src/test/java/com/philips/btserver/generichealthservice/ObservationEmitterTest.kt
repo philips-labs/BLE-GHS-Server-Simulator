@@ -119,7 +119,6 @@ class ObservationEmitterTest {
         ObservationEmitter.mergeObservations = false
         ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
         ObservationEmitter.addObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
-        val obsSlot = slot<Observation>()
         val list = mutableListOf<Observation>()
         every { serviceHandler.sendObservation(capture(list)) } returns Unit
 

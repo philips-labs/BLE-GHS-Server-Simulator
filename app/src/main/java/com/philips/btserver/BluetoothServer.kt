@@ -5,7 +5,6 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.ParcelUuid
-import com.philips.btserver.gatt.CurrentTimeService
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback
@@ -133,7 +132,7 @@ internal class BluetoothServer(context: Context) {
         bluetoothAdapter.name = "GHS-Simulator"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
 //        val dis = DeviceInformationService(peripheralManager)
-        val cts = CurrentTimeService(peripheralManager)
+//        val cts = CurrentTimeService(peripheralManager)
 //        val hrs = HeartRateService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
 //        serviceImplementations[dis.service] = dis
