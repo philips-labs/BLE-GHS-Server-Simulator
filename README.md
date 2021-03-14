@@ -9,7 +9,7 @@ This codebase implements a Bluetooth server / peripheral on an Android device (a
 
 The server supports the Generic Health Sensor (GHS) GATT service that is under development in the Bluetooth SIG. This service in turn is based on the IEEE 11073-10206 specification that specifies an Abstract Content Model for personal health device data - covering any type of health observation that can be modeled using the IEEE 11073-10101 nomenclature system. These standards provide a long-desired solution for interoperable personal health devices using Bluetooth Low Energy. Once adopted this will reduce integration efforts of using personal health device device in all kinds of (out-of-hospital) healthcare solutions.
 
-The server works with / come with a client application that uses the "blessed"/ "Mjolnir"framework. This application includes a service handler that implements the GHS client / collector and a UI that displays some details of a connected GHS server and the observations received from such a server. 
+The server works with / come with a client application that uses the "blessed" BLE library. This application includes a service handler that implements the GHS client / collector and a UI that displays some details of a connected GHS server and the observations received from such a server. 
  
 **Technology stack**: 
 The code is (mainly) written in Kotlin and implements a standalone Android application. 
@@ -63,7 +63,7 @@ Document any known significant shortcomings with the software.
 For further questions on this project, contact one of:
 * Abdul Nabi - lead author - abdul.nabi@philips.com
 * Erik Moll - development of the Bluetooth SIG GHS and IEEE ACOM specifications - erik.moll@philips.com
-* Martijn van Welie - lead author of the Blessed / Mjolnir framework - martijn.van.welie@philips.com
+* Martijn van Welie - lead author of the Blessed library - martijn.van.welie@philips.com
 
 ## License
 
