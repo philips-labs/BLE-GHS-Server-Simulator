@@ -42,8 +42,8 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         return manufacturerChar.getStringValue(0)
     }
 
-    fun setManufacturer(mfgName: String) {
-        manufacturerChar.setValue(mfgName)
+    fun setManufacturer(manufacturerName: String) {
+        manufacturerChar.setValue(manufacturerName)
     }
 
     fun getModelNumber() : String {

@@ -15,7 +15,6 @@
 
         <CheckBox
             android:id="@+id/checkboxTempObs"
-            android:onClick="clickTempObs"
             android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

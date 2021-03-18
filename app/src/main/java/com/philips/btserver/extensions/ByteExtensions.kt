@@ -4,7 +4,6 @@
  */
 package com.philips.btserver.extensions
 
-import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
 
@@ -46,17 +45,6 @@ fun List<Byte>.formatHexBytes(seperator: String?): String {
 
 fun Byte.toUINT8(): Int {
     return this.toInt() and 0xFF
-}
-
-/*
- * Read bytes and return the ByteArray of the length passed in.  This will increment the offset
- *
- * @return The DateTime read from the bytes. This will cause an exception if bytes run past end. Will return 0 epoch if unparsable
- */
-fun BluetoothBytesParser.getByteArray(length: Int): ByteArray {
-    val array = value.copyOfRange(offset, offset + length)
-    offset += length
-    return array
 }
 
 /*
