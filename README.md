@@ -1,4 +1,5 @@
 [![Android CI](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml)
+[![SonarQube](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/sonar.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/sonar.yml)
 
 # bluetooth-server-example (working title)
 
