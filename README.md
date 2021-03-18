@@ -46,5 +46,4 @@ For further questions on this project, contact one of:
 * Martijn van Welie - lead author of the Blessed library - martijn.van.welie@philips.com
 
 ## License
-
 This code is available under the MIT license.
