@@ -16,6 +16,11 @@ import com.philips.btserver.extensions.asBLEDataSegments
 import com.philips.btserver.extensions.merge
 import java.util.*
 
+/**
+ * GenericHealthSensorService is the *BaseService* specific to handling
+ * the generic health sensor service. The GHS service proposed includes
+ * an observation characteristic and a control point characteristic.
+ */
 internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
@@ -27,6 +32,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
             PROPERTY_WRITE or PROPERTY_INDICATE,
             PERMISSION_WRITE)
 
+    /**
+     * Notification that [central] has disconnected. If there are no other connected bluetooth
+     * centrals, then stop emitting observations.
+     */
     override fun onCentralDisconnected(central: BluetoothCentral) {
         super.onCentralDisconnected(central)
         if (noCentralsConnected()) {
@@ -34,10 +43,18 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         }
     }
 
+    /**
+     * Notification from [central] that [characteristic] has notification enabled. Implies that
+     * there is a connection so start emitting observations.
+     */
     override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         ObservationEmitter.startEmitter()
     }
 
+    /**
+     * Notification from [central] that [characteristic] has notification disabled. If the
+     * characteristic is the observation characteristic then stop emitting observations.
+     */
     override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
@@ -45,14 +62,24 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         }
     }
 
+    /**
+     * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
+     */
     fun sendObservation(observation: Observation) {
         sendBytesInSegments(observation.serialize())
     }
 
+    /**
+     * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
+     */
     fun sendObservations(observations: Collection<Observation>) {
         sendBytesInSegments(observations.map { it.serialize() }.merge())
     }
 
+    /**
+     * Private ByteArray extension to break up the receiver into segments that fit in the MTU and
+     * send each segment in sequence over BLE
+     */
     private fun sendBytesInSegments(bytes: ByteArray) {
         bytes.asBLEDataSegments(minimalMTU - 4).forEach { it.sendSegment() }
     }
@@ -64,7 +91,9 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         private const val OBSERVATION_DESCRIPTION = "Characteristic for ACOM Observation segments."
         private const val CONTROL_POINT_DESCRIPTION = "Control point for generic health sensor."
 
-        // If the BluetoothService has a running GHS service then return it
+        /**
+         * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
+         */
         fun getInstance(): GenericHealthSensorService? {
             val bleServer = BluetoothServer.getInstance()
             val ghs = bleServer?.getServiceWithUUID(GHS_SERVICE_UUID)
@@ -83,6 +112,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         controlCharacteristic.value = byteArrayOf(0x00)
     }
 
+    /**
+     * ByteArray extension to send `this`'s bytes and do a BLE notification
+     * over the observation characteristic.
+     */
     fun ByteArray.sendSegment() {
         observationCharacteristic.value = this
         notifyCharacteristicChanged(this, observationCharacteristic)

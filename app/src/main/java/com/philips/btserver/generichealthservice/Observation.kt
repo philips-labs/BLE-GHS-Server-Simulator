@@ -9,6 +9,13 @@ import java.util.*
 import com.philips.btserver.extensions.merge
 import java.nio.ByteOrder
 
+/**
+ * Observtion is the abstract class representing various measured observations.
+ * The varaints of observations are based on value (numeric, compound, sample arrays, strings, enums)
+ * This abstract class provides the common implementation for representing common properites and
+ * encoding observations into serialized byte arrays. Concrete classes of Observation simply need
+ * to implement the value serialization to bytes (along with providing the value unit code and length).
+ */
 abstract class Observation {
     abstract val id: Short
     abstract val type: ObservationType
