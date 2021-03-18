@@ -21,3 +21,11 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Sonar
+      uses: philips-software/sonar-scanner-action@v1.2.0
+      with:
+        token: ${{ secrets.SONARQUBE_TOKEN }}
+        projectName: ConceptWorks - GHS - server
+        projectKey: conceptworks.ghs.server
+        url: https://sonarqube.ta.philips.com/
+        enablePullRequestDecoration: true
