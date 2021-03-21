@@ -1,17 +1,31 @@
 plugins {
     id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'jacoco'
 }
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-
-apply plugin: 'jacoco'
 
 jacoco {
-    toolVersion = '0.8.1' //Use latest version
+    toolVersion = '0.8.6'
 }
 
-tasks.withType(Test) {
-    jacoco.includeNoLocationClasses = true
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def javaTree = fileTree(dir: "$project.buildDir/intermediates/javac/debug/classes", excludes: fileFilter)
+    def kotlinTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
+
+    sourceDirectories.from files([mainSrc])
+    classDirectories.from files([javaTree, kotlinTree])
+    executionData.from fileTree(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'
+    ])
 }
 
 android {
@@ -34,6 +48,7 @@ android {
         }
 
         release {
+            testCoverageEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -50,6 +65,7 @@ android {
             includeAndroidResources = true
         }
     }
+
 }
 
 dependencies {
