@@ -28,8 +28,10 @@ class DeviceInformationServiceTest {
     }
 
     @Test
-    fun `When the service is created, all characteristics and descriptors are there`() {
+    fun `When the service is created, all characteristics are there`() {
         assertEquals(2, serviceHandler.service.characteristics.size)
+        assertNotNull(serviceHandler.service.getCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID))
+        assertNotNull(serviceHandler.service.getCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID))
     }
 
     @Test
