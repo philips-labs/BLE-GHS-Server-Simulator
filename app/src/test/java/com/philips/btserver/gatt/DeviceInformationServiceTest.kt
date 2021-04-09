@@ -3,7 +3,6 @@ package com.philips.btserver.gatt
 import android.os.Build
 import com.philips.btserver.gatt.DeviceInformationService.Companion.MANUFACTURER_NAME_CHARACTERISTIC_UUID
 import com.philips.btserver.gatt.DeviceInformationService.Companion.MODEL_NUMBER_CHARACTERISTIC_UUID
-import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -29,8 +28,10 @@ class DeviceInformationServiceTest {
     }
 
     @Test
-    fun `When the service is created, all characteristics and descriptors are there`() {
+    fun `When the service is created, all characteristics are there`() {
         assertEquals(2, serviceHandler.service.characteristics.size)
+        assertNotNull(serviceHandler.service.getCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID))
+        assertNotNull(serviceHandler.service.getCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID))
     }
 
     @Test
