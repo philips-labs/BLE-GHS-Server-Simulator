@@ -22,8 +22,8 @@ The server works in conjunction with a client that can connect to a GHS service 
 This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification. As such it will be contiously modified and extended as the GHS specification evolves.
 
 **Technology stack**: 
-The project is written in Kotlin and implements a standalone Android application. 
-The UI part is kept seperate from the GHS server implementation.
+The project is written in Kotlin and implements a standalone Android application
+The BLE, GHS and data model classes are separated from the Android UX classes for reusability in other GHS server prototypes.
 
 **Status**:  Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
 
