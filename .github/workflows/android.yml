@@ -35,7 +35,7 @@ jobs:
         id: sonarconfig
         with:
           token: ${{ secrets.SONARQUBE_TOKEN }}
-          projectName: GitHub - Forest Micro - Fact-service (v2)
+          projectName: Conceptworks - bluetoothserver
           projectKey: conceptworks.bluetoothserver
           url: https://sonarqube.ta.philips.com/
           enablePullRequestDecoration: true
