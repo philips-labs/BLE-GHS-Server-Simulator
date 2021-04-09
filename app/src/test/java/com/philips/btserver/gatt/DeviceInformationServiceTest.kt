@@ -1,6 +1,8 @@
 package com.philips.btserver.gatt
 
 import android.os.Build
+import com.philips.btserver.gatt.DeviceInformationService.Companion.MANUFACTURER_NAME_CHARACTERISTIC_UUID
+import com.philips.btserver.gatt.DeviceInformationService.Companion.MODEL_NUMBER_CHARACTERISTIC_UUID
 import com.philips.btserver.generichealthservice.ObservationEmitter
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
@@ -41,6 +43,7 @@ class DeviceInformationServiceTest {
         val modelNumber = "123"
         serviceHandler.setModelNumber(modelNumber)
         assertEquals(modelNumber, serviceHandler.getModelNumber())
+        assertEquals(modelNumber, serviceHandler.service.getCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID).getStringValue(0))
     }
 
     @Test
@@ -48,5 +51,6 @@ class DeviceInformationServiceTest {
         val manufacturer = "Philips"
         serviceHandler.setManufacturer(manufacturer)
         assertEquals(manufacturer, serviceHandler.getManufacturer())
+        assertEquals(manufacturer, serviceHandler.service.getCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID).getStringValue(0))
     }
 }
