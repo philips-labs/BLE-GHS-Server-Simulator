@@ -45,7 +45,7 @@ The packages in the project are as follows:
 * ```com.philips.btserverapp``` - Activity, Fragments and Adapter to support the UI.
 
 ## Known issues
-Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to this app could be relativily frequent.
+Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to the code to track the specifcations will be frequent and called out in the [CHANGELOG](CHANGELOG.md).
 
 ## Contact / Getting help
 
