@@ -27,3 +27,4 @@ jobs:
           build_type: Debug
           project: btserver
           version: 0.1
+          android_project_dir: .
