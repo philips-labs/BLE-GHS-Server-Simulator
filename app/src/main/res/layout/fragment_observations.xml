@@ -8,88 +8,64 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:orientation="vertical"
         android:paddingTop="32dp">
 
         <CheckBox
             android:id="@+id/checkboxTempObs"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceTempObs" />
 
         <CheckBox
             android:id="@+id/checkboxHRObs"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceHRObs" />
 
         <CheckBox
             android:id="@+id/checkboxPPGObs"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="16dp"
             android:text="@string/choicePPGObs" />
 
         <CheckBox
             android:id="@+id/checkboxSPO2Obs"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceSPO2Obs" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_marginBottom="16dp"
-            android:background="#20FFFFFF"/>
-
-        <CheckBox
-            android:id="@+id/checkboxMergeObs"
-            android:layout_marginBottom="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/choiceMergeObs" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="#20FFFFFF"/>
+            android:background="@color/separatorColor" />
 
         <Button
             android:id="@+id/btnStartStopEmitter"
-            style="?android:attr/borderlessButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="32dp"
-            android:layout_marginRight="32dp"
+            android:layout_marginStart="32dp"
             android:layout_marginTop="16dp"
+            android:layout_marginEnd="32dp"
             android:layout_marginBottom="32dp"
-            android:background="#10FFFFFF"
-            android:fontFamily="sans-serif-medium"
+            android:height="40dp"
             android:text="@string/startEmitter"
             android:textAllCaps="false" />
 
         <Button
             android:id="@+id/btnSingleShotEmit"
-            style="?android:attr/borderlessButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="32dp"
-            android:layout_marginRight="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
             android:layout_marginBottom="16dp"
-            android:background="#10FFFFFF"
-            android:fontFamily="sans-serif-medium"
             android:text="@string/singleShotEmit"
             android:textAllCaps="false" />
 

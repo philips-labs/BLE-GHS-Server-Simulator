@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver.generichealthservice
 
 import android.os.Build
@@ -104,8 +108,8 @@ class GenericHealthSensorServiceTest {
         val bytesSlot = mutableListOf<ByteArray>()
         every { peripheralManager.connectedCentrals } returns setOf(central)
         every { central.currentMtu } returns 23
-        every { peripheralManager.notifyCharacteristicChanged(capture(bytesSlot), serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID))} returns true
-        val observation = SimpleNumericObservation(39, ObservationType.MDC_TEMP_BODY, 35.8f,1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
+        every { peripheralManager.notifyCharacteristicChanged(capture(bytesSlot), serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID)) } returns true
+        val observation = SimpleNumericObservation(39, ObservationType.MDC_TEMP_BODY, 35.8f, 1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
 
         // When
         serviceHandler.sendObservation(observation)
@@ -132,9 +136,9 @@ class GenericHealthSensorServiceTest {
         val bytesSlot = mutableListOf<ByteArray>()
         every { peripheralManager.connectedCentrals } returns setOf(central)
         every { central.currentMtu } returns 23
-        every { peripheralManager.notifyCharacteristicChanged(capture(bytesSlot), serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID))} returns true
-        val observation = SimpleNumericObservation(39, ObservationType.MDC_TEMP_BODY, 35.8f,1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
-        val observation2 = SimpleNumericObservation(40, ObservationType.MDC_TEMP_BODY, 35.8f,1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
+        every { peripheralManager.notifyCharacteristicChanged(capture(bytesSlot), serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID)) } returns true
+        val observation = SimpleNumericObservation(39, ObservationType.MDC_TEMP_BODY, 35.8f, 1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
+        val observation2 = SimpleNumericObservation(40, ObservationType.MDC_TEMP_BODY, 35.8f, 1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
 
         // When
         serviceHandler.sendObservations(setOf(observation, observation2))

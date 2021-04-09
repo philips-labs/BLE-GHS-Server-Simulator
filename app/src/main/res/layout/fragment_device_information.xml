@@ -8,7 +8,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
         android:paddingTop="32dp"
         android:orientation="vertical">
 
@@ -23,18 +23,16 @@
                     android:layout_width="150dp"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:textSize="16dp"
+                    android:textSize="16sp"
                     android:text="@string/advertisment_name" />
 
             <Button
                 android:id="@+id/btnAdvName"
                 android:layout_width="96dp"
                 android:layout_height="wrap_content"
-                android:background="@color/cardview_dark_background"
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/change"
                 android:textAllCaps="false"
-                style="?android:attr/borderlessButtonStyle"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>
@@ -51,18 +49,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="sans-serif-medium"
-                android:textSize="16dp"
+                android:textSize="16sp"
                 android:text="@string/model_number" />
 
             <Button
                 android:id="@+id/btnModelNumName"
                 android:layout_width="96dp"
                 android:layout_height="wrap_content"
-                android:background="@color/cardview_dark_background"
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/change"
                 android:textAllCaps="false"
-                style="?android:attr/borderlessButtonStyle"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>

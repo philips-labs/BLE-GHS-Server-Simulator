@@ -14,13 +14,13 @@ private val TAB_TITLES = arrayOf(
         R.string.tab_text_ble_info,
         R.string.tab_text_observations,
         R.string.tab_text_experimental
-        )
+)
 
 class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
     : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     override fun getItem(position: Int): Fragment {
-       return when (position) {
+        return when (position) {
             0 -> DeviceInformationFragment()
             1 -> ObservationsFragment()
             2 -> ExperimentalFragment()

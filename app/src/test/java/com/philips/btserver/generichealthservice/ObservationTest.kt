@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver.generichealthservice
 
 import com.philips.btserver.extensions.findFirst
@@ -67,7 +71,7 @@ class ObservationTest {
     @Test
     fun `When a SimpleNumericObservation is instantiated, then the value byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        assertArrayEquals(simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision), obs.valueByteArray )
+        assertArrayEquals(simple_numeric_value_byte_array_for(obs.value, obs.valuePrecision), obs.valueByteArray)
     }
 
     @Test
@@ -83,7 +87,7 @@ class ObservationTest {
     @Test
     fun `When a SampleArrayObservation is instantiated, then the value samples array byte array representation is correct`() {
         val obs = create_sample_array_observation()
-        assertArrayEquals(sample_array_value_byte_array_for(obs.value), obs.valueByteArray )
+        assertArrayEquals(sample_array_value_byte_array_for(obs.value), obs.valueByteArray)
     }
 
     /*
@@ -175,7 +179,7 @@ class ObservationTest {
         val tvBytes = obs.serializeWithExperimentalOptions()
         assertEquals(tlvBytes.size - 8, tvBytes.size)
         // If handle was skipped, handle tlv type will not exist
-        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)) )
+        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)))
     }
 
     @Test
@@ -188,7 +192,7 @@ class ObservationTest {
         val tvBytes = obs.serializeWithExperimentalOptions()
         assertEquals(tlvBytes.size - 10, tvBytes.size)
         // If handle was skipped, unit code tlv type will not exist
-        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x96.toByte())) )
+        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x96.toByte())))
     }
 
     @Test

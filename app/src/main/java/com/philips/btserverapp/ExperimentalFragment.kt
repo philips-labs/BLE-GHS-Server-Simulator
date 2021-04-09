@@ -9,24 +9,31 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.philips.btserver.R
 import com.philips.btserver.generichealthservice.ObservationEmitter
-import kotlinx.android.synthetic.main.fragment_experimental.*
+import com.philips.btserver.databinding.FragmentExperimentalBinding
 
 class ExperimentalFragment : Fragment() {
 
+    private var _binding: FragmentExperimentalBinding? = null
+
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_experimental, container, false)
+                              savedInstanceState: Bundle?): View {
+        _binding = FragmentExperimentalBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        checkboxShortTypeCodes?.setOnClickListener { ObservationEmitter.useShortTypeCodes = checkboxShortTypeCodes.isChecked }
-        choiceOmitFixedLengthTypes?.setOnClickListener { ObservationEmitter.omitFixedLengthTypes = choiceOmitFixedLengthTypes.isChecked }
-        choiceOmitHandleTLV?.setOnClickListener { ObservationEmitter.omitHandleTLV = choiceOmitHandleTLV.isChecked }
-        choiceOmitUnitCode?.setOnClickListener { ObservationEmitter.omitUnitCode = choiceOmitUnitCode.isChecked }
-        choiceObsArrayType?.setOnClickListener { ObservationEmitter.enableObservationArrayType = choiceObsArrayType.isChecked }
+        binding.checkboxShortTypeCodes.setOnClickListener { ObservationEmitter.useShortTypeCodes = binding.checkboxShortTypeCodes.isChecked }
+        binding.choiceOmitFixedLengthTypes.setOnClickListener { ObservationEmitter.omitFixedLengthTypes = binding.choiceOmitFixedLengthTypes.isChecked }
+        binding.choiceOmitHandleTLV.setOnClickListener { ObservationEmitter.omitHandleTLV = binding.choiceOmitHandleTLV.isChecked }
+        binding.choiceOmitUnitCode.setOnClickListener { ObservationEmitter.omitUnitCode = binding.choiceOmitUnitCode.isChecked }
+        binding.checkboxMergeObs.setOnClickListener { ObservationEmitter.mergeObservations = binding.checkboxMergeObs.isChecked }
+        binding.choiceObsArrayType.setOnClickListener { ObservationEmitter.enableObservationArrayType = binding.choiceObsArrayType.isChecked }
+        binding.checkboxMergeObs.isChecked = ObservationEmitter.mergeObservations
     }
 
 }

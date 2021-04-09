@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver
 
 import android.bluetooth.*
@@ -5,6 +9,8 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.ParcelUuid
+import com.philips.btserver.gatt.CurrentTimeService
+import com.philips.btserver.gatt.DeviceInformationService
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback
@@ -25,17 +31,17 @@ internal class BluetoothServer(context: Context) {
     var bluetoothManager: BluetoothManager
     private val peripheralManager: BluetoothPeripheralManager
 
-    // Listners for central connect/disconnects
+    // Listeners for central connect/disconnects
     private val connectionListeners = mutableListOf<BluetoothServerConnectionListener>()
 
     private val peripheralManagerCallback: BluetoothPeripheralManagerCallback = object : BluetoothPeripheralManagerCallback() {
-        override fun onServiceAdded(status: GattStatus, service: BluetoothGattService) {}
         override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
             serviceImplementations[characteristic.service]?.onCharacteristicRead(central, characteristic)
         }
 
         override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
-            return serviceImplementations[characteristic.service]?.onCharacteristicWrite(central, characteristic, value) ?: GattStatus.REQUEST_NOT_SUPPORTED
+            return serviceImplementations[characteristic.service]?.onCharacteristicWrite(central, characteristic, value)
+                    ?: GattStatus.REQUEST_NOT_SUPPORTED
         }
 
         override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
@@ -43,7 +49,8 @@ internal class BluetoothServer(context: Context) {
         }
 
         override fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
-            return serviceImplementations[descriptor.characteristic.service]?.onDescriptorWrite(central, descriptor, value) ?: GattStatus.REQUEST_NOT_SUPPORTED
+            return serviceImplementations[descriptor.characteristic.service]?.onDescriptorWrite(central, descriptor, value)
+                    ?: GattStatus.REQUEST_NOT_SUPPORTED
         }
 
         override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
@@ -131,13 +138,11 @@ internal class BluetoothServer(context: Context) {
         }
         bluetoothAdapter.name = "GHS-Simulator"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
-//        val dis = DeviceInformationService(peripheralManager)
-//        val cts = CurrentTimeService(peripheralManager)
-//        val hrs = HeartRateService(peripheralManager)
+        val dis = DeviceInformationService(peripheralManager)
+        val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
-//        serviceImplementations[dis.service] = dis
-//        serviceImplementations[cts.service] = cts
-//        serviceImplementations[hrs.service] = hrs
+        serviceImplementations[dis.service] = dis
+        serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs
         setupServices()
         startAdvertising(ghs.service.uuid)

@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 import java.util.*
 
 internal class CurrentTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
-    override var service = BluetoothGattService(CTS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+    override var service = BluetoothGattService(CURRENT_TIME_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
     var currentTime = BluetoothGattCharacteristic(CURRENT_TIME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_INDICATE, BluetoothGattCharacteristic.PERMISSION_READ or BluetoothGattCharacteristic.PERMISSION_WRITE)
     private val handler = Handler(Looper.getMainLooper())
     private val notifyRunnable = Runnable { notifyCurrentTime() }
@@ -37,7 +37,8 @@ internal class CurrentTimeService(peripheralManager: BluetoothPeripheralManager)
         handler.removeCallbacks(notifyRunnable)
     }
 
-    private fun notifyCurrentTime() {
+    // Made public for unit testing in CurrentTimeServiceTest
+    fun notifyCurrentTime() {
         setCurrentTime()
         notifyCharacteristicChanged(currentTime.value, currentTime)
         handler.postDelayed(notifyRunnable, 1000)
@@ -50,8 +51,8 @@ internal class CurrentTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     companion object {
-        private val CTS_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb")
-        private val CURRENT_TIME_CHARACTERISTIC_UUID = UUID.fromString("00002A2B-0000-1000-8000-00805f9b34fb")
+        private val CURRENT_TIME_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb")
+        val CURRENT_TIME_CHARACTERISTIC_UUID = UUID.fromString("00002A2B-0000-1000-8000-00805f9b34fb")
     }
 
     init {

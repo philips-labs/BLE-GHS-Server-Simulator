@@ -18,88 +18,86 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-black"
             android:text="@string/typeCodeTitle" />
 
         <CheckBox
             android:id="@+id/checkboxShortTypeCodes"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceShortTypeCodes" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-black"
             android:text="@string/tlvOptionsTitle" />
 
         <CheckBox
             android:id="@+id/choiceOmitFixedLengthTypes"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceOmitFixedLengthTypes" />
 
         <CheckBox
             android:id="@+id/choiceOmitHandleTLV"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceOmitHandleTLV" />
 
         <CheckBox
             android:id="@+id/choiceOmitUnitCode"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceOmitUnitCode" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-black"
             android:text="@string/obsTypeTitle" />
 
         <CheckBox
             android:id="@+id/choiceObsArrayType"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/choiceObsArrayType" />
+
+        <CheckBox
+            android:id="@+id/checkboxMergeObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choiceMergeObs" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_marginBottom="16dp"
-            android:background="#20FFFFFF"/>
+            android:background="#20FFFFFF" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-black"
             android:text="@string/obsSizesTitle" />
 
         <TextView
             android:id="@+id/simpleNumericObs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-medium"
             android:text="@string/simpleNumericObs" />
 
     </LinearLayout>
