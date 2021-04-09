@@ -3,7 +3,6 @@ package com.philips.btserver.gatt
 import android.os.Build
 import com.philips.btserver.gatt.DeviceInformationService.Companion.MANUFACTURER_NAME_CHARACTERISTIC_UUID
 import com.philips.btserver.gatt.DeviceInformationService.Companion.MODEL_NUMBER_CHARACTERISTIC_UUID
-import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
