@@ -6,6 +6,7 @@ jobs:
   build:
     name: Build
     runs-on: [self-hosted, research]
+    container: philipssoftware/openjdk:11-jdk-zulu
 
     steps:
       - uses: actions/checkout@v2
@@ -28,3 +29,18 @@ jobs:
           project: btserver
           version: 0.1
           android_project_dir: .
+
+      - name: Sonar Analysis configuration
+          uses: philips-software/sonar-scanner-action@v1.2.0
+          id: sonarconfig
+          with:
+            token: ${{ secrets.SONARQUBE_TOKEN }}
+            projectName: GitHub - Forest Micro - Fact-service (v2)
+            projectKey: conceptworks.bluetoothserver
+            url: https://sonarqube.ta.philips.com/
+            enablePullRequestDecoration: true
+            onlyConfig: true
+
+      - name: Sonar Analysis run
+        run: |
+          ./gradlew --info jacocoTestReport sonarQube ${{ steps.sonarconfig.outputs.sonarParameters }}
