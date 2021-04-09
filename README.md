@@ -18,8 +18,6 @@ In addition the application supports "Experimental" modifications to the data fo
 
 The server works in conjunction with a client that can connect to a GHS service and manage the types of observation data specified. A standard BLE client application (e.g. LightBlue) can be used to connect and view/log the behavior and data from the GHS peripheral.
 
-_An application that uses the open-source ["blessed" BLE library] (https://github.com/weliem/blessed-android) is under development. This application includes a service handler that implements the GHS client / collector, an observation handler to handle values, and a simple UI that displays some details of a connected GHS server and the observations received from such a server.  This work is currently in progress and a link to the project will be provided here._
-
 **Key concepts**:
 This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification. As such it will be contiously modified and extended as the GHS specification evolves.
 
