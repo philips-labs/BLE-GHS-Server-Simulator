@@ -38,11 +38,11 @@ The project should build and run. Note, the current versions used and tested are
 * Kotlin 1.4.31
 
 The packages in the project are as follows:
-* com.philips.btserver.extensions - Byte, ByteArray, String, and List extensions that are used in the project (and generally useful)
-* com.philips.btserver - Base classes for BluetoothServer (responsible for overall Server behavior in collaboration with the BluetoothPeripheralManager) and BaseService (the base class for creating service handlers for Device Information, Current Time, and Generic Health Sensor)
-* com.philips.btserver.gatt - Classes that handle the GATT Current Time and Device Information Services.
-* com.philips.btserver.generichealthservice - Classes that handle and suppor the Generic Health Sensor Service, including data models and emitting sample observations.
-* com.philips.btserverapp - Activity, Fragments and Adapter to support the UI.
+* ```com.philips.btserver.extensions``` - Byte, ByteArray, String, and List extensions that are used in the project (and generally useful)
+* ```com.philips.btserver``` - Base classes for BluetoothServer (responsible for overall Server behavior in collaboration with the BluetoothPeripheralManager) and BaseService (the base class for creating service handlers for Device Information, Current Time, and Generic Health Sensor)
+* ```com.philips.btserver.gatt``` - Classes that handle the GATT Current Time and Device Information Services.
+* ```com.philips.btserver.generichealthservice``` - Classes that handle and suppor the Generic Health Sensor Service, including data models and emitting sample observations.
+* ```com.philips.btserverapp``` - Activity, Fragments and Adapter to support the UI.
 
 ## Known issues
 Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to this app could be relativily frequent.
