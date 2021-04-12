@@ -23,7 +23,7 @@ jobs:
       - name: Build debug android application
         uses: ./.forest/actions/mobile/android-fastlane-action
         with:
-          mode: build
+          mode: sonarqube
           target: development
           build_type: Debug
           project: app

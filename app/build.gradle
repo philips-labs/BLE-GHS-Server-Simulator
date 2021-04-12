@@ -3,6 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-android-extensions'
     id 'jacoco'
+    id 'org.sonarqube'
 }
 
 jacoco {
