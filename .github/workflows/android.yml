@@ -30,10 +30,9 @@ jobs:
           mode: build
           target: development
           build_type: Debug
-          project: btserver
+          project: app
           version: 0.1
           android_project_dir: .
-          project: app
 
       - name: Sonar Analysis configuration
         uses: philips-software/sonar-scanner-action@v1.2.0
