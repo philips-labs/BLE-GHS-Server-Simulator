@@ -11,10 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install ssh
-        run: |
-          apk add openssh
-
       - name: clone forest ci repository
         uses: actions/checkout@v2
         with:
