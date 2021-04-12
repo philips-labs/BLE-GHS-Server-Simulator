@@ -6,7 +6,7 @@ jobs:
   build:
     name: Build
     runs-on: [self-hosted, research]
-    container: philipssoftware/openjdk:8-jdk-alpine
+    container: dl-innersource-docker.artifactory-ehv.ta.philips.com/forest-react-native-ci:0.63.0
 
     steps:
       - uses: actions/checkout@v2
@@ -43,4 +43,8 @@ jobs:
           projectKey: conceptworks.bluetoothserver
           url: https://sonarqube.ta.philips.com/
           enablePullRequestDecoration: true
-          onlyConfig: false
+          onlyConfig: true
+
+      - name: Sonar Analysis run
+        run: |
+          ./gradlew --info jacocoTestReport sonarQube ${{ steps.sonarconfig.outputs.sonarParameters }}
