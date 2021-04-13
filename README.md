@@ -1,50 +1,56 @@
 [![Android CI](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml)
 [![SonarQube](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/sonar.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/sonar.yml)
 
-# bluetooth-server-example (working title)
+# ble-generic-health-sensor-server (working title)
 
 **Description**:  
-An implementation of a Generic Health Sensor server on Android.
+An implementation of the proposed Generic Health Sensor standard server for Android that is easily modified or extended to emit various types of health observations.
 
-This codebase implements a Bluetooth server / peripheral on an Android device (as an app on typically a mobile phone) that is capable of transmitting any type of health observation to clients.
+This example BLE Server application supports the Generic Health Sensor (GHS) GATT service that is currently under development in the Bluetooth SIG.
 
-The server supports the Generic Health Sensor (GHS) GATT service that is under development in the Bluetooth SIG. This service in turn is based on the IEEE 11073-10206 specification that specifies an Abstract Content Model for personal health device data - covering any type of health observation that can be modeled using the IEEE 11073-10101 nomenclature system. These standards provide a long-desired solution for interoperable personal health devices using Bluetooth Low Energy. Once adopted this will reduce integration efforts of using personal health device device in all kinds of (out-of-hospital) healthcare solutions.
+This service in turn is based on the IEEE 11073-10206 specification that specifies an Abstract Content Model (ACOM) for personal health device data - covering any type of health observation that can be modeled using the IEEE 11073-10101 nomenclature system.
 
-The server works with / come with a client application that uses the "blessed" BLE library. This application includes a service handler that implements the GHS client / collector and a UI that displays some details of a connected GHS server and the observations received from such a server. 
- 
-**Technology stack**: 
-The code is written in Kotlin and implements a standalone Android application. 
-The UI part is kept seperate from the GHS server implementation.
+These standards provide a long-sought solution for interoperable personal health devices using Bluetooth Low Energy. When adopted, the GHS GATT service will create both a common BLE and data model, reducing the integration and development efforts of using personal health devices in a broad set of healthcare solutions.
+
+This project implements an example Bluetooth server/peripheral via an Android application that is capable of transmitting any type of specfic health observation to connected clients. In the example heart rate (a simple numeric value), SpO2 (another simple numeric value) and a PPG (array of values). The supported types can be easily extended by the developer.
+
+In addition the application supports "Experimental" modifications to the data format to experiment during the development of the GHS specification.  The expermental features can be easily extended or modified by the developer.
+
+The server works in conjunction with a client that can connect to a GHS service and manage the types of observation data specified. A standard BLE client application (e.g. LightBlue) can be used to connect and view/log the behavior and data from the GHS peripheral.
 
 **Key concepts**:
-This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification.
-The Android client application serves the same purpose, but the service handler can be used as part of a product quality Android application.
+This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification. As such it will be contiously modified and extended as the GHS specification evolves.
+
+**Technology stack**: 
+The project is written in Kotlin and implements a standalone Android application
+The BLE, GHS and data model classes are separated from the Android UX classes for reusability in other GHS server prototypes.
 
 **Status**:  Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
 
 Latest updates: link to the [CHANGELOG](CHANGELOG.md).
 
-- **Links to production or demo instances**
-  - Describe what sets this apart from related-projects. Linking to another doc or page is OK if this can't be expressed in a sentence or two.
-
-**Screenshot**: If the software has visual components, place a screenshot after the description.
-
 ## Usage
 
-Show users how to use the software.
-Be specific.
-Use appropriate formatting when showing code snippets.
+The project should build and run. Note, the current versions used and tested are:
+* Android Studio 4.1.3
+* Kotlin 1.4.31
+
+The packages in the project are as follows:
+* ```com.philips.btserver.extensions``` - Byte, ByteArray, String, and List extensions that are used in the project (and generally useful)
+* ```com.philips.btserver``` - Base classes for BluetoothServer (responsible for overall Server behavior in collaboration with the BluetoothPeripheralManager) and BaseService (the base class for creating service handlers for Device Information, Current Time, and Generic Health Sensor)
+* ```com.philips.btserver.gatt``` - Classes that handle the GATT Current Time and Device Information Services.
+* ```com.philips.btserver.generichealthservice``` - Classes that handle and suppor the Generic Health Sensor Service, including data models and emitting sample observations.
+* ```com.philips.btserverapp``` - Activity, Fragments and Adapter to support the UI.
 
 ## Known issues
-
-Document any known significant shortcomings with the software.
+Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to the code to track the specifcations will be frequent and called out in the [CHANGELOG](CHANGELOG.md).
 
 ## Contact / Getting help
 
-For further questions on this project, contact one of:
+For further questions on this project, contact:
 * Abdul Nabi - lead author - abdul.nabi@philips.com
 * Erik Moll - development of the Bluetooth SIG GHS and IEEE ACOM specifications - erik.moll@philips.com
 * Martijn van Welie - lead author of the Blessed library - martijn.van.welie@philips.com
 
 ## License
-This code is available under the MIT license.
+This code is available under the [MIT license](LICENSE.md).

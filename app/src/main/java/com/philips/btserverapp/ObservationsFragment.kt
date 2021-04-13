@@ -4,52 +4,43 @@
  */
 package com.philips.btserverapp
 
-import android.app.AlertDialog
-import android.content.DialogInterface
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.fragment.app.Fragment
 import com.philips.btserver.generichealthservice.ObservationType
 import com.philips.btserver.R
+import com.philips.btserver.databinding.FragmentObservationsBinding
 import com.philips.btserver.generichealthservice.ObservationEmitter
-import kotlinx.android.synthetic.main.fragment_observations.*
 
 class ObservationsFragment : Fragment() {
 
-    private var dialogInputView: EditText? = null
     private var emitterRunning = false;
 
+    private var _binding: FragmentObservationsBinding? = null
+
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_observations, container, false)
+                              savedInstanceState: Bundle?): View {
+        _binding = FragmentObservationsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        checkboxTempObs.setOnClickListener { clickTempObs() }
-        checkboxHRObs.setOnClickListener { clickHRObs() }
-        checkboxPPGObs.setOnClickListener { clickPPGObs() }
-        checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
-        checkboxMergeObs.setOnClickListener { ObservationEmitter.mergeObservations = checkboxMergeObs.isChecked }
-        btnStartStopEmitter.setOnClickListener { toggleEmitter() }
-        btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        update()
-    }
-
-    fun update() {
-        checkboxMergeObs.isChecked = ObservationEmitter.mergeObservations
+        binding.checkboxTempObs.setOnClickListener { clickTempObs() }
+        binding.checkboxHRObs.setOnClickListener { clickHRObs() }
+        binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
+        binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
+        binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
+        binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
     }
 
     fun clickTempObs() {
-        if (checkboxTempObs.isChecked) {
+        if (binding.checkboxTempObs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_TEMP_BODY)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_TEMP_BODY)
@@ -57,7 +48,7 @@ class ObservationsFragment : Fragment() {
     }
 
     fun clickHRObs() {
-        if (checkboxHRObs.isChecked) {
+        if (binding.checkboxHRObs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_ECG_HEART_RATE)
@@ -65,16 +56,15 @@ class ObservationsFragment : Fragment() {
     }
 
     fun clickPPGObs() {
-        if (checkboxPPGObs.isChecked) {
+        if (binding.checkboxPPGObs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         }
     }
 
-    // TODO: Confirm MDC_SPO2_OXYGENATION_RATIO... just using it for now here and receiver demo app
     fun clickSPO2Obs() {
-        if (checkboxSPO2Obs.isChecked) {
+        if (binding.checkboxSPO2Obs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
@@ -84,28 +74,14 @@ class ObservationsFragment : Fragment() {
     private fun toggleEmitter() {
         if (emitterRunning) {
             ObservationEmitter.stopEmitter()
-            btnSingleShotEmit.isEnabled = true
-            btnStartStopEmitter.text = getString(R.string.startEmitter)
+            binding.btnSingleShotEmit.isEnabled = true
+            binding.btnStartStopEmitter.text = getString(R.string.startEmitter)
         } else {
-            btnSingleShotEmit.isEnabled = false
+            binding.btnSingleShotEmit.isEnabled = false
             ObservationEmitter.emitterPeriod = 1
             ObservationEmitter.startEmitter()
-            btnStartStopEmitter.text = getString(R.string.stopEmitter)
+            binding.btnStartStopEmitter.text = getString(R.string.stopEmitter)
         }
         emitterRunning = !emitterRunning
-    }
-
-    private fun doAlertDialog(title: String, initialText: String, onClick: DialogInterface.OnClickListener) {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(context)
-        builder.setTitle(title)
-        dialogInputView = EditText(context)
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        dialogInputView?.inputType = InputType.TYPE_CLASS_TEXT // or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        dialogInputView?.setText(initialText)
-        builder.setView(dialogInputView)
-
-        builder.setPositiveButton("OK", onClick)
-        builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
-        builder.show()
     }
 }

@@ -62,7 +62,7 @@ object ObservationEmitter {
      * standpoint is that all observations are bundled as an array and sent in the same
      * sequence of packets (packets start on send of first, packets end at send of last)
      */
-    var mergeObservations = true
+    var mergeObservations = false
 
     // Interval to emit observations (in seconds)
     var emitterPeriod = 10

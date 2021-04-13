@@ -5,8 +5,7 @@
     <string name="tab_text_observations">Observations</string>
     <string name="tab_text_experimental">Experimental</string>
     <string name="tab_text_settings">Settings</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="advertisment_name">Advertised name</string>
+    <string name="advertisment_name">Device name</string>
     <string name="model_number">Model number</string>
     <string name="change">Change</string>
     <string name="startEmitter">Start emitter</string>
@@ -19,7 +18,7 @@
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
-    <string name="choiceShortTypeCodes">2 byte Short type coded\n(high bit set, 32k types)</string>
+    <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>
 
     <string name="tlvOptionsTitle">TLV Options:</string>
     <string name="choiceOmitFixedLengthTypes">Omit length for fixed length types (TV)</string>

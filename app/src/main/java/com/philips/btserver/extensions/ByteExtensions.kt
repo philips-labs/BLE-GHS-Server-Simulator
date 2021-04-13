@@ -55,7 +55,7 @@ fun Byte.toUINT8(): Int {
  * used fold instead of reduce so that empty list doesn't cause an exception
  */
 fun List<ByteArray>.merge(): ByteArray {
-     return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
+    return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }
 
 fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
@@ -82,21 +82,22 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
 }
 
 fun ByteArray.fillWith(action: (Int) -> Byte) {
-    for (i in 0..size - 1) { this[i] = action(i) }
+    for (i in 0..size - 1) {
+        this[i] = action(i)
+    }
 }
 
-fun ByteArray.findFirst(sequence: ByteArray,startFrom: Int = 0): Int {
-    if(sequence.isEmpty()) throw IllegalArgumentException("non-empty byte sequence is required")
-    if(startFrom < 0 ) throw IllegalArgumentException("startFrom must be non-negative")
+fun ByteArray.findFirst(sequence: ByteArray, startFrom: Int = 0): Int {
+    if (sequence.isEmpty()) throw IllegalArgumentException("non-empty byte sequence is required")
+    if (startFrom < 0) throw IllegalArgumentException("startFrom must be non-negative")
     var matchOffset = 0
     var start = startFrom
     var offset = startFrom
-    while( offset < size ) {
-        if( this[offset] == sequence[matchOffset]) {
-            if( matchOffset++ == 0 ) start = offset
-            if( matchOffset == sequence.size ) return start
-        }
-        else
+    while (offset < size) {
+        if (this[offset] == sequence[matchOffset]) {
+            if (matchOffset++ == 0) start = offset
+            if (matchOffset == sequence.size) return start
+        } else
             matchOffset = 0
         offset++
     }

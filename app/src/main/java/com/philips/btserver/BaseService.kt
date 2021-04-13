@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Philips N.V. 2021.
+ * All rights reserved.
+ */
 package com.philips.btserver
 
 import android.bluetooth.BluetoothGattCharacteristic
@@ -10,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager): BluetoothServerConnectionListener {
+internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
     val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
 
     fun getCccDescriptor(): BluetoothGattDescriptor {
@@ -43,6 +47,10 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
 
     abstract val service: BluetoothGattService
 
+    /*
+     * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
     open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
     }
 
@@ -50,20 +58,44 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
         return GattStatus.SUCCESS
     }
 
-    open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {}
+    /*
+     * onDescriptorRead is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
+    open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
+    }
 
     open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
         return GattStatus.SUCCESS
     }
 
-    open fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {}
+    /*
+     * onNotifyingEnabled is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
+    open fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+    }
 
-    open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {}
+    /*
+     * onNotifyingDisabled is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
+    open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+    }
 
-    override fun onCentralConnected(central: BluetoothCentral) {}
+    /*
+     * onCentralConnected is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
+    override fun onCentralConnected(central: BluetoothCentral) {
+    }
 
-    override fun onCentralDisconnected(central: BluetoothCentral) {}
-
+    /*
+     * onCentralDisconnected is a non-abstract method with an empty body to have a default behavior to do nothing
+     * Subclasses do not need to provide an implementation
+     */
+    override fun onCentralDisconnected(central: BluetoothCentral) {
+    }
 
     companion object {
         val CUD_DESCRIPTOR_UUID: UUID = UUID.fromString("00002901-0000-1000-8000-00805f9b34fb")

@@ -19,26 +19,30 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     private val modelNumberChar = BluetoothGattCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
 
     companion object {
-        private val DIS_SERVICE_UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
-        private val MANUFACTURER_NAME_CHARACTERISTIC_UUID = UUID.fromString("00002A29-0000-1000-8000-00805f9b34fb")
-        private val MODEL_NUMBER_CHARACTERISTIC_UUID = UUID.fromString("00002A24-0000-1000-8000-00805f9b34fb")
+        val DIS_SERVICE_UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
+        val MANUFACTURER_NAME_CHARACTERISTIC_UUID = UUID.fromString("00002A29-0000-1000-8000-00805f9b34fb")
+        val MODEL_NUMBER_CHARACTERISTIC_UUID = UUID.fromString("00002A24-0000-1000-8000-00805f9b34fb")
 
-        // If the BluetoothService has a running DIS then return it
+        // If the BluetoothService has a running DeviceInformationService then return it
         fun getInstance(): DeviceInformationService? {
             val bleServer = BluetoothServer.getInstance()
             val dis = bleServer?.getServiceWithUUID(DIS_SERVICE_UUID)
-            return  dis?.let {it as DeviceInformationService }
+            return dis?.let { it as DeviceInformationService }
         }
     }
 
     init {
         service.addCharacteristic(manufacturerChar)
         service.addCharacteristic(modelNumberChar)
+        setDefaultValues()
+    }
+
+    private fun setDefaultValues() {
         setManufacturer(Build.MANUFACTURER)
         setModelNumber(Build.MODEL)
     }
 
-    fun getManufacturer() : String {
+    fun getManufacturer(): String {
         return manufacturerChar.getStringValue(0)
     }
 
@@ -46,8 +50,8 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         manufacturerChar.setValue(manufacturerName)
     }
 
-    fun getModelNumber() : String {
-        return manufacturerChar.getStringValue(0)
+    fun getModelNumber(): String {
+        return modelNumberChar.getStringValue(0)
     }
 
     fun setModelNumber(modelNum: String) {

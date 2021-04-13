@@ -19,7 +19,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
-import kotlinx.android.synthetic.main.fragment_device_information.*
+import com.philips.btserver.databinding.FragmentDeviceInformationBinding
 
 class DeviceInformationFragment : Fragment() {
 
@@ -29,23 +29,31 @@ class DeviceInformationFragment : Fragment() {
 
     private var dialogInputView: EditText? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_device_information, container, false)
+    private var _binding: FragmentDeviceInformationBinding? = null
 
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?): View {
+        _binding = FragmentDeviceInformationBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        btnAdvName?.setOnClickListener { changeAdvName() }
-        btnModelNumName?.setOnClickListener { changeModelNumber() }
         update()
     }
 
     fun update() {
-        lblAdvName?.text = getAdvName()
-        lblModelNumber?.text = getModelNumber()
+        // Update can be called via bluetooth starting up, being turned on, etc when view isn't around
+        if (_binding == null) return
+        binding.btnModelNumName.setOnClickListener { changeModelNumber() }
+        binding.btnAdvName.setOnClickListener { changeAdvName() }
+        binding.lblAdvName.text = getAdvName()
+        binding.lblModelNumber.text = getModelNumber()
     }
 
     private fun getAdvName(): String {
@@ -57,36 +65,36 @@ class DeviceInformationFragment : Fragment() {
     }
 
     private fun changeAdvName() {
-        doAlertDialog("Change Adv Name", getAdvName()) { dialog, which ->
+        doAlertDialog("${getString(R.string.change)} ${getString(R.string.advertisment_name)}", getAdvName()) { _, _ ->
             val newName = dialogInputView?.text.toString()
             bluetoothAdapter.name = newName
-            // TODO BluetoothServer should facade and also provide listeners for events like name change... also need to persist in UserPrefs
-            hander.postDelayed({ update() }, 5000)
-            Toast.makeText(context, "Changing Adv Name to $newName", Toast.LENGTH_LONG).show()
+            dialogUpdate("${getString(R.string.advertisment_name)} is $newName")
         }
     }
 
     private fun changeModelNumber() {
-        doAlertDialog("Change Model #", getModelNumber()) { dialog, which ->
+        doAlertDialog("${getString(R.string.change)} ${getString(R.string.model_number)}", getModelNumber()) { _, _ ->
             val newName = dialogInputView?.text.toString()
             deviceInfoService?.setModelNumber(newName)
-            // TODO BluetoothServer should facade and also provide listeners for events like name change... also need to persist in UserPrefs
-            hander.postDelayed({ update() }, 5000)
-            Toast.makeText(context, "Changing Model # to $newName", Toast.LENGTH_LONG).show()
+            dialogUpdate("${getString(R.string.model_number)} is $newName")
         }
+    }
+
+    private fun dialogUpdate(toastString: String) {
+        hander.postDelayed({ update() }, 5000)
+        Toast.makeText(context, toastString, Toast.LENGTH_LONG).show()
     }
 
     private fun doAlertDialog(title: String, initialText: String, onClick: DialogInterface.OnClickListener) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(context)
         builder.setTitle(title)
         dialogInputView = EditText(context)
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        dialogInputView?.inputType = InputType.TYPE_CLASS_TEXT // or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        dialogInputView?.inputType = InputType.TYPE_CLASS_TEXT
         dialogInputView?.setText(initialText)
         builder.setView(dialogInputView)
 
-        builder.setPositiveButton("OK", onClick)
-        builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
+        builder.setPositiveButton("Ok", onClick)
+        builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
         builder.show()
     }
 }
