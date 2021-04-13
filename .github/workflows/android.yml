@@ -39,8 +39,4 @@ jobs:
           projectKey: conceptworks.bluetoothserver
           url: https://sonarqube.ta.philips.com/
           enablePullRequestDecoration: true
-          onlyConfig: true
-
-      - name: Sonar Analysis run
-        run: |
-          ./gradlew --info jacocoTestReport sonarQube ${{ steps.sonarconfig.outputs.sonarParameters }}
+          onlyConfig: false
