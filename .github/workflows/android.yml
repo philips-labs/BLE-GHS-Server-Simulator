@@ -6,7 +6,6 @@ jobs:
   build:
     name: Build
     runs-on: [self-hosted, research]
-    container: dl-innersource-docker.artifactory-ehv.ta.philips.com/forest-react-native-ci:0.63.0
 
     steps:
       - uses: actions/checkout@v2
@@ -32,11 +31,9 @@ jobs:
 
       - name: Sonar Analysis configuration
         uses: philips-software/sonar-scanner-action@v1.2.0
-        id: sonarconfig
         with:
           token: ${{ secrets.SONARQUBE_TOKEN }}
           projectName: Conceptworks - bluetoothserver
           projectKey: conceptworks.bluetoothserver
           url: https://sonarqube.ta.philips.com/
           enablePullRequestDecoration: true
-          onlyConfig: false
