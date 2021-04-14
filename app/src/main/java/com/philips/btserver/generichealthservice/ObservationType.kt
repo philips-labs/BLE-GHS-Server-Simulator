@@ -4,6 +4,8 @@
  */
 package com.philips.btserver.generichealthservice
 
+import java.lang.IllegalArgumentException
+
 enum class ObservationType(val value: Int) {
     MDC_ACCELERATION_INDEX(150612),
     MDC_ACOUSTIC_RESP_RATE(151650),
@@ -966,12 +968,18 @@ enum class ObservationType(val value: Int) {
     UNKNOWN_STATUS_CODE(-0x1);
 
     companion object {
+        @Suppress("unused")
         fun fromValue(value: Int): ObservationType {
             return values().find { it.value == value } ?: UNKNOWN_STATUS_CODE
         }
 
+        @Suppress("unused")
         fun fromString(string: String): ObservationType {
-            return valueOf(string) ?: UNKNOWN_STATUS_CODE
+            return try {
+                valueOf(string)
+            } catch (exception: IllegalArgumentException) {
+                UNKNOWN_STATUS_CODE
+            }
         }
     }
 }
