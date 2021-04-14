@@ -52,6 +52,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        // To be implemented by sub class
     }
 
     open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -63,6 +64,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
+        // To be implemented by sub class
     }
 
     open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
@@ -74,6 +76,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     open fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        // To be implemented by sub class
     }
 
     /*
@@ -81,6 +84,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        // To be implemented by sub class
     }
 
     /*
@@ -88,6 +92,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     override fun onCentralConnected(central: BluetoothCentral) {
+        // To be implemented by sub class
     }
 
     /*
@@ -95,6 +100,7 @@ internal abstract class BaseService(peripheralManager: BluetoothPeripheralManage
      * Subclasses do not need to provide an implementation
      */
     override fun onCentralDisconnected(central: BluetoothCentral) {
+        // To be implemented by sub class
     }
 
     companion object {
