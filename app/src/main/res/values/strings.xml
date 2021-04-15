@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Philips GHS Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
-    <string name="tab_text_ble_info">BLE Info</string>
+    <string name="tab_text_ble_info">Device Info</string>
     <string name="tab_text_observations">Observations</string>
     <string name="tab_text_experimental">Experimental</string>
     <string name="tab_text_settings">Settings</string>
