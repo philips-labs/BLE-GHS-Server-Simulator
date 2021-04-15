@@ -1,11 +1,19 @@
 [![Android CI](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml)
 
-# ble-generic-health-sensor-server (working title)
+# BLE Generic Health Sensor Server Simulator
+
+*Note: It is assumed the reader is familiar with Bluetooth Low Energy GATT Servers and Android development*
+
+
+**Key concepts**:
+
+This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification. As such it will be contiously modified and extended as the GHS specification evolves.
 
 **Description**:  
+
 An implementation of the proposed Generic Health Sensor standard server for Android that is easily modified or extended to emit various types of health observations.
 
-This example BLE Server application supports the Generic Health Sensor (GHS) GATT service that is currently under development in the Bluetooth SIG.
+This BLE Server simulator supports the Generic Health Sensor (GHS) GATT service that is currently under development in the Bluetooth SIG. As it is an evolving specification it can also be used as a "playground" for various BLE properties and data representation.
 
 This service in turn is based on the IEEE 11073-10206 specification that specifies an Abstract Content Model (ACOM) for personal health device data - covering any type of health observation that can be modeled using the IEEE 11073-10101 nomenclature system.
 
@@ -17,14 +25,29 @@ In addition the application supports "Experimental" modifications to the data fo
 
 The server works in conjunction with a client that can connect to a GHS service and manage the types of observation data specified. A standard BLE client application (e.g. LightBlue) can be used to connect and view/log the behavior and data from the GHS peripheral.
 
-**Key concepts**:
-This codebase is used as a demonstrator of the GHS specification features and will also be used for Bluetooth SIG Interoperability Testing of the GHS specification. As such it will be contiously modified and extended as the GHS specification evolves.
+**Simulator usage**:  
+
+The Simulator UX consists of a main screen with 3 tabbed pages.
+
+The "Device Info" tab contains properties for the Device Information Service (currently the device name and model number).
+
+The "Observations" tab controls:
+* Controlling the types of observations to be sent on each emission.
+* Starting and stopping a continous data emitter (with the period defined in the ObservationEmitter class via a emitterPeriod property)
+* Emitting a single shot observation(s). 
+
+The "Experimenal" tab has various options being evaluated (but not proposed) for the data format of the emitted observations (note if these are selected any BLE central receiver would need to understand the matching resulting data format). The details of each option are self describing and are not discussed in this document. For those not familiar with the options or terminology it is recommended to not select any of these options.
+
+The developer is free to modify and extend each of these page Fragments and the underlying classes to support other types of devices, observations or data representations.
 
 **Technology stack**: 
+
 The project is written in Kotlin and implements a standalone Android application
 The BLE, GHS and data model classes are separated from the Android UX classes for reusability in other GHS server prototypes.
 
-**Status**:  Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
+**Status**:
+
+Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
 
 Latest updates: link to the [CHANGELOG](CHANGELOG.md).
 
