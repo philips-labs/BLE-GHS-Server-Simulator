@@ -25,7 +25,31 @@ In addition the application supports "Experimental" modifications to the data fo
 
 The server works in conjunction with a client that can connect to a GHS service and manage the types of observation data specified. A standard BLE client application (e.g. LightBlue) can be used to connect and view/log the behavior and data from the GHS peripheral.
 
-**Simulator usage**:  
+**Technology stack**: 
+
+The project is written in Kotlin and implements a standalone Android application
+The BLE, GHS and data model classes are separated from the Android UX classes for reusability in other GHS server prototypes.
+
+**Status**:
+
+Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
+
+Latest updates: link to the [CHANGELOG](CHANGELOG.md).
+
+## Project Usage
+
+The project should build and run. Note, the current versions used and tested are:
+* Android Studio 4.1.3
+* Kotlin 1.4.31
+
+The packages in the project are as follows:
+* ```com.philips.btserver.extensions``` - Byte, ByteArray, String, and List extensions that are used in the project (and generally useful)
+* ```com.philips.btserver``` - Base classes for BluetoothServer (responsible for overall Server behavior in collaboration with the BluetoothPeripheralManager) and BaseService (the base class for creating service handlers for Device Information, Current Time, and Generic Health Sensor)
+* ```com.philips.btserver.gatt``` - Classes that handle the GATT Current Time and Device Information Services.
+* ```com.philips.btserver.generichealthservice``` - Classes that handle and suppor the Generic Health Sensor Service, including data models and emitting sample observations.
+* ```com.philips.btserverapp``` - Activity, Fragments and Adapter to support the UI.
+
+## Simulator Usage
 
 The Simulator UX consists of a main screen with 3 tabbed pages.
 
@@ -40,31 +64,8 @@ The "Experimenal" tab has various options being evaluated (but not proposed) for
 
 The developer is free to modify and extend each of these page Fragments and the underlying classes to support other types of devices, observations or data representations.
 
-**Technology stack**: 
-
-The project is written in Kotlin and implements a standalone Android application
-The BLE, GHS and data model classes are separated from the Android UX classes for reusability in other GHS server prototypes.
-
-**Status**:
-
-Alpha - work in progress, in parallel with the specificaion work done in IEEE and the Bluetooth SIG.
-
-Latest updates: link to the [CHANGELOG](CHANGELOG.md).
-
-## Usage
-
-The project should build and run. Note, the current versions used and tested are:
-* Android Studio 4.1.3
-* Kotlin 1.4.31
-
-The packages in the project are as follows:
-* ```com.philips.btserver.extensions``` - Byte, ByteArray, String, and List extensions that are used in the project (and generally useful)
-* ```com.philips.btserver``` - Base classes for BluetoothServer (responsible for overall Server behavior in collaboration with the BluetoothPeripheralManager) and BaseService (the base class for creating service handlers for Device Information, Current Time, and Generic Health Sensor)
-* ```com.philips.btserver.gatt``` - Classes that handle the GATT Current Time and Device Information Services.
-* ```com.philips.btserver.generichealthservice``` - Classes that handle and suppor the Generic Health Sensor Service, including data models and emitting sample observations.
-* ```com.philips.btserverapp``` - Activity, Fragments and Adapter to support the UI.
-
 ## Known issues
+
 Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to the code to track the specifcations will be frequent and called out in the [CHANGELOG](CHANGELOG.md).
 
 ## Contact / Getting help
