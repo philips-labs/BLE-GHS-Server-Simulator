@@ -1,3 +1,1 @@
-John Doe1 <John.doe1@philips.com>
-
-John Doe2 <John.doe2@philips.com>
+Abdul Nabi <abdul.nabi@philips.com>, Erik Moll <erik.moll@philips.com>, Martijn van Welie <martijn.van.welie@philips.com>
