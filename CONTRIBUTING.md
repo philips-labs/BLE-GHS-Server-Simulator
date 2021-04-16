@@ -6,7 +6,9 @@ is a useful extension, feature, fix or other improvement the project authors and
 into the project code base.
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. We can then
+email, or any other method with the owners of this repository before making a change. We can then discuss
+any specifics or questions and provide you with the coding, formatting, and testing guidelines used for you to adopt or
+incorporate prior to submission.
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
