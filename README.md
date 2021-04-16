@@ -68,6 +68,10 @@ The developer is free to modify and extend each of these page Fragments and the 
 
 Given the early state of the Generic Health Sensor (GHS) GATT service within the Bluetooth SIG changes to the code to track the specifcations will be frequent and called out in the [CHANGELOG](CHANGELOG.md).
 
+## Contributing
+
+This project was open sourced primarily to allow for those interested in the Bluetooth General Health Sensor specification to experiment with simulations of devices. We don't anticipate contributions, however, if there is a useful extension, feature, fix or other improvement the project authors and maintainers are eager to merge those into the project code base. More information can be found [here](CONTRIBUTING.md).
+
 ## Contact / Getting help
 
 For further questions on this project, contact:
