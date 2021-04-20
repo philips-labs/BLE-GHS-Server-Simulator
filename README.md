@@ -1,4 +1,4 @@
-[![Android CI](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml/badge.svg)](https://github.com/philips-internal/bluetooth-server-example/actions/workflows/android.yml)
+[![Android Build](https://github.com/philips-labs/BLE-GHS-Server-Simulator/actions/workflows/android.yml/badge.svg)](https://github.com/philips-labs/BLE-GHS-Server-Simulator/actions/workflows/android.yml)
 
 # BLE Generic Health Sensor Server Simulator
 
