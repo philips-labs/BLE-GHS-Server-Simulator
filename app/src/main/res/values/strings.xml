@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">Philips GHS Simulator</string>
+    <string name="title_activity_main2">GHS Simulator</string>
+    <string name="tab_text_ble_info">Device Info</string>
+    <string name="tab_text_observations">Observations</string>
+    <string name="tab_text_experimental">Experimental</string>
+    <string name="tab_text_settings">Settings</string>
+    <string name="advertisment_name">Device name</string>
+    <string name="model_number">Model number</string>
+    <string name="change">Change</string>
+    <string name="startEmitter">Start emitter</string>
+    <string name="stopEmitter">Stop emitter</string>
+    <string name="singleShotEmit">Emit Once</string>
+    <string name="choiceTempObs">Include temperature (Simple Numeric)</string>
+    <string name="choiceHRObs">Include heart rate (Simple Numeric)</string>
+    <string name="choiceSPO2Obs">Include SpO2 (Simple Numeric)</string>
+    <string name="choicePPGObs">Include PPG array (Sample Array)</string>
+    <string name="choiceMergeObs">Merge observations into ACOM Object</string>
+
+    <string name="typeCodeTitle">Type Codes:</string>
+    <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>
+
+    <string name="tlvOptionsTitle">TLV Options:</string>
+    <string name="choiceOmitFixedLengthTypes">Omit length for fixed length types (TV)</string>
+    <string name="choiceOmitHandleTLV">Omit handle TLV</string>
+    <string name="choiceOmitUnitCode">Omit unit code TLV for known obs types</string>
+
+    <string name="obsTypeTitle">Observation types:</string>
+    <string name="choiceObsArrayType">Observation array type\n(with inner obs timestamp removed)</string>
+
+    <string name="obsSizesTitle">Object sizes:</string>
+    <string name="simpleNumericObs">Simple numeric observation: 142 bytes</string>
+    <string name="central_connected">(Connected)</string>
+    <string name="central_disconnected">(Disconnected)</string>
+
+    <string name="invalid_section_number">Invalid section number</string>
+
+</resources>

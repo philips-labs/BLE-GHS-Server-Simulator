@@ -1,0 +1,39 @@
+name: Build Android
+
+on: push
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: clone forest ci repository
+        uses: actions/checkout@v2
+        with:
+          repository: philips-internal/forest-ci
+          fetch-depth: 1
+          path: .forest
+          ref: feature/android-fastlane-action
+          ssh-key: ${{ secrets.FOREST_CI_REPO_SSH_KEY }}
+
+      - name: Build debug android application
+        uses: ./.forest/actions/mobile/android-fastlane-action
+        with:
+          mode: sonarqube
+          target: development
+          build_type: Debug
+          project: app
+          version: 0.1
+          android_project_dir: .
+
+      - name: Sonar Analysis configuration
+        uses: philips-software/sonar-scanner-action@v1.2.0
+        with:
+          token: ${{ secrets.SONARQUBE_TOKEN }}
+          projectName: Conceptworks - bluetoothserver
+          projectKey: conceptworks.bluetoothserver
+          url: https://sonarqube.ta.philips.com/
+          enablePullRequestDecoration: true

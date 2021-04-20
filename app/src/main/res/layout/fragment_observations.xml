@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.philips.btserverapp.ObservationsFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        android:paddingTop="32dp">
+
+        <CheckBox
+            android:id="@+id/checkboxTempObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choiceTempObs" />
+
+        <CheckBox
+            android:id="@+id/checkboxHRObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choiceHRObs" />
+
+        <CheckBox
+            android:id="@+id/checkboxPPGObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choicePPGObs" />
+
+        <CheckBox
+            android:id="@+id/checkboxSPO2Obs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choiceSPO2Obs" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/separatorColor" />
+
+        <Button
+            android:id="@+id/btnStartStopEmitter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="32dp"
+            android:height="40dp"
+            android:text="@string/startEmitter"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnSingleShotEmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/singleShotEmit"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+</FrameLayout>
