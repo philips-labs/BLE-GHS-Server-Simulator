@@ -48,7 +48,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * there is a connection so start emitting observations.
      */
     override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-        ObservationEmitter.startEmitter()
+//        ObservationEmitter.startEmitter()
     }
 
     /**

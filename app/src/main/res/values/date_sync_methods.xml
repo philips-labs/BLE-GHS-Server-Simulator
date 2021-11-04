@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="date_sync_methods_array">
+        <item>None</item>
+        <item>NTP</item>
+        <item>Radio</item>
+        <item>Cellular</item>
+        <item>Manual</item>
+        <item>GPS</item>
+        <item>Other</item>
+    </string-array>
+</resources>

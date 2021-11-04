@@ -4,38 +4,38 @@
  */
 package com.philips.btserver.generichealthservice
 
-import com.welie.blessed.BluetoothBytesParser
-import java.nio.ByteOrder
 import java.util.*
 
-data class SampleArrayObservation(
+data class CompoundNumericObservation(
     override val id: Short,
     override val type: ObservationType,
-    override val value: ByteArray,
+    override val value: Array<Pair<ObservationType, Float>>,
+    val valuePrecision: Int,
     override val unitCode: UnitCode,
     override val timestamp: Date
 ) : Observation() {
 
     override val valueByteArray: ByteArray
         get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(
-                ObservationValueType.MDC_ATTR_SA_VAL_OBS.value,
-                BluetoothBytesParser.FORMAT_UINT32
+            return encodeTLV(
+                ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS.value,
+                ObservationValueType.valueByteLength,
+                // TODO: Need to handle second value. Just here to get compiling and testing other stuff
+                value.first().second,
+                valuePrecision
             )
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT16)
-            return parser.value + value
         }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SampleArrayObservation
+        other as CompoundNumericObservation
 
         if (id != other.id) return false
         if (type != other.type) return false
         if (!value.contentEquals(other.value)) return false
+        if (valuePrecision != other.valuePrecision) return false
         if (unitCode != other.unitCode) return false
         if (timestamp != other.timestamp) return false
 
@@ -46,6 +46,7 @@ data class SampleArrayObservation(
         var result = id.toInt()
         result = 31 * result + type.hashCode()
         result = 31 * result + value.contentHashCode()
+        result = 31 * result + valuePrecision
         result = 31 * result + unitCode.hashCode()
         result = 31 * result + timestamp.hashCode()
         return result

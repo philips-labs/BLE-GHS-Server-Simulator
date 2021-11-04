@@ -146,7 +146,10 @@ abstract class Observation {
 
     // Made public for ObservationTest
     val unitByteArray: ByteArray
-        get() { return encodeTLV(unitCodeId, unitLength, unitCode.value) }
+        get() {
+            val ba = encodeTLV(unitCodeId, unitLength, unitCode.value)
+            return ba
+        }
 
     // Used by fixed length, Short/Int/Long/Float fields (handle, type, unit)
     protected fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {

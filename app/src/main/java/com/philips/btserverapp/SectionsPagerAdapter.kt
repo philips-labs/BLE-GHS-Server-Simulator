@@ -13,7 +13,8 @@ import com.philips.btserver.R
 private val TAB_TITLES = arrayOf(
         R.string.tab_text_ble_info,
         R.string.tab_text_observations,
-        R.string.tab_text_experimental
+        R.string.tab_text_date
+//        R.string.tab_text_experimental
 )
 
 class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
@@ -23,7 +24,8 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
         return when (position) {
             0 -> DeviceInformationFragment()
             1 -> ObservationsFragment()
-            2 -> ExperimentalFragment()
+            2 -> DateFragment()
+            3 -> ExperimentalFragment()
             else -> error(R.string.invalid_section_number)
         }
     }
@@ -33,7 +35,6 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
     }
 
     override fun getCount(): Int {
-        // Show 2 total pages.
         return TAB_TITLES.size;
     }
 

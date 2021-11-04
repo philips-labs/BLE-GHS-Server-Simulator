@@ -19,6 +19,7 @@ enum class ObservationValueType(val value: Int) {
         fun fromValue(value: Int): ObservationValueType {
             return values().find { it.value == value } ?: UNKNOWN_TYPE_VAL_OBS
         }
+        const val valueByteLength = 4
     }
 
 }

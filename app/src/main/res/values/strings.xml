@@ -3,6 +3,7 @@
     <string name="title_activity_main2">GHS Simulator</string>
     <string name="tab_text_ble_info">Device Info</string>
     <string name="tab_text_observations">Observations</string>
+    <string name="tab_text_date">Date encoding</string>
     <string name="tab_text_experimental">Experimental</string>
     <string name="tab_text_settings">Settings</string>
     <string name="advertisment_name">Device name</string>
@@ -34,5 +35,18 @@
     <string name="central_disconnected">(Disconnected)</string>
 
     <string name="invalid_section_number">Invalid section number</string>
+
+    <string name="serverClock">Current clock:</string>
+    <string name="dateSyncMethod">Date sync method:</string>
+    <string name="clockCapabilities">Clock capabilites:</string>
+    <string name="clockTickCounter">Clock is a tick counter</string>
+    <string name="clockUTCTime">Clock reports UTC time</string>
+    <string name="clockMilliseconds">Clock reports milliseconds</string>
+    <string name="clockIncludesTZ">Clock includes time zone</string>
+    <string name="clockIncludesDST">Clock includes DST</string>
+    <string name="clockSettable">Clock can be set</string>
+    <string name="clockManagesDST">Clock manages DST changes</string>
+    <string name="clockManagesTZ">Clock manages time zone changes</string>
+    <string name="clockReset">Reset clock (time fault)</string>
 
 </resources>
