@@ -4,9 +4,9 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.*
 import com.welie.blessed.BluetoothBytesParser
 import java.util.*
-import com.philips.btserver.extensions.merge
 import java.nio.ByteOrder
 
 /**
@@ -178,12 +178,28 @@ abstract class Observation {
     // Made public for ObservationTest
     val timestampByteArray: ByteArray
         get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-            parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-            if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
-            parser.setLong(timestamp.time)
-            return parser.value
+            val bytes = getGHSTimestampBytes()
+            System.out.println("GHS Timestamp TLV size: ${bytes.size} bytes: ${bytes.asHexString()}")
+            return bytes
+//            return getSimpleTimestampBytes()
         }
+
+    private fun getGHSTimestampBytes(): ByteArray {
+        val tsBytes = timestamp.asGHSBytes()
+        System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
+        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
+        return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
+    }
+
+    private fun getSimpleTimestampBytes(): ByteArray {
+        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
+        if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
+        parser.setLong(timestamp.time)
+        return parser.value
+    }
 
     companion object {
         internal const val handleCode = 0x00010921
