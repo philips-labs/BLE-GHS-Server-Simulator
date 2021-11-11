@@ -13,6 +13,7 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asBLEDataSegments
+import com.philips.btserver.extensions.asGHSBytes
 import com.philips.btserver.extensions.merge
 import java.util.*
 
@@ -21,16 +22,25 @@ import java.util.*
  * the generic health sensor service. The GHS service proposed includes
  * an observation characteristic and a control point characteristic.
  */
-internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
+internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) :
+    BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
-    private val observationCharacteristic = BluetoothGattCharacteristic(OBSERVATION_CHARACTERISTIC_UUID,
-            PROPERTY_NOTIFY,
-            0)
+    private val observationCharacteristic = BluetoothGattCharacteristic(
+        OBSERVATION_CHARACTERISTIC_UUID,
+        PROPERTY_NOTIFY,
+        0
+    )
     private val controlCharacteristic = BluetoothGattCharacteristic(
-            CONTROL_POINT_CHARACTERISTIC_UUID,
-            PROPERTY_WRITE or PROPERTY_INDICATE,
-            PERMISSION_WRITE)
+        CONTROL_POINT_CHARACTERISTIC_UUID,
+        PROPERTY_WRITE or PROPERTY_INDICATE,
+        PERMISSION_WRITE
+    )
+    private val clockCharacteristic = BluetoothGattCharacteristic(
+        CLOCK_CHARACTERISTIC_UUID,
+        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
+        PERMISSION_WRITE
+    )
 
     /**
      * Notification that [central] has disconnected. If there are no other connected bluetooth
@@ -47,7 +57,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * Notification from [central] that [characteristic] has notification enabled. Implies that
      * there is a connection so start emitting observations.
      */
-    override fun onNotifyingEnabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+    override fun onNotifyingEnabled(
+        central: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic
+    ) {
 //        ObservationEmitter.startEmitter()
     }
 
@@ -55,11 +68,35 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * Notification from [central] that [characteristic] has notification disabled. If the
      * characteristic is the observation characteristic then stop emitting observations.
      */
-    override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+    override fun onNotifyingDisabled(
+        central: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic
+    ) {
         super.onNotifyingDisabled(central, characteristic)
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             ObservationEmitter.stopEmitter()
         }
+    }
+
+    /*
+     * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
+     */
+    override fun onCharacteristicRead(
+        central: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic
+    ) {
+        if (characteristic.uuid == CLOCK_CHARACTERISTIC_UUID) {
+            sendClockBytes()
+        }
+    }
+
+    /*
+     * send the current clock in the GHS byte format based on current flags
+     */
+    private fun sendClockBytes() {
+        val bytes = Date().asGHSBytes()
+        clockCharacteristic.value = bytes
+        notifyCharacteristicChanged(bytes, clockCharacteristic)
     }
 
     /**
@@ -86,9 +123,13 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     companion object {
         val GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb")
-        val OBSERVATION_CHARACTERISTIC_UUID = UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
-        val CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
+        val OBSERVATION_CHARACTERISTIC_UUID =
+            UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
+        val CLOCK_CHARACTERISTIC_UUID = UUID.fromString("00002AC5-0000-1000-8000-00805f9b34fb")
+        val CONTROL_POINT_CHARACTERISTIC_UUID =
+            UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
         private const val OBSERVATION_DESCRIPTION = "Characteristic for ACOM Observation segments."
+        private const val CLOCK_DESCRIPTION = "Characteristic for GHS clock data and flags."
         private const val CONTROL_POINT_DESCRIPTION = "Control point for generic health sensor."
 
         /**
@@ -97,19 +138,24 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         fun getInstance(): GenericHealthSensorService? {
             val bleServer = BluetoothServer.getInstance()
             val ghs = bleServer?.getServiceWithUUID(GHS_SERVICE_UUID)
-            return  ghs?.let {it as GenericHealthSensorService }
+            return ghs?.let { it as GenericHealthSensorService }
         }
     }
 
     init {
-        service.addCharacteristic(observationCharacteristic)
-        service.addCharacteristic(controlCharacteristic)
-        observationCharacteristic.addDescriptor(getCccDescriptor())
-        observationCharacteristic.addDescriptor(getCudDescriptor(OBSERVATION_DESCRIPTION))
-        observationCharacteristic.value = byteArrayOf(0x00)
-        controlCharacteristic.addDescriptor(getCccDescriptor())
-        controlCharacteristic.addDescriptor(getCudDescriptor(CONTROL_POINT_DESCRIPTION))
-        controlCharacteristic.value = byteArrayOf(0x00)
+        initCharacteristic(observationCharacteristic, OBSERVATION_DESCRIPTION)
+        initCharacteristic(controlCharacteristic, CLOCK_DESCRIPTION)
+        initCharacteristic(clockCharacteristic, CONTROL_POINT_DESCRIPTION)
+    }
+
+    private fun initCharacteristic(
+        characteristic: BluetoothGattCharacteristic,
+        description: String
+    ) {
+        service.addCharacteristic(characteristic)
+        characteristic.addDescriptor(getCccDescriptor())
+        characteristic.addDescriptor(getCudDescriptor(description))
+        characteristic.value = byteArrayOf(0x00)
     }
 
     /**
