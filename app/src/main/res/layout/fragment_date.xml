@@ -13,6 +13,7 @@
         android:paddingTop="32dp">
 
         <LinearLayout
+            android:id="@+id/textClockGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -26,11 +27,32 @@
                 android:id="@+id/textClock"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:format24Hour="yyyy-MM-dd HH:mm:ss Z" />
+                android:format24Hour="yyyy-MM-dd HH:mm:ss" />
 
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/tickCounterGroup"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="16dp"
+                android:text="@string/tickCounter" />
+            <TextView
+                android:id="@+id/tickCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="16dp"
+                android:text="@string/tickCounter" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/dateSyncGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
