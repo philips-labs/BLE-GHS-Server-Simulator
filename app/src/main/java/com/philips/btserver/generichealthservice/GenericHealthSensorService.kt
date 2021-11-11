@@ -38,7 +38,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     )
     private val clockCharacteristic = BluetoothGattCharacteristic(
         CLOCK_CHARACTERISTIC_UUID,
-        PROPERTY_WRITE or PROPERTY_INDICATE,
+        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_WRITE
     )
 
