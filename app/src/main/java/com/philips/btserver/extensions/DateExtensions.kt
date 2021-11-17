@@ -51,7 +51,6 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     isHundredthsMicroseconds(1 shl 3),
     isTZPresent(1 shl 4),
     isDSTPresent(1 shl 5),
-    isFractionsPresent(1 shl 6),
     isCurrentTimeline(1 shl 6),
     reserved_1(1 shl 7);
 
@@ -125,15 +124,19 @@ fun Date.asGHSBytes(): ByteArray {
  *
  * @returns bytes that are compliant with the GHS Time specification
  */
+
+// Magic number 946684800000 is the millisecond offset from 1970 Epoch to Y2K Epoch
+private const val UTC_TO_UNIX_EPOCH_MILLIS = 946684800000L
+private const val MILLIS_IN_15_MINUTES = 900000
+
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
     val currentTimeMillis = System.currentTimeMillis()
 
-    // Magic number 946684800000 is the millisecond offset from 1970 Epoch to Y2K Epoch
     val millis = if (timestampFlags.hasFlag(TimestampFlags.isTickCounter)) {
         SystemClock.elapsedRealtime()
     } else {
-        currentTimeMillis - 946684800000
+        currentTimeMillis - UTC_TO_UNIX_EPOCH_MILLIS
     }
 
     val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
@@ -154,8 +157,7 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
         val tz = TimeZone.getDefault()
         val timeZoneMillis = if (timestampFlags.hasFlag(TimestampFlags.isTZPresent)) tz.getOffset(currentTimeMillis) else 0
         val dstMillis = if (timestampFlags.hasFlag(TimestampFlags.isDSTPresent)) tz.getOffset(currentTimeMillis) else 0
-        // TODO: Assume +/- offset is in units of 15 minutes (900Kmsec)
-        val offsetUnits = (timeZoneMillis + dstMillis) / 900000
+        val offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
         parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
         System.out.println("Add Offset Value: $offsetUnits")
     }
