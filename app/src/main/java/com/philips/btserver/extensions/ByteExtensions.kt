@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.extensions
 
+import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
 
@@ -102,4 +103,10 @@ fun ByteArray.findFirst(sequence: ByteArray, startFrom: Int = 0): Int {
         offset++
     }
     return -1
+}
+
+fun BluetoothBytesParser.setLongValue(value: Long): Boolean {
+    val result = setLong(value)
+    if (result) { offset += 8 }
+    return result
 }

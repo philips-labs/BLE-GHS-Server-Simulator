@@ -34,18 +34,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.dateSyncMethod
-        ArrayAdapter.createFromResource(
-            this.context!!,
-            R.array.date_sync_methods_array,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            // Specify the layout to use when the list of choices appears
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            // Apply the adapter to the spinner
-            binding.dateSyncMethod.adapter = adapter
-        }
-        binding.dateSyncMethod.onItemSelectedListener = this
+        setupTimeSourceSpinner()
         binding.choiceClockTickCounter.setOnClickListener {
             val timeChoicesEnabled = !binding.choiceClockTickCounter.isChecked
             binding.textClockGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.GONE
@@ -68,6 +57,21 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
             TimestampFlags.currentFlags = this.timestampFlags
         }
+    }
+
+    private fun setupTimeSourceSpinner() {
+        ArrayAdapter.createFromResource(
+            this.context!!,
+            R.array.date_sync_methods_array,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            // Specify the layout to use when the list of choices appears
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            // Apply the adapter to the spinner
+            binding.dateSyncMethod.adapter = adapter
+        }
+        binding.dateSyncMethod.setSelection(Timesource.currentSource.value)
+        binding.dateSyncMethod.onItemSelectedListener = this
     }
 
     // Made public for ObservationTest

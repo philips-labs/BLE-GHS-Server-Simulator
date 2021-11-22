@@ -139,14 +139,14 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
         currentTimeMillis - UTC_TO_UNIX_EPOCH_MILLIS
     }
 
-    val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
     parser.setIntValue(timestampFlags.value.toInt(), BluetoothBytesParser.FORMAT_UINT8)
     System.out.println("Add Flag Byte: ${timestampFlags.value.toInt()}")
     if (timestampFlags.hasFlag(TimestampFlags.isMilliseconds)) {
-        parser.setLong(millis)
+        parser.setLongValue(millis)
         System.out.println("Add Milliseconds Value: ${timestampFlags.value.toInt()}")
     } else {
-        parser.setLong(millis / 1000L)
+        parser.setLongValue(millis / 1000L)
         System.out.println("Add Seconds Value: ${millis / 1000L}")
     }
 
@@ -156,7 +156,7 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
         val tz = TimeZone.getDefault()
         val timeZoneMillis = if (timestampFlags.hasFlag(TimestampFlags.isTZPresent)) tz.getOffset(currentTimeMillis) else 0
-        val dstMillis = if (timestampFlags.hasFlag(TimestampFlags.isDSTPresent)) tz.getOffset(currentTimeMillis) else 0
+        val dstMillis = 0 // if (timestampFlags.hasFlag(TimestampFlags.isDSTPresent)) tz.getOffset(currentTimeMillis) else 0
         val offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
         parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
         System.out.println("Add Offset Value: $offsetUnits")
