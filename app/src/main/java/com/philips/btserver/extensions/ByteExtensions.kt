@@ -9,7 +9,7 @@ import java.util.*
 import kotlin.math.ceil
 
 fun Byte.asHexString(): String {
-    var hexString = this.toUINT8().toString(16).toUpperCase(Locale.ROOT)
+    var hexString = this.toUINT8().toString(16).uppercase(Locale.ROOT)
     if (this.toUINT8() < 16) hexString = "0$hexString"
     return hexString
 }
@@ -30,7 +30,7 @@ fun ByteArray.asHexString(): String {
 fun ByteArray.asAsciiString(): String {
     var resultString = ""
     forEach {
-        resultString += it.toChar()
+        resultString += it.toInt().toChar()
     }
     return resultString
 }

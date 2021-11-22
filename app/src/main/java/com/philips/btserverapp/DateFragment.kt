@@ -10,14 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Spinner
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
-import com.philips.btserver.databinding.FragmentObservationsBinding
 import com.philips.btserver.extensions.*
-import com.philips.btserver.generichealthservice.Observation
-import com.philips.btserver.generichealthservice.ObservationEmitter
-import java.sql.Time
 
 class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
@@ -35,28 +30,44 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupTimeSourceSpinner()
-        binding.choiceClockTickCounter.setOnClickListener {
-            val timeChoicesEnabled = !binding.choiceClockTickCounter.isChecked
-            binding.textClockGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.GONE
-            binding.tickCounterGroup.visibility = if (timeChoicesEnabled) View.GONE else View.VISIBLE
-            binding.dateSyncGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.INVISIBLE
+        setupClockChoices()
+    }
 
-            if (!timeChoicesEnabled) startTickCounterDisplay()
+    private fun setupClockChoices() {
+        binding.choiceClockTickCounter.setOnClickListener { updateTimestampFlags() }
+        binding.choiceClockUTCTime.setOnClickListener { updateTimestampFlags() }
+        binding.choiceClockMilliseconds.setOnClickListener { updateTimestampFlags() }
+        binding.choiceClockIncludesTZ.setOnClickListener { updateTimestampFlags() }
+        binding.choiceClockIncludesDST.setOnClickListener { updateTimestampFlags() }
+    }
 
-            binding.choiceClockUTCTime.setEnabled(timeChoicesEnabled)
-            binding.choiceClockUTCTime.isChecked = timeChoicesEnabled && binding.choiceClockUTCTime.isChecked
-//            binding.choiceClockMilliseconds.setEnabled(timeChoicesEnabled)
-            binding.choiceClockIncludesTZ.setEnabled(timeChoicesEnabled)
-            binding.choiceClockIncludesTZ.isChecked = timeChoicesEnabled && binding.choiceClockIncludesTZ.isChecked
-            binding.choiceClockIncludesDST.setEnabled(timeChoicesEnabled)
-            binding.choiceClockIncludesDST.isChecked = timeChoicesEnabled && binding.choiceClockIncludesDST.isChecked
-            binding.choiceClockManagesTZ.setEnabled(timeChoicesEnabled)
-            binding.choiceClockManagesTZ.isChecked = timeChoicesEnabled && binding.choiceClockManagesTZ.isChecked
-            binding.choiceClockManagesDST.setEnabled(timeChoicesEnabled)
-            binding.choiceClockManagesDST.isChecked = timeChoicesEnabled && binding.choiceClockManagesDST.isChecked
+    private fun updateTimestampFlags() {
+        TimestampFlags.currentFlags = this.timestampFlags
+        updateChoiceBoxes()
+    }
 
-            TimestampFlags.currentFlags = this.timestampFlags
-        }
+    private fun updateChoiceBoxes() {
+        updateTimeViews()
+        if (!TimestampFlags.currentFlags.isTimestampSent()) startTickCounterDisplay()
+        binding.choiceClockMilliseconds.isChecked = isFlagSet(TimestampFlags.isMilliseconds)
+        updateTimeOptionViews()
+    }
+
+    private fun updateTimeViews() {
+        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestampSent()
+        binding.textClockGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.GONE
+        binding.tickCounterGroup.visibility = if (timeChoicesEnabled) View.GONE else View.VISIBLE
+        binding.dateSyncGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.INVISIBLE
+    }
+
+    private fun updateTimeOptionViews() {
+        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestampSent()
+        binding.choiceClockUTCTime.setEnabled(timeChoicesEnabled)
+        binding.choiceClockUTCTime.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isUTC)
+        binding.choiceClockIncludesTZ.setEnabled(timeChoicesEnabled)
+        binding.choiceClockIncludesTZ.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isTZPresent)
+        binding.choiceClockIncludesDST.setEnabled(timeChoicesEnabled)
+        binding.choiceClockIncludesDST.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isDSTPresent)
     }
 
     private fun setupTimeSourceSpinner() {
@@ -90,16 +101,24 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
             return flags
         }
 
+    private fun isFlagSet(flag: TimestampFlags): Boolean {
+        return TimestampFlags.currentFlags.hasFlag(flag)
+    }
+
     private fun startTickCounterDisplay() {
         Handler(Looper.getMainLooper()).post(object : Runnable {
             override fun run() {
                 TimestampFlags.currentFlags = timestampFlags
-                binding.tickCounter.text = SystemClock.elapsedRealtime().toString()
+                binding.tickCounter.text = currentTickCounter().toString()
                 if (binding.choiceClockTickCounter.isChecked) {
                     Handler(Looper.getMainLooper()).postDelayed(this, 1000)
                 }
             }
         })
+    }
+
+    private fun currentTickCounter(): Long {
+        return SystemClock.elapsedRealtime() / if (isFlagSet(TimestampFlags.isMilliseconds)) 1L else 1000L
     }
 
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
@@ -108,8 +127,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         Timesource.currentSource = Timesource.value(pos)
     }
 
-    override fun onNothingSelected(parent: AdapterView<*>) {
-        // Another interface callback
-    }
+    // AdapterView Interface callback
+    override fun onNothingSelected(parent: AdapterView<*>) {}
 
 }
