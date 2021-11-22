@@ -2,6 +2,7 @@ package com.philips.btserver.extensions
 
 import android.os.SystemClock
 import com.welie.blessed.BluetoothBytesParser
+import timber.log.Timber
 import java.nio.ByteOrder
 import java.util.*
 
@@ -146,29 +147,27 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
     val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
     // Write the flags byte
     parser.setIntValue(timestampFlags.value.toInt(), BluetoothBytesParser.FORMAT_UINT8)
-    System.out.println("Add Flag Byte: ${timestampFlags.value.toInt()}")
+    Timber.i("Add Flag Byte: ${timestampFlags.value.toInt()}")
 
     // Write the utc/local/tick clock value (either milliseconds or seconds)
     if (timestampFlags.hasFlag(TimestampFlags.isMilliseconds)) {
         parser.setLongValue(millis)
-        System.out.println("Add Milliseconds Value: ${timestampFlags.value.toInt()}")
+        Timber.i("Add Milliseconds Value: ${timestampFlags.value.toInt()}")
     } else {
         parser.setLongValue(millis / 1000L)
-        System.out.println("Add Seconds Value: ${millis / 1000L}")
+        Timber.i("Add Seconds Value: ${millis / 1000L}")
     }
 
     if (!isTickCounter) {
         // If a timestamp include the time sync source (NTP, GPS, Network, etc)
         parser.setIntValue(Timesource.currentSource.value, BluetoothBytesParser.FORMAT_UINT8)
-        System.out.println("Add Timesource Value: ${Timesource.currentSource.value}")
-
-
+        Timber.i("Add Timesource Value: ${Timesource.currentSource.value}")
         val localCalendar: Calendar = Calendar.getInstance(TimeZone.getDefault())
         val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) localCalendar.get(Calendar.ZONE_OFFSET) else 0
         val dstMillis =if (timestampFlags hasFlag TimestampFlags.isDSTPresent) localCalendar.get(Calendar.DST_OFFSET) else 0
         val offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
         parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
-        System.out.println("Add Offset Value: $offsetUnits")
+        Timber.i("Add Offset Value: $offsetUnits")
     }
 
     return parser.value
@@ -177,16 +176,15 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 fun Date.testLogOffsets() {
     val tz = TimeZone.getDefault()
     val cal1: Calendar = Calendar.getInstance(tz) //currentZone: CET/CEST +1/+2, GMT+1:00
-    println("System time, " + System.currentTimeMillis()) //UTC current milis
-    System.out.println("Calendar time, " + cal1.getTime().getTime()) //UTC current milis
-    System.out.println("Calendar millis, " + cal1.getTimeInMillis()) //UTC current milis
-    System.out.println("Calendar Zone Offset: " + cal1.get(Calendar.ZONE_OFFSET))
-    System.out.println("Calendar DST Offset: " + cal1.get(Calendar.DST_OFFSET))
-    System.out.println("Time Zone Raw Offset: " + tz.getRawOffset())
-    System.out.println("Time Zone DST Savings Offset: " + tz.getDSTSavings())
-    System.out.println("Time Zone millis: " + tz.getOffset(System.currentTimeMillis()))
-    System.out.println("Is Time Zone in DST: " + tz.inDaylightTime(this).toString())
-    println("")
+    Timber.i("System time ${System.currentTimeMillis()}")
+    Timber.i("Calendar time ${cal1.getTime().getTime()}")
+    Timber.i("Calendar millis ${cal1.getTimeInMillis()}")
+    Timber.i("Calendar Zone Offset: ${cal1.get(Calendar.ZONE_OFFSET)}")
+    Timber.i("Calendar DST Offset: ${cal1.get(Calendar.DST_OFFSET)}")
+    Timber.i("Time Zone Raw Offset: ${tz.getRawOffset()}")
+    Timber.i("Time Zone DST Savings Offset: ${tz.getDSTSavings()}")
+    Timber.i("Time Zone millis: ${tz.getOffset(System.currentTimeMillis())}")
+    Timber.i("Is Time Zone in DST: ${tz.inDaylightTime(this)}")
 }
 
 // Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter
