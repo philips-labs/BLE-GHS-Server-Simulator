@@ -26,20 +26,35 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
+
     private val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
-        PROPERTY_NOTIFY,
+        PROPERTY_READ or PROPERTY_NOTIFY,
         0
     )
-    private val controlCharacteristic = BluetoothGattCharacteristic(
-        CONTROL_POINT_CHARACTERISTIC_UUID,
-        PROPERTY_WRITE or PROPERTY_INDICATE,
-        PERMISSION_WRITE
+
+    private val storedObservationCharacteristic = BluetoothGattCharacteristic(
+        STORED_OBSERVATIONS_CHARACTERISTIC_UUID,
+        PROPERTY_READ or PROPERTY_INDICATE,
+        0
     )
-    private val clockCharacteristic = BluetoothGattCharacteristic(
-        CLOCK_CHARACTERISTIC_UUID,
+
+    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
+        SIMPLE_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_WRITE
+    )
+
+    private val featuresCharacteristic = BluetoothGattCharacteristic(
+        GHS_FEATURES_CHARACTERISTIC_UUID,
+        PROPERTY_READ,
+        0
+    )
+
+    private val uniqueDeviceIdCharacteristic = BluetoothGattCharacteristic(
+        UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID,
+        PROPERTY_READ,
+        0
     )
 
     /**
@@ -85,7 +100,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ) {
-        if (characteristic.uuid == CLOCK_CHARACTERISTIC_UUID) {
+        if (characteristic.uuid == SIMPLE_TIME_CHARACTERISTIC_UUID) {
             sendClockBytes()
         }
     }
@@ -95,8 +110,8 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      */
     private fun sendClockBytes() {
         val bytes = Date().asGHSBytes()
-        clockCharacteristic.value = bytes
-        notifyCharacteristicChanged(bytes, clockCharacteristic)
+        simpleTimeCharacteristic.value = bytes
+        notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
     }
 
     /**
@@ -122,15 +137,22 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     }
 
     companion object {
-        val GHS_SERVICE_UUID = UUID.fromString("0000183D-0000-1000-8000-00805f9b34fb")
+        val GHS_SERVICE_UUID = UUID.fromString("00007f44-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_CHARACTERISTIC_UUID =
-            UUID.fromString("00002AC4-0000-1000-8000-00805f9b34fb")
-        val CLOCK_CHARACTERISTIC_UUID = UUID.fromString("00002AC5-0000-1000-8000-00805f9b34fb")
-        val CONTROL_POINT_CHARACTERISTIC_UUID =
-            UUID.fromString("00002AC6-0000-1000-8000-00805f9b34fb")
-        private const val OBSERVATION_DESCRIPTION = "Characteristic for ACOM Observation segments."
-        private const val CLOCK_DESCRIPTION = "Characteristic for GHS clock data and flags."
-        private const val CONTROL_POINT_DESCRIPTION = "Control point for generic health sensor."
+            UUID.fromString("00007f43-0000-1000-8000-00805f9b34fb")
+        val STORED_OBSERVATIONS_CHARACTERISTIC_UUID =
+            UUID.fromString("00007f42-0000-1000-8000-00805f9b34fb")
+        val GHS_FEATURES_CHARACTERISTIC_UUID =
+            UUID.fromString("00007f41-0000-1000-8000-00805f9b34fb")
+        val SIMPLE_TIME_CHARACTERISTIC_UUID =
+            UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
+        val UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID =
+            UUID.fromString("00007f3a-0000-1000-8000-00805f9b34fb")
+        private const val OBSERVATION_DESCRIPTION = "Characteristic for live observation segments."
+        private const val SIMPLE_TIME_DESCRIPTION = "Characteristic for GHS clock data and flags."
+        private const val STORED_OBSERVATIONS_DESCRIPTION = "Characteristic for stored observation segments."
+        private const val FEATURES_DESCRIPTION = "Characteristic for GHS features."
+        private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Characteristic for unique device ID (UDI)."
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
@@ -144,8 +166,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     init {
         initCharacteristic(observationCharacteristic, OBSERVATION_DESCRIPTION)
-        initCharacteristic(controlCharacteristic, CLOCK_DESCRIPTION)
-        initCharacteristic(clockCharacteristic, CONTROL_POINT_DESCRIPTION)
+        initCharacteristic(storedObservationCharacteristic, STORED_OBSERVATIONS_DESCRIPTION)
+        initCharacteristic(simpleTimeCharacteristic, SIMPLE_TIME_DESCRIPTION)
+        initCharacteristic(featuresCharacteristic, FEATURES_DESCRIPTION)
+        initCharacteristic(uniqueDeviceIdCharacteristic, UNIQUE_DEVICE_ID_DESCRIPTION)
     }
 
     private fun initCharacteristic(

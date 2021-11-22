@@ -4,11 +4,12 @@
  */
 package com.philips.btserver.extensions
 
+import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
 
 fun Byte.asHexString(): String {
-    var hexString = this.toUINT8().toString(16).toUpperCase(Locale.ROOT)
+    var hexString = this.toUINT8().toString(16).uppercase(Locale.ROOT)
     if (this.toUINT8() < 16) hexString = "0$hexString"
     return hexString
 }
@@ -29,7 +30,7 @@ fun ByteArray.asHexString(): String {
 fun ByteArray.asAsciiString(): String {
     var resultString = ""
     forEach {
-        resultString += it.toChar()
+        resultString += it.toInt().toChar()
     }
     return resultString
 }
@@ -102,4 +103,10 @@ fun ByteArray.findFirst(sequence: ByteArray, startFrom: Int = 0): Int {
         offset++
     }
     return -1
+}
+
+fun BluetoothBytesParser.setLongValue(value: Long): Boolean {
+    val result = setLong(value)
+    if (result) { offset += 8 }
+    return result
 }

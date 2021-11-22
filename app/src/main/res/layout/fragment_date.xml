@@ -124,36 +124,6 @@
             android:layout_marginBottom="16dp"
             android:text="@string/clockIncludesDST" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/separatorColor" />
-
-        <CheckBox
-            android:id="@+id/choiceClockSettable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/clockSettable" />
-
-        <CheckBox
-            android:id="@+id/choiceClockManagesDST"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/clockManagesDST" />
-
-        <CheckBox
-            android:id="@+id/choiceClockManagesTZ"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/clockManagesTZ" />
-
     </LinearLayout>
 
         <Button

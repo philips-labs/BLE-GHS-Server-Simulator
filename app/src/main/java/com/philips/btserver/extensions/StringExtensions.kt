@@ -16,7 +16,7 @@ fun String.asByteArray(): ByteArray {
     val result = ByteArray(this.length)
     var i = 0
     this.iterator().forEach {
-        result[i] = it.toByte()
+        result[i] = it.code.toByte()
         i++
     }
     return result

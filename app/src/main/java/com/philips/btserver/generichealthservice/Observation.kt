@@ -178,9 +178,7 @@ abstract class Observation {
     // Made public for ObservationTest
     val timestampByteArray: ByteArray
         get() {
-            val bytes = getGHSTimestampBytes()
-            System.out.println("GHS Timestamp TLV size: ${bytes.size} bytes: ${bytes.asHexString()}")
-            return bytes
+            return getGHSTimestampBytes()
 //            return getSimpleTimestampBytes()
         }
 
