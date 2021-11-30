@@ -150,6 +150,8 @@ internal class BluetoothServer(context: Context) {
 //        bluetoothAdapter.name = "${Build.MODEL}-GHS-SIM"
         bluetoothAdapter.name = "GHS-SIM"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
+        peripheralManager.removeAllServices()
+
         val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
