@@ -30,13 +30,13 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     private val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_NOTIFY,
-        0
+        BluetoothGattCharacteristic.PERMISSION_READ
     )
 
     private val storedObservationCharacteristic = BluetoothGattCharacteristic(
         STORED_OBSERVATIONS_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_INDICATE,
-        0
+        BluetoothGattCharacteristic.PERMISSION_READ
     )
 
 //    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
@@ -48,13 +48,13 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     private val featuresCharacteristic = BluetoothGattCharacteristic(
         GHS_FEATURES_CHARACTERISTIC_UUID,
         PROPERTY_READ,
-        0
+        BluetoothGattCharacteristic.PERMISSION_READ
     )
 
     private val uniqueDeviceIdCharacteristic = BluetoothGattCharacteristic(
         UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID,
         PROPERTY_READ,
-        0
+        BluetoothGattCharacteristic.PERMISSION_READ
     )
 
     private val racpCharacteristic = BluetoothGattCharacteristic(
