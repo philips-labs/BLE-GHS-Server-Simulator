@@ -13,6 +13,7 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asBLEDataSegments
+import com.philips.btserver.extensions.asBLELengthCRCPackets
 import com.philips.btserver.extensions.asGHSBytes
 import com.philips.btserver.extensions.merge
 import java.util.*
@@ -146,7 +147,11 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * send each segment in sequence over BLE
      */
     private fun sendBytesInSegments(bytes: ByteArray) {
-        bytes.asBLEDataSegments(minimalMTU - 4).forEach { it.sendSegment() }
+        if (SEND_LENGTH_CRC_PACKETS) {
+            bytes.asBLELengthCRCPackets(minimalMTU - 4).forEach { it.sendSegment() }
+        } else {
+            bytes.asBLEDataSegments(minimalMTU - 4).forEach { it.sendSegment() }
+        }
     }
 
     companion object {
@@ -169,6 +174,8 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         private const val FEATURES_DESCRIPTION = "Characteristic for GHS features."
         private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Characteristic for unique device ID (UDI)."
         private const val RACP_DESCRIPTION = "RACP Characteristic."
+
+        private const val SEND_LENGTH_CRC_PACKETS = true
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)

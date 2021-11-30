@@ -59,6 +59,7 @@ fun List<ByteArray>.merge(): ByteArray {
     return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }
 
+// TODO After sending segments the spec says don't reset segment number so need to make global/persistent
 fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
     val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
     val result = ArrayList<ByteArray>(numSegs)
@@ -78,6 +79,34 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
         segment[0] = segByte.toByte()
         System.arraycopy(segmentData, 0, segment, 1, length)
         result.add(segment)
+    }
+    return result
+}
+
+
+fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
+    return this.withLengthAndCRC().asPacketArray(packetSize)
+}
+
+fun ByteArray.withLengthAndCRC(): ByteArray {
+    val length = this.size
+    val dataWithLength = listOf(
+        byteArrayOf((length and 0xFF).toByte(), ((length shr 8) and 0xFF).toByte()),
+        this
+    ).merge()
+    // TODO Just using 0 CRC for Interop 0.5 meeting
+    val crcByteArray = byteArrayOf(0x0, 0x0)
+    return listOf(dataWithLength, crcByteArray).merge()
+}
+
+fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {
+    val numPackets = ceil(size.toFloat().div(packetSize)).toInt()
+    val result = ArrayList<ByteArray>(numPackets)
+
+    for (i in 0 until numPackets) {
+        val startIndex = i * numPackets
+        val endIndex = (startIndex + packetSize).coerceAtMost(lastIndex + 1)
+        result.add(copyOfRange(startIndex, endIndex))
     }
     return result
 }
