@@ -4,6 +4,8 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.welie.blessed.BluetoothBytesParser
+import java.nio.ByteOrder
 import java.util.*
 
 data class SimpleNumericObservation(
@@ -20,6 +22,14 @@ data class SimpleNumericObservation(
 
     // This is the nibble that represents the presence of attributes  header bytes
     override val attributeFlags: UInt = 0u
+
+    override val fixedValueByteArray: ByteArray
+        get() {
+            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+            parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setFloatValue(value, valuePrecision)
+            return parser.value
+        }
 
     override val valueByteArray: ByteArray
         get() {

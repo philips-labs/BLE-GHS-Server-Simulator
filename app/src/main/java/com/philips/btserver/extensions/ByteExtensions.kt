@@ -89,18 +89,23 @@ fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
 }
 
 fun ByteArray.withLengthAndCRC(): ByteArray {
-    // Include length and CRC in length
-    val length = this.size + 4
+    // Include length and CRC in length. Note length DOES NOT include the length bytes
+    val crc = bleCRC()
+    val length = this.size + crc.size
     return listOf(
-        byteArrayOf((length and 0xFF).toByte(), ((length shr 8) and 0xFF).toByte()),
+        byteArrayOf(length.asMaskedByte(), (length shr 8).asMaskedByte()),
         this,
-        bleCRC()
+        crc
     ).merge()
+}
+
+fun Int.asMaskedByte(): Byte {
+    return (this and 0xFF).toByte()
 }
 
 private fun ByteArray.bleCRC(): ByteArray {
     val crc = CRC16.CCITT_Kermit(this, 0, this.size)
-    return byteArrayOf(((crc and 0xFF00) shr 8).toByte(), (crc and 0xff).toByte())
+    return byteArrayOf(crc.asMaskedByte(), (crc shr 8).asMaskedByte())
 }
 
 fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {

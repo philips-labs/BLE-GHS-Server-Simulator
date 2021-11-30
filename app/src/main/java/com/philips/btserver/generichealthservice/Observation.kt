@@ -23,7 +23,9 @@ abstract class Observation {
     abstract val value: Any
     abstract val unitCode: UnitCode
 
-    fun serialize(): ByteArray { return tlvByteArray }
+    fun serialize(): ByteArray {
+        return if (USE_TLV_ENCODING) tlvByteArray else fixedFormatByteArray
+    }
 
     /*
      * Experimental serialization options
@@ -126,10 +128,12 @@ abstract class Observation {
     val fixedFormatByteArray: ByteArray
         get() {
             return listOf(
-                flagsByteArray
+                flagsByteArray,
+                type.asFixedTimestampByteArray(),
+                timestamp.asFixedTimestampByteArray(),
+                fixedValueByteArray
             ).merge()
         }
-
 
     val flagsByteArray: ByteArray
         get() {
@@ -213,6 +217,10 @@ abstract class Observation {
         return parser.value
     }
 
+    // Subclasses override to provide the byte array appropriate to their value
+    open val fixedValueByteArray: ByteArray
+        get() { return byteArrayOf() }
+
     /*
      * Concrete classes can override for types (like sample arrays) that are not fixed length
      */
@@ -255,9 +263,18 @@ abstract class Observation {
         internal const val timestampCode = 0x00010990
         internal const val timestampLength = 8
 
+        // For GHS Byte Array use flex TLV or fixed header encoding schemes
+        private const val USE_TLV_ENCODING = false
+
         internal const val CONST_F0: UInt = 3840u
         internal const val CONST_F000: UInt = 65280u
     }
+}
+
+fun ObservationType.asFixedTimestampByteArray(): ByteArray {
+    val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+    parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+    return parser.value
 }
 
 fun ObservationType.isKnownUnitCode(): Boolean {

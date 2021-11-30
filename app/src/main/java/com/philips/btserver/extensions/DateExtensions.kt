@@ -120,6 +120,19 @@ fun Date.asGHSBytes(): ByteArray {
 }
 
 /*
+ * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x62 time flags)
+ */
+fun Date.asFixedTimestampByteArray(): ByteArray {
+    val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+    parser.setLong(time)
+    return listOf(
+        byteArrayOf(0x62),
+        parser.value
+    ).merge()
+
+}
+
+/*
  * Create a binary representation of the receiver based on the timestamp flags passed in.
  * The flags and bytes are in the GHS specification in section 2.5.3.2 (as of the 0.5 draft)
  *
