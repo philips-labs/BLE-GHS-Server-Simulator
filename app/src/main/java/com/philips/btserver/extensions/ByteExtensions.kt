@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.extensions
 
+import com.philips.btserver.util.CRC16
 import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
@@ -83,20 +84,23 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
     return result
 }
 
-
 fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
     return this.withLengthAndCRC().asPacketArray(packetSize)
 }
 
 fun ByteArray.withLengthAndCRC(): ByteArray {
-    val length = this.size
-    val dataWithLength = listOf(
+    // Include length and CRC in length
+    val length = this.size + 4
+    return listOf(
         byteArrayOf((length and 0xFF).toByte(), ((length shr 8) and 0xFF).toByte()),
-        this
+        this,
+        bleCRC()
     ).merge()
-    // TODO Just using 0 CRC for Interop 0.5 meeting
-    val crcByteArray = byteArrayOf(0x0, 0x0)
-    return listOf(dataWithLength, crcByteArray).merge()
+}
+
+private fun ByteArray.bleCRC(): ByteArray {
+    val crc = CRC16.CCITT_Kermit(this, 0, this.size)
+    return byteArrayOf(((crc and 0xFF00) shr 8).toByte(), (crc and 0xff).toByte())
 }
 
 fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {
@@ -104,7 +108,7 @@ fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {
     val result = ArrayList<ByteArray>(numPackets)
 
     for (i in 0 until numPackets) {
-        val startIndex = i * numPackets
+        val startIndex = i * packetSize
         val endIndex = (startIndex + packetSize).coerceAtMost(lastIndex + 1)
         result.add(copyOfRange(startIndex, endIndex))
     }
