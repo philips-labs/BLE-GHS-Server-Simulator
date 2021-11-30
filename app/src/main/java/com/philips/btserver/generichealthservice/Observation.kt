@@ -23,14 +23,7 @@ abstract class Observation {
     abstract val value: Any
     abstract val unitCode: UnitCode
 
-    fun serialize(): ByteArray {
-        return listOf(
-                typeByteArray,
-                handleByteArray,
-                valueByteArray,
-                unitByteArray,
-                timestampByteArray).merge()
-    }
+    fun serialize(): ByteArray { return tlvByteArray }
 
     /*
      * Experimental serialization options
@@ -109,6 +102,7 @@ abstract class Observation {
         get() = experimentalOptions.get(ExperimentalFeature.UseShortTypeCodes.bit)
         set(bool) { experimentalOptions.set(ExperimentalFeature.UseShortTypeCodes.bit, bool) }
 
+    @Deprecated("We are done with Experimental options for GHS for now")
     fun serializeWithExperimentalOptions(): ByteArray {
         val typeBytes = if (useShortTypeCodes) experimentalTypeByteArray else typeByteArray
         val serializeArray = mutableListOf(typeBytes)
@@ -124,6 +118,57 @@ abstract class Observation {
     }
 
     abstract val valueByteArray: ByteArray
+
+    /*
+     * Methods to generate bytes for new fixed ordered format
+     */
+
+    val fixedFormatByteArray: ByteArray
+        get() {
+            return listOf(
+                flagsByteArray
+            ).merge()
+        }
+
+
+    val flagsByteArray: ByteArray
+        get() {
+            val headerFlags = attributeFlags and classByte
+            // Upper 2 bytes of attributes are RFU
+            return byteArrayOf((headerFlags and CONST_F0).toByte(), (headerFlags and CONST_F000).toByte(), 0, 0)
+        }
+
+    // This is the nibble that represents the observation class in the header bytes
+    open val classByte: UInt = 0u
+
+    /*
+    Bits 5-12: attribute presence
+        5.	Observation type present
+        6.	Time stamp present
+        7.	Measurement duration present
+        8.	Measurement Status present
+        9.	Object Id present
+        10.	Patient present
+        11.	Supplemental Information present
+        12.	Derived-from present
+        13.	hasMember present
+        14.	TLVs present
+     */
+    open val attributeFlags: UInt = 0u
+
+    /*
+     * Methods to generate bytes for old pure, unordered TLV format
+     */
+
+    val tlvByteArray: ByteArray
+        get() {
+            return listOf(
+                typeByteArray,
+                handleByteArray,
+                valueByteArray,
+                unitByteArray,
+                timestampByteArray).merge()
+        }
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
@@ -209,6 +254,9 @@ abstract class Observation {
         internal const val unitLength = 4
         internal const val timestampCode = 0x00010990
         internal const val timestampLength = 8
+
+        internal const val CONST_F0: UInt = 3840u
+        internal const val CONST_F000: UInt = 65280u
     }
 }
 

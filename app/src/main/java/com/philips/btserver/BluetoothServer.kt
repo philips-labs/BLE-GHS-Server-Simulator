@@ -17,6 +17,7 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback
 import com.welie.blessed.GattStatus
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.generichealthservice.SimpleTimeService
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
@@ -83,6 +84,15 @@ internal class BluetoothServer(context: Context) {
         return peripheralManager.getConnectedCentrals().size
     }
 
+    // TODO Add the GHS advert data with (5.6.1)
+    // Bytes from Brian when doing this TODO
+    /*
+        02 01 02 // flags
+        0F 09 49 4E 32 30 31 33 2D 47 48 53 2D 53 49 4D //name
+        02 0A F5 //tx power
+        03 03 44 7F // service uuid
+        06 16 44 7F 06 10 00 //service data -ECG - no pairing
+     */
     fun startAdvertising(serviceUUID: UUID) {
         val advertiseSettings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -137,14 +147,17 @@ internal class BluetoothServer(context: Context) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
             Timber.e("not supporting advertising")
         }
-        bluetoothAdapter.name = "${Build.MODEL}-GHS-SIM"
+//        bluetoothAdapter.name = "${Build.MODEL}-GHS-SIM"
+        bluetoothAdapter.name = "GHS-SIM"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
+        val time = SimpleTimeService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs
+        serviceImplementations[time.service] = time
         setupServices()
         startAdvertising(ghs.service.uuid)
     }

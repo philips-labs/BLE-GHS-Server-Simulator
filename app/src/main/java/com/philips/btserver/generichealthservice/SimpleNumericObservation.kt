@@ -15,6 +15,12 @@ data class SimpleNumericObservation(
     override val timestamp: Date
 ) : Observation() {
 
+    // This is the nibble that represents the observation class in the header bytes
+    override val classByte: UInt = 0u
+
+    // This is the nibble that represents the presence of attributes  header bytes
+    override val attributeFlags: UInt = 0u
+
     override val valueByteArray: ByteArray
         get() {
             return encodeTLV(
