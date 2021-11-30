@@ -18,7 +18,7 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         SIMPLE_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
-        0
+        BluetoothGattCharacteristic.PERMISSION_READ
     )
 
     override fun onCentralConnected(central: BluetoothCentral) {
