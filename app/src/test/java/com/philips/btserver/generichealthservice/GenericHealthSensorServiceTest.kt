@@ -47,9 +47,7 @@ class GenericHealthSensorServiceTest {
     fun `When the service is created, all characteristics and descriptors are there`() {
         assertEquals(2, serviceHandler.service.characteristics.size)
         assertNotNull(serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID))
-        assertNotNull(serviceHandler.service.getCharacteristic(GenericHealthSensorService.CONTROL_POINT_CHARACTERISTIC_UUID))
         assertNotNull(serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID).getDescriptor(BaseService.CCC_DESCRIPTOR_UUID))
-        assertNotNull(serviceHandler.service.getCharacteristic(GenericHealthSensorService.CONTROL_POINT_CHARACTERISTIC_UUID).getDescriptor(BaseService.CCC_DESCRIPTOR_UUID))
     }
 
     @Test
