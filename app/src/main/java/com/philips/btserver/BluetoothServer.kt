@@ -103,11 +103,17 @@ internal class BluetoothServer(context: Context) {
         val advertiseData = AdvertiseData.Builder()
                 .setIncludeTxPowerLevel(true)
                 .addServiceUuid(ParcelUuid(serviceUUID))
+                .addServiceData(ParcelUuid(serviceUUID), getGHSAdvertBytes())
                 .build()
         val scanResponse = AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
                 .build()
         peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData)
+    }
+
+    // TODO This is fixed for a PulseOx (0x1004) with no security (0x00)...
+    private fun getGHSAdvertBytes(): ByteArray {
+        return byteArrayOf(0x04, 0x10, 0x00)
     }
 
     private fun setupServices() {
