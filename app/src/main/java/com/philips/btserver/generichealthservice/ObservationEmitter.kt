@@ -155,8 +155,8 @@ object ObservationEmitter {
     }
 
     private fun sendObservations(singleShot: Boolean) {
-        Timber.i("Emitting ${observations.size} observations")
         generateObservationsToSend()
+        Timber.i("Emitting ${observations.size} observations")
         if (mergeObservations) {
             ghsService?.sendObservations(observations)
         } else {
