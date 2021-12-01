@@ -58,7 +58,8 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
      */
     private fun sendClockBytes() {
         val bytes = Date().asFixedFormatByteArray()
-        simpleTimeCharacteristic.value = bytes
+        // TODO Add the Clock status and clock capailities flags for real
+        simpleTimeCharacteristic.value = listOf(bytes, byteArrayOf(0, 0)).merge()
         notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
     }
 
