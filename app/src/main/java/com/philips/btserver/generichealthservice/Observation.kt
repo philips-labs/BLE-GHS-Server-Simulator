@@ -24,7 +24,8 @@ abstract class Observation {
     abstract val unitCode: UnitCode
 
     fun serialize(): ByteArray {
-        return if (USE_TLV_ENCODING) tlvByteArray else fixedFormatByteArray
+        val result = if (USE_TLV_ENCODING) tlvByteArray else fixedFormatByteArray
+        return result
     }
 
     /*
@@ -129,21 +130,21 @@ abstract class Observation {
         get() {
             return listOf(
                 flagsByteArray,
-                type.asFixedTimestampByteArray(),
-                timestamp.asFixedTimestampByteArray(),
+                type.asFixedFormatByteArray(),
+                timestamp.asFixedFormatByteArray(),
                 fixedValueByteArray
             ).merge()
         }
 
     val flagsByteArray: ByteArray
         get() {
-            val headerFlags = attributeFlags and classByte
-            // Upper 2 bytes of attributes are RFU
-            return byteArrayOf((headerFlags and CONST_F0).toByte(), (headerFlags and CONST_F000).toByte(), 0, 0)
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setIntValue(attributeFlags or classByte, BluetoothBytesParser.FORMAT_UINT32)
+            return parser.value
         }
 
     // This is the nibble that represents the observation class in the header bytes
-    open val classByte: UInt = 0u
+    open val classByte: Int = 0x0   // Note 0 is value for simple numeric... may want to use 0xFF?
 
     /*
     Bits 5-12: attribute presence
@@ -158,7 +159,7 @@ abstract class Observation {
         13.	hasMember present
         14.	TLVs present
      */
-    open val attributeFlags: UInt = 0u
+    open val attributeFlags: Int = 0x00C0
 
     /*
      * Methods to generate bytes for old pure, unordered TLV format
@@ -218,6 +219,7 @@ abstract class Observation {
     }
 
     // Subclasses override to provide the byte array appropriate to their value
+    // TODO May want to throw an exception here as this is (and should be declared?) an abstract class
     open val fixedValueByteArray: ByteArray
         get() { return byteArrayOf() }
 
@@ -271,7 +273,7 @@ abstract class Observation {
     }
 }
 
-fun ObservationType.asFixedTimestampByteArray(): ByteArray {
+fun ObservationType.asFixedFormatByteArray(): ByteArray {
     val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
     parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
     return parser.value

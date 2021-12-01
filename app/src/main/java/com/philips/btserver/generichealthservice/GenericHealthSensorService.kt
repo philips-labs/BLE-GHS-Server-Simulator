@@ -148,9 +148,9 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      */
     private fun sendBytesInSegments(bytes: ByteArray) {
         if (SEND_LENGTH_CRC_PACKETS) {
-            bytes.asBLELengthCRCPackets(minimalMTU - 4).forEach { it.sendSegment() }
+            bytes.asBLELengthCRCPackets(minimalMTU - 3).forEach { it.sendSegment() }
         } else {
-            bytes.asBLEDataSegments(minimalMTU - 4).forEach { it.sendSegment() }
+            bytes.asBLEDataSegments(minimalMTU - 3).forEach { it.sendSegment() }
         }
     }
 

@@ -18,10 +18,10 @@ data class SimpleNumericObservation(
 ) : Observation() {
 
     // This is the nibble that represents the observation class in the header bytes
-    override val classByte: UInt = 0u
+    override val classByte: Int = 0
 
     // This is the nibble that represents the presence of attributes  header bytes
-    override val attributeFlags: UInt = 0u
+    override val attributeFlags: Int = 0x00C0
 
     override val fixedValueByteArray: ByteArray
         get() {

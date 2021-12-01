@@ -122,14 +122,32 @@ fun Date.asGHSBytes(): ByteArray {
 /*
  * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x62 time flags)
  */
-fun Date.asFixedTimestampByteArray(): ByteArray {
+fun Date.asFixedFormatByteArray(): ByteArray {
     val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
     parser.setLong(time)
     return listOf(
         byteArrayOf(0x62),
-        parser.value
+        parser.value.copyOfRange(2, 8),
+        byteArrayOf(0x06, 0x0)
     ).merge()
+}
 
+/*
+ * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x62 time flags)
+ * TODO This is basically asFixedFormatByteArray()... let's clean up and add flags as a parameter
+ * migrated usages to asFixedFormatByteArray... here for comparison debugging, then can delete
+ */
+@Deprecated("Use Date.asFixedFormatByteArray()")
+fun Date.asSimpleTimeByteArray(): ByteArray {
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    parser.setLong(time)
+    val timeBytes = parser.value.copyOfRange(2, 8)
+    val result = listOf(
+        byteArrayOf(0x62),
+        timeBytes,
+        byteArrayOf(0x06, 0x0)
+    ).merge()
+    return result
 }
 
 /*

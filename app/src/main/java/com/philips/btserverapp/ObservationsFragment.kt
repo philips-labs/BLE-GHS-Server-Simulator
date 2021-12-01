@@ -65,9 +65,9 @@ class ObservationsFragment : Fragment() {
 
     fun clickSPO2Obs() {
         if (binding.checkboxSPO2Obs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
+            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
+            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         }
     }
 

@@ -15,6 +15,9 @@ fun Byte.asHexString(): String {
     return hexString
 }
 
+
+
+
 fun ByteArray.formatHexBytes(seperator: String?): String {
     var resultString = ""
     for ((index, value) in this.iterator().withIndex()) {
@@ -22,6 +25,11 @@ fun ByteArray.formatHexBytes(seperator: String?): String {
         if (seperator != null && index < (this.size - 1)) resultString += seperator
     }
     return resultString
+}
+
+fun ByteArray.asFormattedHexString(): String {
+    return this.formatHexBytes(" ")
+    // return asHexString().replace("..".toRegex(), "$0 ")
 }
 
 fun ByteArray.asHexString(): String {
