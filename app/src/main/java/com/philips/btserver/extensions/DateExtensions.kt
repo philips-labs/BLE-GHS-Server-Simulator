@@ -124,7 +124,7 @@ fun Date.asGHSBytes(): ByteArray {
  */
 fun Date.asFixedFormatByteArray(): ByteArray {
     val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-    parser.setLong(time)
+    parser.setLong(epoch2000mills())
     return listOf(
         byteArrayOf(0x46),
         parser.value.copyOfRange(2, 8),
@@ -160,6 +160,13 @@ fun Date.asSimpleTimeByteArray(): ByteArray {
 // Magic number 946684800000 is the millisecond offset from 1970 Epoch to Y2K Epoch
 private const val UTC_TO_UNIX_EPOCH_MILLIS = 946684800000L
 private const val MILLIS_IN_15_MINUTES = 900000
+
+/*
+ * Return the Epoch Y2K milliseconds (used by GHS)
+ */
+fun Date.epoch2000mills(): Long {
+    return time - UTC_TO_UNIX_EPOCH_MILLIS
+}
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
