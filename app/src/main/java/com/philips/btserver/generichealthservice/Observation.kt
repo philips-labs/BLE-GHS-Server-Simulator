@@ -203,7 +203,7 @@ abstract class Observation {
 
     // Used by fixed length, Short/Int/Long/Float fields (handle, type, unit)
     protected fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
         parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
         if (!(omitFixedLengthTypes && isFixedLengthType(type))) {
             parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
@@ -240,14 +240,14 @@ abstract class Observation {
     private fun getGHSTimestampBytes(): ByteArray {
         val tsBytes = timestamp.asGHSBytes()
         System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
         parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
         parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
         return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
     }
 
     private fun getSimpleTimestampBytes(): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
         parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
         if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
         parser.setLong(timestamp.time)
@@ -274,7 +274,7 @@ abstract class Observation {
 }
 
 fun ObservationType.asFixedFormatByteArray(): ByteArray {
-    val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
     parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
     return parser.value
 }

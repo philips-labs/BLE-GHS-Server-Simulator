@@ -25,7 +25,7 @@ data class SimpleNumericObservation(
 
     override val fixedValueByteArray: ByteArray
         get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
             parser.setFloatValue(value, valuePrecision)
             return parser.value

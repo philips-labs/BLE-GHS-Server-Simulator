@@ -234,7 +234,7 @@ class ObservationTest {
     }
 
     private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(type, length, value, precision)
+        return BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN).encodeTLV(type, length, value, precision)
     }
 
     private fun handle_byte_array_for(id: Short): ByteArray {
@@ -267,7 +267,7 @@ class ObservationTest {
     }
 
     private fun sample_array_value_byte_array_for(sampleArray: ByteArray): ByteArray {
-        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(sampleArray)
+        return BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN).encodeTLV(sampleArray)
     }
 }
 

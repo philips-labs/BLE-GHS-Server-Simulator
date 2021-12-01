@@ -123,7 +123,7 @@ fun Date.asGHSBytes(): ByteArray {
  * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x62 time flags)
  */
 fun Date.asFixedFormatByteArray(): ByteArray {
-    val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
     parser.setLong(time)
     return listOf(
         byteArrayOf(0x62),
