@@ -159,7 +159,7 @@ abstract class Observation {
         13.	hasMember present
         14.	TLVs present
      */
-    open val attributeFlags: Int = 0x00C0
+    open val attributeFlags: Int = 0x0030
 
     /*
      * Methods to generate bytes for old pure, unordered TLV format
