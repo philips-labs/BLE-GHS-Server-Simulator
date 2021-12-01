@@ -49,11 +49,11 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     isTickCounter((1 shl 0).toLong()),
     isUTC((1 shl 1).toLong()),
     isMilliseconds((1 shl 2).toLong()),
-    isHundredthsMicroseconds(1 shl 3),
-    isTZPresent(1 shl 4),
-    isDSTPresent(1 shl 5),
-    isCurrentTimeline(1 shl 6),
-    reserved_1(1 shl 7);
+    isHundredthsMicroseconds((1 shl 3).toLong()),
+    isTZPresent((1 shl 4).toLong()),
+    isDSTPresent((1 shl 5).toLong()),
+    isCurrentTimeline((1 shl 6).toLong()),
+    reserved_1((1 shl 7).toLong());
 
     companion object {
         // This "global" holds the flags used to send out observations
