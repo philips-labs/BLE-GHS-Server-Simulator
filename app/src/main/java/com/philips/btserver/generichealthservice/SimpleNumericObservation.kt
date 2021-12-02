@@ -21,7 +21,7 @@ data class SimpleNumericObservation(
     override val classByte: Int = 0
 
     // This is the nibble that represents the presence of attributes  header bytes
-    override val attributeFlags: Int = 0x00C0
+    override val attributeFlags: Int = 0x0030
 
     override val fixedValueByteArray: ByteArray
         get() {
