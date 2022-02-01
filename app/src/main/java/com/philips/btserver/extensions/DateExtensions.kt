@@ -49,11 +49,11 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     isTickCounter((1 shl 0).toLong()),
     isUTC((1 shl 1).toLong()),
     isMilliseconds((1 shl 2).toLong()),
-    isHundredthsMicroseconds(1 shl 3),
-    isTZPresent(1 shl 4),
-    isDSTPresent(1 shl 5),
-    isCurrentTimeline(1 shl 6),
-    reserved_1(1 shl 7);
+    isHundredthsMicroseconds((1 shl 3).toLong()),
+    isTZPresent((1 shl 4).toLong()),
+    isDSTPresent((1 shl 5).toLong()),
+    isCurrentTimeline((1 shl 6).toLong()),
+    reserved_1((1 shl 7).toLong());
 
     companion object {
         // This "global" holds the flags used to send out observations
@@ -120,6 +120,37 @@ fun Date.asGHSBytes(): ByteArray {
 }
 
 /*
+ * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x46 time flags)
+ */
+fun Date.asFixedFormatByteArray(): ByteArray {
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    parser.setLong(epoch2000mills())
+    return listOf(
+        byteArrayOf(0x46),
+        parser.value.copyOfRange(2, 8),
+        byteArrayOf(0x06, 0x0)
+    ).merge()
+}
+
+/*
+ * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x46 time flags)
+ * TODO This is basically asFixedFormatByteArray()... let's clean up and add flags as a parameter
+ * migrated usages to asFixedFormatByteArray... here for comparison debugging, then can delete
+ */
+@Deprecated("Use Date.asFixedFormatByteArray()")
+fun Date.asSimpleTimeByteArray(): ByteArray {
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    parser.setLong(time)
+    val timeBytes = parser.value.copyOfRange(2, 8)
+    val result = listOf(
+        byteArrayOf(0x46),
+        timeBytes,
+        byteArrayOf(0x06, 0x0)
+    ).merge()
+    return result
+}
+
+/*
  * Create a binary representation of the receiver based on the timestamp flags passed in.
  * The flags and bytes are in the GHS specification in section 2.5.3.2 (as of the 0.5 draft)
  *
@@ -129,6 +160,13 @@ fun Date.asGHSBytes(): ByteArray {
 // Magic number 946684800000 is the millisecond offset from 1970 Epoch to Y2K Epoch
 private const val UTC_TO_UNIX_EPOCH_MILLIS = 946684800000L
 private const val MILLIS_IN_15_MINUTES = 900000
+
+/*
+ * Return the Epoch Y2K milliseconds (used by GHS)
+ */
+fun Date.epoch2000mills(): Long {
+    return time - UTC_TO_UNIX_EPOCH_MILLIS
+}
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 

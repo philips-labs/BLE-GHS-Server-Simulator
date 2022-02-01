@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Philips GHS Simulator</string>
+    <string name="app_name">GHS Server Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
     <string name="tab_text_ble_info">Device Info</string>
     <string name="tab_text_observations">Observations</string>
@@ -17,6 +17,7 @@
     <string name="choiceSPO2Obs">Include SpO2 (Simple Numeric)</string>
     <string name="choicePPGObs">Include PPG array (Sample Array)</string>
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
+    <string name="choiceBundleObs">Bundle heart rate &amp; SpO2</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
     <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>

@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.extensions
 
+import com.philips.btserver.util.CRC16
 import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import kotlin.math.ceil
@@ -14,6 +15,9 @@ fun Byte.asHexString(): String {
     return hexString
 }
 
+
+
+
 fun ByteArray.formatHexBytes(seperator: String?): String {
     var resultString = ""
     for ((index, value) in this.iterator().withIndex()) {
@@ -21,6 +25,11 @@ fun ByteArray.formatHexBytes(seperator: String?): String {
         if (seperator != null && index < (this.size - 1)) resultString += seperator
     }
     return resultString
+}
+
+fun ByteArray.asFormattedHexString(): String {
+    return this.formatHexBytes(" ")
+    // return asHexString().replace("..".toRegex(), "$0 ")
 }
 
 fun ByteArray.asHexString(): String {
@@ -59,6 +68,7 @@ fun List<ByteArray>.merge(): ByteArray {
     return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }
 
+// TODO After sending segments the spec says don't reset segment number so need to make global/persistent
 fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
     val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
     val result = ArrayList<ByteArray>(numSegs)
@@ -78,6 +88,46 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
         segment[0] = segByte.toByte()
         System.arraycopy(segmentData, 0, segment, 1, length)
         result.add(segment)
+    }
+    return result
+}
+
+fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
+    return this.withLengthAndCRC().asPacketArray(packetSize)
+}
+
+fun ByteArray.asBLELengthCRCSegments(packetSize: Int): List<ByteArray> {
+    return this.withLengthAndCRC().asBLEDataSegments(packetSize)
+}
+
+fun ByteArray.withLengthAndCRC(): ByteArray {
+    // Include length and CRC in length. Note length DOES NOT include the length bytes
+    val crc = bleCRC()
+    val length = this.size + crc.size
+    return listOf(
+        byteArrayOf(length.asMaskedByte(), (length shr 8).asMaskedByte()),
+        this,
+        crc
+    ).merge()
+}
+
+fun Int.asMaskedByte(): Byte {
+    return (this and 0xFF).toByte()
+}
+
+private fun ByteArray.bleCRC(): ByteArray {
+    val crc = CRC16.CCITT_Kermit(this, 0, this.size)
+    return byteArrayOf(crc.asMaskedByte(), (crc shr 8).asMaskedByte())
+}
+
+fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {
+    val numPackets = ceil(size.toFloat().div(packetSize)).toInt()
+    val result = ArrayList<ByteArray>(numPackets)
+
+    for (i in 0 until numPackets) {
+        val startIndex = i * packetSize
+        val endIndex = (startIndex + packetSize).coerceAtMost(lastIndex + 1)
+        result.add(copyOfRange(startIndex, endIndex))
     }
     return result
 }

@@ -23,7 +23,7 @@ abstract class Observation {
     abstract val value: Any
     abstract val unitCode: UnitCode
 
-    fun serialize(): ByteArray { return tlvByteArray }
+    fun serialize(): ByteArray { return fixedFormatByteArray }
 
     /*
      * Experimental serialization options
@@ -102,21 +102,6 @@ abstract class Observation {
         get() = experimentalOptions.get(ExperimentalFeature.UseShortTypeCodes.bit)
         set(bool) { experimentalOptions.set(ExperimentalFeature.UseShortTypeCodes.bit, bool) }
 
-    @Deprecated("We are done with Experimental options for GHS for now")
-    fun serializeWithExperimentalOptions(): ByteArray {
-        val typeBytes = if (useShortTypeCodes) experimentalTypeByteArray else typeByteArray
-        val serializeArray = mutableListOf(typeBytes)
-        if (!omitHandleTLV) {
-            serializeArray.add(handleByteArray)
-        }
-        serializeArray.add(valueByteArray)
-        if (!(omitUnitCode && type.isKnownUnitCode())) {
-            serializeArray.add(unitByteArray)
-        }
-        serializeArray.add(timestampByteArray)
-        return serializeArray.merge()
-    }
-
     abstract val valueByteArray: ByteArray
 
     /*
@@ -126,20 +111,22 @@ abstract class Observation {
     val fixedFormatByteArray: ByteArray
         get() {
             return listOf(
-                flagsByteArray
+                flagsByteArray,
+                type.asFixedFormatByteArray(),
+                timestamp.asFixedFormatByteArray(),
+                fixedValueByteArray
             ).merge()
         }
 
-
     val flagsByteArray: ByteArray
         get() {
-            val headerFlags = attributeFlags and classByte
-            // Upper 2 bytes of attributes are RFU
-            return byteArrayOf((headerFlags and CONST_F0).toByte(), (headerFlags and CONST_F000).toByte(), 0, 0)
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setIntValue(attributeFlags or classByte, BluetoothBytesParser.FORMAT_UINT32)
+            return parser.value
         }
 
     // This is the nibble that represents the observation class in the header bytes
-    open val classByte: UInt = 0u
+    open val classByte: Int = 0x0   // Simple numeric
 
     /*
     Bits 5-12: attribute presence
@@ -154,21 +141,7 @@ abstract class Observation {
         13.	hasMember present
         14.	TLVs present
      */
-    open val attributeFlags: UInt = 0u
-
-    /*
-     * Methods to generate bytes for old pure, unordered TLV format
-     */
-
-    val tlvByteArray: ByteArray
-        get() {
-            return listOf(
-                typeByteArray,
-                handleByteArray,
-                valueByteArray,
-                unitByteArray,
-                timestampByteArray).merge()
-        }
+    open val attributeFlags: Int = 0x0030
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
@@ -198,7 +171,7 @@ abstract class Observation {
 
     // Used by fixed length, Short/Int/Long/Float fields (handle, type, unit)
     protected fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
         parser.setIntValue(type, BluetoothBytesParser.FORMAT_UINT32)
         if (!(omitFixedLengthTypes && isFixedLengthType(type))) {
             parser.setIntValue(length, BluetoothBytesParser.FORMAT_UINT16)
@@ -213,6 +186,11 @@ abstract class Observation {
         return parser.value
     }
 
+    // Subclasses override to provide the byte array appropriate to their value
+    // TODO May want to throw an exception here as this is (and should be declared?) an abstract class
+    open val fixedValueByteArray: ByteArray
+        get() { return byteArrayOf() }
+
     /*
      * Concrete classes can override for types (like sample arrays) that are not fixed length
      */
@@ -223,26 +201,13 @@ abstract class Observation {
     // Made public for ObservationTest
     val timestampByteArray: ByteArray
         get() {
-            return getGHSTimestampBytes()
-//            return getSimpleTimestampBytes()
+            val tsBytes = timestamp.asGHSBytes()
+            System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
+            return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
         }
-
-    private fun getGHSTimestampBytes(): ByteArray {
-        val tsBytes = timestamp.asGHSBytes()
-        System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
-        return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
-    }
-
-    private fun getSimpleTimestampBytes(): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
-        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-        if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
-        parser.setLong(timestamp.time)
-        return parser.value
-    }
 
     companion object {
         internal const val handleCode = 0x00010921
@@ -258,6 +223,15 @@ abstract class Observation {
         internal const val CONST_F0: UInt = 3840u
         internal const val CONST_F000: UInt = 65280u
     }
+}
+
+fun ObservationType.asFixedFormatByteArray(): ByteArray {
+    // If Unknow return an empty byte array
+    if (this == ObservationType.UNKNOWN_TYPE) return byteArrayOf()
+
+    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+    return parser.value
 }
 
 fun ObservationType.isKnownUnitCode(): Boolean {

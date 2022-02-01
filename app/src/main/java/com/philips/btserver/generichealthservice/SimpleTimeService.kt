@@ -6,7 +6,8 @@ import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
-import com.philips.btserver.extensions.asGHSBytes
+import com.philips.btserver.extensions.asFixedFormatByteArray
+import com.philips.btserver.extensions.merge
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import java.util.*
@@ -53,8 +54,9 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
      * send the current clock in the GHS byte format based on current flags
      */
     private fun sendClockBytes() {
-        val bytes = Date().asGHSBytes()
-        simpleTimeCharacteristic.value = bytes
+        val bytes = Date().asFixedFormatByteArray()
+        // TODO Add the Clock status and clock capailities flags for real
+        simpleTimeCharacteristic.value = listOf(bytes, byteArrayOf(0, 0)).merge()
         notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
     }
 

@@ -161,53 +161,6 @@ class ObservationTest {
         obs.omitFixedLengthTypes = true
         tvBytes = obs.valueByteArray
         assertEquals(tlvBytes.size - 2, tvBytes.size)
-
-        // Ensure all the lengths are gone (all fixed length)
-        obs.omitFixedLengthTypes = false
-        tlvBytes = obs.serialize()
-        obs.omitFixedLengthTypes = true
-        tvBytes = obs.serializeWithExperimentalOptions()
-        assertEquals(tlvBytes.size - 10, tvBytes.size)
-    }
-
-    @Test
-    fun `When the experimental option omit handle TLV is set, then the handle TLV is skipped in the byte array`() {
-        val obs = create_simple_numeric_observation()
-
-        obs.omitHandleTLV = true
-        val tlvBytes = obs.serialize()
-        val tvBytes = obs.serializeWithExperimentalOptions()
-        assertEquals(tlvBytes.size - 8, tvBytes.size)
-        // If handle was skipped, handle tlv type will not exist
-        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x21)))
-    }
-
-    @Test
-    fun `When the experimental option omit known unit code TLV is set, then the unit code TLV is skipped in the byte array for known observation types`() {
-        // test observation is heart rate which is a known unit code of BPM
-        val obs = create_simple_numeric_observation()
-
-        obs.omitUnitCode = true
-        val tlvBytes = obs.serialize()
-        val tvBytes = obs.serializeWithExperimentalOptions()
-        assertEquals(tlvBytes.size - 10, tvBytes.size)
-        // If handle was skipped, unit code tlv type will not exist
-        assertEquals(-1, tvBytes.findFirst(byteArrayOf(0x00, 0x01, 0x09, 0x96.toByte())))
-    }
-
-    @Test
-    fun `When the experimental option use short type code TLV is set, then the 16-bit (omit MDC partition) is used in the byte array for observation type`() {
-        // test observation is heart rate which is a known unit code of BPM
-        val obs = create_simple_numeric_observation()
-
-        obs.useShortTypeCodes = true
-        val shortTypeBytes = obs.experimentalTypeByteArray
-        val typeBytes = obs.typeByteArray
-        assertEquals(typeBytes.size - 2, shortTypeBytes.size)
-
-        // Test that type code is least sig. 2 bytes of the full type code in TLV
-        val typeByteTest = listOf(typeBytes.copyOfRange(0, 4), byteArrayOf(0x0, 0x2), typeBytes.copyOfRange(8, 10)).merge()
-        assertArrayEquals(typeByteTest, shortTypeBytes)
     }
 
     /*
@@ -234,7 +187,7 @@ class ObservationTest {
     }
 
     private fun encodeTLV(type: Int, length: Int, value: Number, precision: Int = 2): ByteArray {
-        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(type, length, value, precision)
+        return BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN).encodeTLV(type, length, value, precision)
     }
 
     private fun handle_byte_array_for(id: Short): ByteArray {
@@ -267,7 +220,7 @@ class ObservationTest {
     }
 
     private fun sample_array_value_byte_array_for(sampleArray: ByteArray): ByteArray {
-        return BluetoothBytesParser(ByteOrder.BIG_ENDIAN).encodeTLV(sampleArray)
+        return BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN).encodeTLV(sampleArray)
     }
 }
 

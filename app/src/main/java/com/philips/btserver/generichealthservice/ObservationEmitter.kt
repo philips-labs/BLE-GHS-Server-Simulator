@@ -64,6 +64,15 @@ object ObservationEmitter {
      */
     var mergeObservations = false
 
+
+    /*
+     * If bundleObservations true heart rate and SpO2 observations are sent as one bundle observation.
+     * False means send each observation as a separate observation.
+     *
+     * These are only bundled if both heart rate and SpO2 are included in observation types sent
+     */
+    var bundleObservations = false
+
     // Interval to emit observations (in seconds)
     var emitterPeriod = 10
 
@@ -124,7 +133,12 @@ object ObservationEmitter {
 
     private fun generateObservationsToSend() {
         observations.clear()
-        observations.addAll(typesToEmit.mapNotNull { randomObservationOfType(it) })
+        val obsList = typesToEmit.mapNotNull { randomObservationOfType(it) }
+        if (bundleObservations) {
+            observations.add(BundledObservation(1, obsList, Date()))
+        } else {
+            observations.addAll(obsList)
+        }
     }
 
     private fun randomObservationOfType(type: ObservationType): Observation? {
@@ -155,8 +169,8 @@ object ObservationEmitter {
     }
 
     private fun sendObservations(singleShot: Boolean) {
-        Timber.i("Emitting ${observations.size} observations")
         generateObservationsToSend()
+        Timber.i("Emitting ${observations.size} observations")
         if (mergeObservations) {
             ghsService?.sendObservations(observations)
         } else {
@@ -175,7 +189,7 @@ fun ObservationType.randomNumericValue(): Float {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  kotlin.random.Random.nextInt(60, 70).toFloat()
         ObservationType.MDC_TEMP_BODY ->  kotlin.random.Random.nextInt(358, 370).toFloat() / 10f
-        ObservationType.MDC_SPO2_OXYGENATION_RATIO ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
         else -> Float.NaN
     }
 }
@@ -194,7 +208,7 @@ fun ObservationType.numericPrecision(): Int {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  0
         ObservationType.MDC_TEMP_BODY,
-            ObservationType.MDC_SPO2_OXYGENATION_RATIO->  1
+            ObservationType.MDC_PULS_OXIM_SAT_O2->  1
         else -> 0
     }
 }
@@ -203,7 +217,7 @@ fun ObservationType.unitCode(): UnitCode {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
         ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
-        ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
@@ -213,7 +227,7 @@ fun ObservationType.shortUnitCode(): UnitCode {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
         ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
-        ObservationType.MDC_SPO2_OXYGENATION_RATIO -> UnitCode.MDC_DIM_PERCENT
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> unitCode()
     }

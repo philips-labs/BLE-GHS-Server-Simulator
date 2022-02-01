@@ -18,7 +18,7 @@ data class SampleArrayObservation(
 
     override val valueByteArray: ByteArray
         get() {
-            val parser = BluetoothBytesParser(ByteOrder.BIG_ENDIAN)
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             parser.setIntValue(
                 ObservationValueType.MDC_ATTR_SA_VAL_OBS.value,
                 BluetoothBytesParser.FORMAT_UINT32
