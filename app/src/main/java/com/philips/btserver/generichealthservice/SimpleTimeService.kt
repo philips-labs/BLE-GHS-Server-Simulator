@@ -7,12 +7,9 @@ import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asFixedFormatByteArray
-import com.philips.btserver.extensions.asSimpleTimeByteArray
 import com.philips.btserver.extensions.merge
-import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
-import java.nio.ByteOrder
 import java.util.*
 
 internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {

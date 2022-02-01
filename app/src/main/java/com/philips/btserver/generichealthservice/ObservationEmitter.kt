@@ -64,6 +64,15 @@ object ObservationEmitter {
      */
     var mergeObservations = false
 
+
+    /*
+     * If bundleObservations true heart rate and SpO2 observations are sent as one bundle observation.
+     * False means send each observation as a separate observation.
+     *
+     * These are only bundled if both heart rate and SpO2 are included in observation types sent
+     */
+    var bundleObservations = false
+
     // Interval to emit observations (in seconds)
     var emitterPeriod = 10
 
@@ -124,7 +133,12 @@ object ObservationEmitter {
 
     private fun generateObservationsToSend() {
         observations.clear()
-        observations.addAll(typesToEmit.mapNotNull { randomObservationOfType(it) })
+        val obsList = typesToEmit.mapNotNull { randomObservationOfType(it) }
+        if (bundleObservations) {
+            observations.add(BundledObservation(1, obsList, Date()))
+        } else {
+            observations.addAll(obsList)
+        }
     }
 
     private fun randomObservationOfType(type: ObservationType): Observation? {

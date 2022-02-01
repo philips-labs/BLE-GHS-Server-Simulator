@@ -23,10 +23,7 @@ abstract class Observation {
     abstract val value: Any
     abstract val unitCode: UnitCode
 
-    fun serialize(): ByteArray {
-        val result = if (USE_TLV_ENCODING) tlvByteArray else fixedFormatByteArray
-        return result
-    }
+    fun serialize(): ByteArray { return fixedFormatByteArray }
 
     /*
      * Experimental serialization options
@@ -105,21 +102,6 @@ abstract class Observation {
         get() = experimentalOptions.get(ExperimentalFeature.UseShortTypeCodes.bit)
         set(bool) { experimentalOptions.set(ExperimentalFeature.UseShortTypeCodes.bit, bool) }
 
-    @Deprecated("We are done with Experimental options for GHS for now")
-    fun serializeWithExperimentalOptions(): ByteArray {
-        val typeBytes = if (useShortTypeCodes) experimentalTypeByteArray else typeByteArray
-        val serializeArray = mutableListOf(typeBytes)
-        if (!omitHandleTLV) {
-            serializeArray.add(handleByteArray)
-        }
-        serializeArray.add(valueByteArray)
-        if (!(omitUnitCode && type.isKnownUnitCode())) {
-            serializeArray.add(unitByteArray)
-        }
-        serializeArray.add(timestampByteArray)
-        return serializeArray.merge()
-    }
-
     abstract val valueByteArray: ByteArray
 
     /*
@@ -144,7 +126,7 @@ abstract class Observation {
         }
 
     // This is the nibble that represents the observation class in the header bytes
-    open val classByte: Int = 0x0   // Note 0 is value for simple numeric... may want to use 0xFF?
+    open val classByte: Int = 0x0   // Simple numeric
 
     /*
     Bits 5-12: attribute presence
@@ -160,20 +142,6 @@ abstract class Observation {
         14.	TLVs present
      */
     open val attributeFlags: Int = 0x0030
-
-    /*
-     * Methods to generate bytes for old pure, unordered TLV format
-     */
-
-    val tlvByteArray: ByteArray
-        get() {
-            return listOf(
-                typeByteArray,
-                handleByteArray,
-                valueByteArray,
-                unitByteArray,
-                timestampByteArray).merge()
-        }
 
     // Made public for ObservationTest
     val handleByteArray: ByteArray
@@ -233,26 +201,13 @@ abstract class Observation {
     // Made public for ObservationTest
     val timestampByteArray: ByteArray
         get() {
-            return getGHSTimestampBytes()
-//            return getSimpleTimestampBytes()
+            val tsBytes = timestamp.asGHSBytes()
+            System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
+            return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
         }
-
-    private fun getGHSTimestampBytes(): ByteArray {
-        val tsBytes = timestamp.asGHSBytes()
-        System.out.println("GHS Timestamp size: ${tsBytes.size} bytes: ${tsBytes.asHexString()}")
-        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setIntValue(tsBytes.size, BluetoothBytesParser.FORMAT_UINT16)
-        return BluetoothBytesParser.mergeArrays(parser.value, tsBytes)
-    }
-
-    private fun getSimpleTimestampBytes(): ByteArray {
-        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-        parser.setIntValue(timestampCode, BluetoothBytesParser.FORMAT_UINT32)
-        if (!omitFixedLengthTypes) parser.setIntValue(timestampLength, BluetoothBytesParser.FORMAT_UINT16)
-        parser.setLong(timestamp.time)
-        return parser.value
-    }
 
     companion object {
         internal const val handleCode = 0x00010921
@@ -265,15 +220,15 @@ abstract class Observation {
         internal const val timestampCode = 0x00010990
         internal const val timestampLength = 8
 
-        // For GHS Byte Array use flex TLV or fixed header encoding schemes
-        private const val USE_TLV_ENCODING = false
-
         internal const val CONST_F0: UInt = 3840u
         internal const val CONST_F000: UInt = 65280u
     }
 }
 
 fun ObservationType.asFixedFormatByteArray(): ByteArray {
+    // If Unknow return an empty byte array
+    if (this == ObservationType.UNKNOWN_TYPE) return byteArrayOf()
+
     val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
     parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
     return parser.value

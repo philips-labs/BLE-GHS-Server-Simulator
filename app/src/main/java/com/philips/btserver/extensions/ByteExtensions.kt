@@ -96,6 +96,10 @@ fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
     return this.withLengthAndCRC().asPacketArray(packetSize)
 }
 
+fun ByteArray.asBLELengthCRCSegments(packetSize: Int): List<ByteArray> {
+    return this.withLengthAndCRC().asBLEDataSegments(packetSize)
+}
+
 fun ByteArray.withLengthAndCRC(): ByteArray {
     // Include length and CRC in length. Note length DOES NOT include the length bytes
     val crc = bleCRC()

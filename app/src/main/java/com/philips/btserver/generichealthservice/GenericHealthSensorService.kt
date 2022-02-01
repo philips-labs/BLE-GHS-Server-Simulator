@@ -12,10 +12,7 @@ import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
-import com.philips.btserver.extensions.asBLEDataSegments
-import com.philips.btserver.extensions.asBLELengthCRCPackets
-import com.philips.btserver.extensions.asGHSBytes
-import com.philips.btserver.extensions.merge
+import com.philips.btserver.extensions.*
 import java.util.*
 
 /**
@@ -30,8 +27,8 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     private val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_NOTIFY,
-        BluetoothGattCharacteristic.PERMISSION_READ
+        PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        0
     )
 
     private val storedObservationCharacteristic = BluetoothGattCharacteristic(
@@ -39,12 +36,6 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         PROPERTY_READ or PROPERTY_INDICATE,
         BluetoothGattCharacteristic.PERMISSION_READ
     )
-
-//    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
-//        SIMPLE_TIME_CHARACTERISTIC_UUID,
-//        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_NOTIFY or PROPERTY_INDICATE,
-//        PERMISSION_WRITE
-//    )
 
     private val featuresCharacteristic = BluetoothGattCharacteristic(
         GHS_FEATURES_CHARACTERISTIC_UUID,
@@ -114,9 +105,12 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 //        if (characteristic.uuid == SIMPLE_TIME_CHARACTERISTIC_UUID) {
 //            sendClockBytes()
 //        }
+
+
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            ObservationEmitter.singleShotEmit()
+//            ObservationEmitter.singleShotEmit()
         }
+
     }
 
 //    /*
@@ -148,7 +142,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      */
     private fun sendBytesInSegments(bytes: ByteArray) {
         if (SEND_LENGTH_CRC_PACKETS) {
-            bytes.asBLELengthCRCPackets(minimalMTU - 3).forEach { it.sendSegment() }
+            bytes.asBLELengthCRCSegments(minimalMTU - 3).forEach { it.sendSegment() }
         } else {
             bytes.asBLEDataSegments(minimalMTU - 3).forEach { it.sendSegment() }
         }

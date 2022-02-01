@@ -35,6 +35,7 @@ class ObservationsFragment : Fragment() {
         binding.checkboxHRObs.setOnClickListener { clickHRObs() }
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
         binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
+        binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
     }
@@ -68,6 +69,16 @@ class ObservationsFragment : Fragment() {
             ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
+        }
+    }
+
+    fun clickBundleObs() {
+        ObservationEmitter.bundleObservations = binding.checkboxBundleObs.isChecked
+        if (binding.checkboxBundleObs.isChecked) {
+            binding.checkboxSPO2Obs.isChecked = true
+            binding.checkboxHRObs.isChecked = true
+            ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
+            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         }
     }
 
