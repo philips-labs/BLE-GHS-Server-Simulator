@@ -69,7 +69,7 @@ fun List<ByteArray>.merge(): ByteArray {
 }
 
 // TODO After sending segments the spec says don't reset segment number so need to make global/persistent
-fun ByteArray.asBLEDataSegments(segmentSize: Int): List<ByteArray> {
+fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): List<ByteArray> {
     val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
     val result = ArrayList<ByteArray>(numSegs)
     for (i in 0 until numSegs) {
