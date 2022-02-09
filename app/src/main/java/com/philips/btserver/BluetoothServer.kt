@@ -68,7 +68,7 @@ internal class BluetoothServer(context: Context) {
         }
 
         override fun onCentralDisconnected(central: BluetoothCentral) {
-            (connectionListeners + connectionListeners).forEach { it.onCentralDisconnected(central) }
+            (connectionListeners + serviceImplementations.values).forEach { it.onCentralDisconnected(central) }
         }
     }
 
@@ -93,7 +93,8 @@ internal class BluetoothServer(context: Context) {
         03 03 44 7F // service uuid
         06 16 44 7F 06 10 00 //service data -ECG - no pairing
      */
-    fun startAdvertising(serviceUUID: UUID) {
+    fun startAdvertising() {
+        val serviceUUID = GenericHealthSensorService.GHS_SERVICE_UUID
         val advertiseSettings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
                 .setConnectable(true)
@@ -109,6 +110,10 @@ internal class BluetoothServer(context: Context) {
                 .setIncludeDeviceName(true)
                 .build()
         peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData)
+    }
+
+    fun stopAdvertising() {
+        peripheralManager.stopAdvertising()
     }
 
     // TODO This is fixed for a PulseOx (0x1004) with no security (0x00)...
@@ -167,6 +172,6 @@ internal class BluetoothServer(context: Context) {
         serviceImplementations[ghs.service] = ghs
         serviceImplementations[time.service] = time
         setupServices()
-        startAdvertising(ghs.service.uuid)
+        startAdvertising()
     }
 }

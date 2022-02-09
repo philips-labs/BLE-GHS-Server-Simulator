@@ -47,6 +47,16 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        getBluetoothServer()?.startAdvertising()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        getBluetoothServer()?.stopAdvertising()
+    }
+
     private val isBluetoothEnabled: Boolean
         get() {
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter() ?: return false
@@ -140,9 +150,12 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         }
     }
 
+    private fun getBluetoothServer(): BluetoothServer? {
+        return BluetoothServer.getInstance(applicationContext)
+    }
+
     private fun initBluetoothHandler() {
-        val btServer = BluetoothServer.getInstance(applicationContext)
-        btServer?.addConnectionListener(this)
+        getBluetoothServer()?.addConnectionListener(this)
         sectionsPagerAdapter.updatePages()
     }
 
@@ -154,10 +167,12 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
     override fun onCentralConnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
         titleView.text = "${getString(R.string.app_name)} ${getString(R.string.central_connected)}"
+        getBluetoothServer()?.stopAdvertising()
     }
 
     override fun onCentralDisconnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
-        if (BluetoothServer.getInstance()?.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
+        if (getBluetoothServer()?.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
+        getBluetoothServer()?.startAdvertising()
     }
 }
