@@ -157,7 +157,7 @@ object ObservationEmitter {
                 type.randomNumericValue(),
                 type.numericPrecision(),
                 if (useShortTypeCodes) type.shortUnitCode() else type.unitCode(),
-                Calendar.getInstance().time)
+                Date())
     }
 
     private fun randomSampleArrayObservation(type: ObservationType): Observation {
@@ -165,7 +165,7 @@ object ObservationEmitter {
                 type,
                 type.randomSampleArray(),
                 type.emitterUnitCode(),
-                Calendar.getInstance().time)
+                Date())
     }
 
     private fun sendObservations(singleShot: Boolean) {
