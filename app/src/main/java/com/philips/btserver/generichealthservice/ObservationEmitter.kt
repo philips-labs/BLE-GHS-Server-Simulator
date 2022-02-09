@@ -12,60 +12,6 @@ import java.util.*
 object ObservationEmitter {
 
     /*
-     * Experimental configuration options for observation data format
-     */
-
-    var experimentalObservationOptions = BitSet()
-
-    var omitFixedLengthTypes: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitFixedLengthTypes.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitFixedLengthTypes.bit, bool)}
-
-    var omitHandleTLV: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitHandleTLV.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitHandleTLV.bit, bool)}
-
-    var omitUnitCode: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.OmitUnitCode.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.OmitUnitCode.bit, bool)}
-
-    var useShortTypeCodes: Boolean
-        get() { return experimentalObservationOptions.get(Observation.ExperimentalFeature.UseShortTypeCodes.bit) }
-        set(bool) { experimentalObservationOptions.set(Observation.ExperimentalFeature.UseShortTypeCodes.bit, bool)}
-
-    /*
-     * Experiment with a type for an observation array observation (or compound observation observation)
-     * This is an "enhanced" concept of the Compound Numeric Observation as it allows for an array
-     * of full observations. From this a number of issues to explore arise such as timestamps being
-     * duplicated in each observation in the array.
-     *
-     * Why this is important vs. simply using a Compound Numeric Observation can be demonstrated with the
-     * following example:
-     *
-     * A fetal heart monitor reading for the maternal and fetal HRs could be expressed with a
-     * Compound Numeric Observation (with the typeList [maternalHRType, fetalHRType] and the
-     * valueList [maternalHR, fetalHR]. However for each HR there is other meta information that
-     * needs to be associated (e.g. signal quality). These could be aggregated and included in
-     * the supplemental information for the compound measurement. However, this would require
-     * subtypes for aggregation (e..g a term for maternalSignalQuality, fetalSignalQuality).
-     *
-     * With the maternal and fetal heart rates for a given moment stored as a observation array each
-     * could maintain their own supplemental terms for signal quality.
-     */
-    var enableObservationArrayType = false
-
-    /*
-     * If mergeObservations true observations are sent as one ACOM byte array.
-     * false means send each observation as a separate ACOM Object
-     *
-     * Currently given there is no actual ACOM wrapper what this means from a data package
-     * standpoint is that all observations are bundled as an array and sent in the same
-     * sequence of packets (packets start on send of first, packets end at send of last)
-     */
-    var mergeObservations = false
-
-
-    /*
      * If bundleObservations true heart rate and SpO2 observations are sent as one bundle observation.
      * False means send each observation as a separate observation.
      *
@@ -123,8 +69,6 @@ object ObservationEmitter {
         typesToEmit.clear()
         observations.clear()
         lastHandle = 1
-        experimentalObservationOptions = BitSet()
-        mergeObservations = true
     }
 
     /*
@@ -147,7 +91,6 @@ object ObservationEmitter {
             ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type)
             else -> null
         }
-        obs?.experimentalOptions = experimentalObservationOptions
         return obs
     }
 
@@ -156,7 +99,7 @@ object ObservationEmitter {
                 type,
                 type.randomNumericValue(),
                 type.numericPrecision(),
-                if (useShortTypeCodes) type.shortUnitCode() else type.unitCode(),
+                type.unitCode(),
                 Date())
     }
 
@@ -164,25 +107,17 @@ object ObservationEmitter {
         return SampleArrayObservation(lastHandle++.toShort(),
                 type,
                 type.randomSampleArray(),
-                type.emitterUnitCode(),
+                type.unitCode(),
                 Date())
     }
 
     private fun sendObservations(singleShot: Boolean) {
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
-        if (mergeObservations) {
-            ghsService?.sendObservations(observations)
-        } else {
-            observations.forEach { ghsService?.sendObservation(it) }
-        }
+        observations.forEach { ghsService?.sendObservation(it) }
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
 
-}
-
-fun ObservationType.emitterUnitCode(): UnitCode {
-    return if (ObservationEmitter.useShortTypeCodes) shortUnitCode() else unitCode()
 }
 
 fun ObservationType.randomNumericValue(): Float {
@@ -220,16 +155,6 @@ fun ObservationType.unitCode(): UnitCode {
         ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
         else -> UnitCode.MDC_DIM_INTL_UNIT
-    }
-}
-
-fun ObservationType.shortUnitCode(): UnitCode {
-    return when(this) {
-        ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
-        ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
-        ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
-        ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
-        else -> unitCode()
     }
 }
 

@@ -39,38 +39,6 @@ class ObservationEmitterTest {
     }
 
     /*
-     * Experimental options settings
-     */
-
-    @Test
-    fun observation_emitter_experimental_options() {
-        ObservationEmitter.omitFixedLengthTypes = true
-        ObservationEmitter.omitHandleTLV = true
-        ObservationEmitter.omitUnitCode = true
-        ObservationEmitter.useShortTypeCodes = true
-        ObservationEmitter.enableObservationArrayType = true
-
-        Assert.assertTrue(ObservationEmitter.omitFixedLengthTypes)
-        Assert.assertTrue(ObservationEmitter.omitHandleTLV)
-        Assert.assertTrue(ObservationEmitter.omitUnitCode)
-        Assert.assertTrue(ObservationEmitter.useShortTypeCodes)
-        Assert.assertTrue(ObservationEmitter.enableObservationArrayType)
-
-        ObservationEmitter.omitFixedLengthTypes = false
-        ObservationEmitter.omitHandleTLV = false
-        ObservationEmitter.omitUnitCode = false
-        ObservationEmitter.useShortTypeCodes = false
-        ObservationEmitter.enableObservationArrayType = false
-
-        Assert.assertFalse(ObservationEmitter.omitFixedLengthTypes)
-        Assert.assertFalse(ObservationEmitter.omitHandleTLV)
-        Assert.assertFalse(ObservationEmitter.omitUnitCode)
-        Assert.assertFalse(ObservationEmitter.useShortTypeCodes)
-        Assert.assertFalse(ObservationEmitter.enableObservationArrayType)
-
-    }
-
-    /*
      * Observation Emitting
      */
 
@@ -120,7 +88,6 @@ class ObservationEmitterTest {
     @Test
     fun emitter_single_shot_hr_and_spo2_unmerged() {
         ObservationEmitter.reset()
-        ObservationEmitter.mergeObservations = false
         ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
         ObservationEmitter.addObservationType(ObservationType.MDC_SPO2_OXYGENATION_RATIO)
         val list = mutableListOf<Observation>()
