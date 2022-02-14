@@ -12,6 +12,17 @@ import java.util.*
 object ObservationEmitter {
 
     /*
+     * If mergeObservations true observations are sent as one ACOM byte array.
+     * false means send each observation as a separate ACOM Object
+     *
+     * Currently given there is no actual ACOM wrapper what this means from a data package
+     * standpoint is that all observations are bundled as an array and sent in the same
+     * sequence of packets (packets start on send of first, packets end at send of last)
+     */
+    var mergeObservations = false
+
+
+    /*
      * If bundleObservations true heart rate and SpO2 observations are sent as one bundle observation.
      * False means send each observation as a separate observation.
      *
@@ -69,6 +80,7 @@ object ObservationEmitter {
         typesToEmit.clear()
         observations.clear()
         lastHandle = 1
+        mergeObservations = true
     }
 
     /*

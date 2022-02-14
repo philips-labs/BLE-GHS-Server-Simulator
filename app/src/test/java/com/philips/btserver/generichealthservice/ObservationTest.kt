@@ -207,7 +207,7 @@ class ObservationTest {
     }
 
     private fun simple_numeric_value_byte_array_for(value: Float, precision: Int): ByteArray {
-        return encodeTLV(SimpleNumericObservation.valueCode, SimpleNumericObservation.valueLength, value, precision)
+        return encodeTLV(ObservationValueType.MDC_ATTR_NU_VAL_OBS.value, ObservationValueType.valueByteLength, value, precision)
     }
 
     private fun simple_numeric_observation_serialize_byte_array(obs: SimpleNumericObservation): ByteArray {
@@ -238,7 +238,7 @@ fun BluetoothBytesParser.encodeTLV(type: Int, length: Int, value: Number, precis
 }
 
 fun BluetoothBytesParser.encodeTLV(value: ByteArray): ByteArray {
-    setIntValue(SampleArrayObservation.valueCode, BluetoothBytesParser.FORMAT_UINT32)
+    setIntValue(ObservationValueType.MDC_ATTR_SA_VAL_OBS.value, BluetoothBytesParser.FORMAT_UINT32)
     setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT16)
     return this.value + value
 }
