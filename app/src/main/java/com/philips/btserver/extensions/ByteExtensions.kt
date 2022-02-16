@@ -74,10 +74,10 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): L
     val result = ArrayList<ByteArray>(numSegs)
     for (i in 0 until numSegs) {
         // Compute the segment header byte (first/last seg, seg number)
-        val segmentNumber = i + 1
+        val segmentNumber = i + startingSegNumber
         var segByte = segmentNumber shl 2
-        segByte = segByte or if (segmentNumber == 1) 0x01 else 0x0
-        segByte = segByte or if (segmentNumber == numSegs) 0x02 else 0x0
+        segByte = segByte or if (i == 0) 0x01 else 0x0
+        segByte = segByte or if (i == numSegs - 1) 0x02 else 0x0
 
         // Get the next segment data
         val startIndex = i * segmentSize
@@ -97,18 +97,22 @@ fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
 }
 
 fun ByteArray.asBLELengthCRCSegments(packetSize: Int): List<ByteArray> {
-    return this.withLengthAndCRC().asBLEDataSegments(packetSize)
+//    return this.withLengthAndCRC().asBLEDataSegments(packetSize)
+    return this.withLengthPrefix().asBLEDataSegments(packetSize)
+}
+
+fun ByteArray.withLengthPrefix(): ByteArray {
+    // Include length as first 2 bytes. Note length DOES NOT include the length bytes
+    val length = this.size
+    return listOf(
+        byteArrayOf(length.asMaskedByte(), (length shr 8).asMaskedByte()),
+        this,
+    ).merge()
 }
 
 fun ByteArray.withLengthAndCRC(): ByteArray {
     // Include length and CRC in length. Note length DOES NOT include the length bytes
-    val crc = bleCRC()
-    val length = this.size + crc.size
-    return listOf(
-        byteArrayOf(length.asMaskedByte(), (length shr 8).asMaskedByte()),
-        this,
-        crc
-    ).merge()
+    return listOf(this, bleCRC()).merge().withLengthPrefix()
 }
 
 fun Int.asMaskedByte(): Byte {

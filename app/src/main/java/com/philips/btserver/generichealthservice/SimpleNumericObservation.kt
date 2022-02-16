@@ -25,6 +25,7 @@ data class SimpleNumericObservation(
 
     override val fixedValueByteArray: ByteArray
         get() {
+            // In current 0.5 GHS Spec the unit code is "2 byte MDC code from partition 4"
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
             parser.setFloatValue(value, valuePrecision)

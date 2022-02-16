@@ -27,6 +27,11 @@ data class SampleArrayObservation(
             return parser.value + value
         }
 
+    override val fixedValueByteArray: ByteArray
+        get() {
+            return valueByteArray
+        }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
