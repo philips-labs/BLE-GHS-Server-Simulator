@@ -17,13 +17,8 @@ data class CompoundNumericObservation(
 
     override val valueByteArray: ByteArray
         get() {
-            return encodeTLV(
-                ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS.value,
-                ObservationValueType.valueByteLength,
-                // TODO: Need to handle second value. Just here to get compiling and testing other stuff
-                value.first().second,
-                valuePrecision
-            )
+            // TODO ENCODE VALUES... ALSO NEED UNIT CODES FOR EACH PAIR
+            return byteArrayOf()
         }
 
     override fun equals(other: Any?): Boolean {

@@ -127,39 +127,4 @@ class GenericHealthSensorServiceTest {
         assertTrue(part2.contentEquals(bytesSlot[1]))
         assertTrue(part3.contentEquals(bytesSlot[2]))
     }
-
-    @Test
-    fun `When a collection of observations is to be sent, then it is sent in chunks`() {
-        // Given
-        val bytesSlot = mutableListOf<ByteArray>()
-        every { peripheralManager.connectedCentrals } returns setOf(central)
-        every { central.currentMtu } returns 23
-        every { peripheralManager.notifyCharacteristicChanged(capture(bytesSlot), serviceHandler.service.getCharacteristic(GenericHealthSensorService.OBSERVATION_CHARACTERISTIC_UUID)) } returns true
-        val observation = SimpleNumericObservation(39, ObservationType.MDC_TEMP_BODY, 35.8f, 1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
-        val observation2 = SimpleNumericObservation(40, ObservationType.MDC_TEMP_BODY, 35.8f, 1, UnitCode.MDC_DIM_DEGC, Date(1614960708472))
-
-        // When
-        serviceHandler.sendObservations(setOf(observation, observation2))
-
-        // Then
-        verify(exactly = 6) {
-            peripheralManager.notifyCharacteristicChanged(any(), any())
-        }
-
-        assertEquals(6, bytesSlot.size)
-
-        val part1 = BluetoothBytesParser.string2bytes("050001092F000400024B5C000109210002002700")
-        val part2 = BluetoothBytesParser.string2bytes("08010A560004FF000166000109960004000417A0")
-        val part3 = BluetoothBytesParser.string2bytes("0c000109900008000001780328cb780001092f00")
-        val part4 = BluetoothBytesParser.string2bytes("100400024b5c000109210002002800010a560004")
-        val part5 = BluetoothBytesParser.string2bytes("14ff000166000109960004000417a00001099000")
-        val part6 = BluetoothBytesParser.string2bytes("1a08000001780328cb78")
-
-        assertTrue(part1.contentEquals(bytesSlot[0]))
-        assertTrue(part2.contentEquals(bytesSlot[1]))
-        assertTrue(part3.contentEquals(bytesSlot[2]))
-        assertTrue(part4.contentEquals(bytesSlot[3]))
-        assertTrue(part5.contentEquals(bytesSlot[4]))
-        assertTrue(part6.contentEquals(bytesSlot[5]))
-    }
 }

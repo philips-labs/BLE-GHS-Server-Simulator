@@ -4,6 +4,8 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.welie.blessed.BluetoothBytesParser
+
 enum class UnitCode(val value: Int, val symbol: String, val description : String) {
     MDCX_DIM_MILLI_MOLE_PER_M_SQ_PER_SEC(269586, "mmol m-2 s-1", "milli mole per square meter per second"),
     MDCX_DIM_X_L_PER_KG_PER_MIN(269408, "L per kg per minute", "magnitude liters per kg per minute"),
@@ -540,6 +542,11 @@ enum class UnitCode(val value: Int, val symbol: String, val description : String
     MDC_DIM_X_WATT(266176, "W", "magnitude watt(s)"),
     MDC_DIM_YR(264512, "y", "year"),
     UNKNOWN_CODE(0xFFFFFFF, "-", "unknown");
+
+    // A GHS Unit Code is the 16-bit value of the unit code assuming partition 4
+    fun writeOn(parser: BluetoothBytesParser) {
+        parser.setIntValue(value and 0xFFFF, BluetoothBytesParser.FORMAT_UINT16)
+    }
 
     companion object {
         fun fromValue(value: Int): UnitCode {

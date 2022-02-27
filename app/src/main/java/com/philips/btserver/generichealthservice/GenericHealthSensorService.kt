@@ -126,14 +126,14 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
      */
     fun sendObservation(observation: Observation) {
-        sendBytesInSegments(observation.serialize())
+        sendBytesInSegments(observation.ghsByteArray)
     }
 
     /**
      * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
      */
     fun sendObservations(observations: Collection<Observation>) {
-        sendBytesInSegments(observations.map { it.serialize() }.merge())
+        observations.forEach { sendObservation(it) }
     }
 
     /**
@@ -141,11 +141,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * send each segment in sequence over BLE
      */
     private fun sendBytesInSegments(bytes: ByteArray) {
-        if (SEND_LENGTH_CRC_PACKETS) {
-            bytes.asBLELengthCRCSegments(minimalMTU - 5).forEach { it.sendSegment() }
-        } else {
-            bytes.asBLEDataSegments(minimalMTU - 5).forEach { it.sendSegment() }
-        }
+        bytes.asBLEDataSegments(minimalMTU - 5).forEach { it.sendSegment() }
     }
 
     companion object {
@@ -168,8 +164,6 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         private const val FEATURES_DESCRIPTION = "Characteristic for GHS features."
         private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Characteristic for unique device ID (UDI)."
         private const val RACP_DESCRIPTION = "RACP Characteristic."
-
-        private const val SEND_LENGTH_CRC_PACKETS = true
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
