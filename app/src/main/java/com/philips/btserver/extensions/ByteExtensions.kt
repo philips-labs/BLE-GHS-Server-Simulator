@@ -15,9 +15,6 @@ fun Byte.asHexString(): String {
     return hexString
 }
 
-
-
-
 fun ByteArray.formatHexBytes(seperator: String?): String {
     var resultString = ""
     for ((index, value) in this.iterator().withIndex()) {
@@ -29,7 +26,6 @@ fun ByteArray.formatHexBytes(seperator: String?): String {
 
 fun ByteArray.asFormattedHexString(): String {
     return this.formatHexBytes(" ")
-    // return asHexString().replace("..".toRegex(), "$0 ")
 }
 
 fun ByteArray.asHexString(): String {
@@ -92,15 +88,6 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): L
     return result
 }
 
-fun ByteArray.asBLELengthCRCPackets(packetSize: Int): List<ByteArray> {
-    return this.withLengthAndCRC().asPacketArray(packetSize)
-}
-
-fun ByteArray.asBLELengthCRCSegments(packetSize: Int): List<ByteArray> {
-//    return this.withLengthAndCRC().asBLEDataSegments(packetSize)
-    return this.withLengthPrefix().asBLEDataSegments(packetSize)
-}
-
 fun ByteArray.withLengthPrefix(): ByteArray {
     // Include length as first 2 bytes. Note length DOES NOT include the length bytes
     val length = this.size
@@ -110,11 +97,6 @@ fun ByteArray.withLengthPrefix(): ByteArray {
     ).merge()
 }
 
-fun ByteArray.withLengthAndCRC(): ByteArray {
-    // Include length and CRC in length. Note length DOES NOT include the length bytes
-    return listOf(this, bleCRC()).merge().withLengthPrefix()
-}
-
 fun Int.asMaskedByte(): Byte {
     return (this and 0xFF).toByte()
 }
@@ -122,18 +104,6 @@ fun Int.asMaskedByte(): Byte {
 private fun ByteArray.bleCRC(): ByteArray {
     val crc = CRC16.CCITT_Kermit(this, 0, this.size)
     return byteArrayOf(crc.asMaskedByte(), (crc shr 8).asMaskedByte())
-}
-
-fun ByteArray.asPacketArray(packetSize: Int): List<ByteArray> {
-    val numPackets = ceil(size.toFloat().div(packetSize)).toInt()
-    val result = ArrayList<ByteArray>(numPackets)
-
-    for (i in 0 until numPackets) {
-        val startIndex = i * packetSize
-        val endIndex = (startIndex + packetSize).coerceAtMost(lastIndex + 1)
-        result.add(copyOfRange(startIndex, endIndex))
-    }
-    return result
 }
 
 fun ByteArray.fillWith(action: (Int) -> Byte) {

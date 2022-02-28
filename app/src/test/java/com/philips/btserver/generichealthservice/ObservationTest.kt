@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.asGHSByteArray
 import com.philips.btserver.extensions.findFirst
 import com.philips.btserver.extensions.merge
 import com.welie.blessed.BluetoothBytesParser
@@ -45,27 +46,9 @@ class ObservationTest {
      */
 
     @Test
-    fun `When a SimpleNumericObservation is instantiated, then the handle byte array representation is correct`() {
-        val obs = create_simple_numeric_observation()
-        assertArrayEquals(handle_byte_array_for(obs.id), obs.handleByteArray)
-    }
-
-    @Test
-    fun `When a SimpleNumericObservation is instantiated, then the type byte array representation is correct`() {
-        val obs = create_simple_numeric_observation()
-        assertArrayEquals(type_byte_array_for(obs.type), obs.typeByteArray)
-    }
-
-    @Test
-    fun `When a SimpleNumericObservation is instantiated, then the unit code byte array representation is correct`() {
-        val obs = create_simple_numeric_observation()
-        assertArrayEquals(unit_byte_array_for(obs.unitCode), obs.unitByteArray)
-    }
-
-    @Test
     fun `When a SimpleNumericObservation is instantiated, then the timestamp byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestampByteArray)
+        assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestamp.asGHSByteArray())
     }
 
     @Test
@@ -77,7 +60,7 @@ class ObservationTest {
     @Test
     fun `When a SimpleNumericObservation is instantiated, then the fully merged byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.serialize())
+        assertArrayEquals(this.simple_numeric_observation_serialize_byte_array(obs), obs.ghsByteArray)
     }
 
     /*

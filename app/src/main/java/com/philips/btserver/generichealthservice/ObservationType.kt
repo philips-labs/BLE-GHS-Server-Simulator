@@ -4,7 +4,9 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.welie.blessed.BluetoothBytesParser
 import java.lang.IllegalArgumentException
+import java.nio.ByteOrder
 
 enum class ObservationType(val value: Int) {
     MDC_ACCELERATION_INDEX(150612),
@@ -966,6 +968,15 @@ enum class ObservationType(val value: Int) {
     MDC_WORK_OF_BREATHING_VENTILATOR(153288),
 
     UNKNOWN_TYPE(-0x1);
+
+    fun asGHSByteArray(): ByteArray {
+        // If Unknow return an empty byte array
+        if (this == UNKNOWN_TYPE) return byteArrayOf()
+
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        return parser.value
+    }
 
     companion object {
         @Suppress("unused")

@@ -20,25 +20,12 @@ data class SimpleNumericObservation(
     // This is the nibble that represents the observation class in the header bytes
     override val classByte: Int = 0
 
-    // This is the nibble that represents the presence of attributes  header bytes
-    override val attributeFlags: Int = 0x0030
-
-    override val fixedValueByteArray: ByteArray
+    override val valueByteArray: ByteArray
         get() {
-            // In current 0.5 GHS Spec the unit code is "2 byte MDC code from partition 4"
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT32)
+            unitCode.writeOn(parser)
             parser.setFloatValue(value, valuePrecision)
             return parser.value
         }
 
-    override val valueByteArray: ByteArray
-        get() {
-            return encodeTLV(
-                ObservationValueType.MDC_ATTR_NU_VAL_OBS.value,
-                ObservationValueType.valueByteLength,
-                value,
-                valuePrecision
-            )
-        }
 }

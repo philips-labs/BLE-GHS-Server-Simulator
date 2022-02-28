@@ -10,8 +10,7 @@ override val value: List<Observation>,
 override val timestamp: Date
 ) : Observation() {
     // BundledObservations have no observation type
-    override val type: ObservationType
-        get() = ObservationType.UNKNOWN_TYPE
+    override var type: ObservationType = ObservationType.UNKNOWN_TYPE
 
     // BundledObservations have no unit code (each observation does)
     override val unitCode: UnitCode
@@ -21,36 +20,26 @@ override val timestamp: Date
     override val classByte: Int = 0x0F   // Bundled observation
 
     /*
-    Bits 0-3:0xF is Observation Bundle with shared attributes
-    Bits 5-14: attribute presence
-        5.	Observation type present
-        6.	Time stamp present
-        7.	Measurement duration present
-        8.	Measurement Status present
-        9.	Object Id present
-        10.	Patient present
-        11.	Supplemental Information present
-        12.	Derived-from present
-        13.	hasMember present
-        14.	TLVs present
-    Bits 15-32: Reserved
-     */
-    override val attributeFlags: Int = 0x0420 or classByte
-
-    /*
      * For bundled observations value bytes are a byte with number of observations
      * followed by bytes for each observation
      */
     override val valueByteArray: ByteArray
-        get() = fixedValueByteArray
-
-    override val fixedValueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
-            value.forEach { parser.setByteArray(it.fixedFormatByteArray) }
+            value.forEach {
+                // Based on the current 0.7 spec each bundled observation byte array included
+                // also includes the length of the observation byte array (3.2.1.2)
+                val bytesToSend = it.ghsByteArray
+                parser.setByteArray(bytesToSend)
+            }
             return parser.value
         }
+
+    // Let all the observations bundled know they're bundled for byte array encoding purposes
+    init {
+        value.forEach { it.isBundledObservation = true }
+    }
 }
 
 /**
@@ -61,7 +50,6 @@ override val timestamp: Date
 fun BluetoothBytesParser.setByteArray(bytes: ByteArray) {
     setByteArray(bytes, offset)
 }
-
 
 /**
  * Set byte array to a string at specified offset position
@@ -74,7 +62,6 @@ fun BluetoothBytesParser.setByteArray(bytes: ByteArray, offset: Int) {
     System.arraycopy(bytes, 0, getValue(), offset, bytes.size)
     setOffset(offset + bytes.size)
 }
-
 
 /*
  * This is the same as prepareArray which is private
