@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.setFloat
 import com.welie.blessed.BluetoothBytesParser
 import java.nio.ByteOrder
 import java.util.*
@@ -24,7 +25,8 @@ data class SimpleNumericObservation(
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             unitCode.writeOn(parser)
-            parser.setFloatValue(value, valuePrecision)
+            // TODO setFloatValue doesn't update offset... this works because we're not adding anything after
+            parser.setFloat(value, valuePrecision)
             return parser.value
         }
 

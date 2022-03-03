@@ -101,6 +101,7 @@ object ObservationEmitter {
         val obs = when(type.valueType()) {
             ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type)
             ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type)
+            ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS -> randomCompoundNumericObservation(type)
             else -> null
         }
         return obs
@@ -117,10 +118,31 @@ object ObservationEmitter {
 
     private fun randomSampleArrayObservation(type: ObservationType): Observation {
         return SampleArrayObservation(lastHandle++.toShort(),
-                type,
-                type.randomSampleArray(),
-                type.unitCode(),
-                Date())
+            type,
+            type.randomSampleArray(),
+            type.unitCode(),
+            Date())
+    }
+
+    private fun randomCompoundNumericObservation(type: ObservationType): Observation {
+        // Right now only compound is BP
+        val systolicValue = SimpleNumericValue(
+            ObservationType.MDC_PRESS_BLD_NONINV_SYS,
+            ObservationType.MDC_PRESS_BLD_NONINV_SYS.randomNumericValue(),
+            ObservationType.MDC_PRESS_BLD_NONINV_SYS.unitCode(),
+        )
+        val diastolicValue = SimpleNumericValue(
+            ObservationType.MDC_PRESS_BLD_NONINV_DIA,
+            ObservationType.MDC_PRESS_BLD_NONINV_DIA.randomNumericValue(),
+            ObservationType.MDC_PRESS_BLD_NONINV_DIA.unitCode(),
+        )
+        return CompoundNumericObservation(
+            lastHandle++.toShort(),
+            type,
+            arrayOf(systolicValue, diastolicValue),
+            UnitCode.UNKNOWN_CODE,
+            Date()
+        )
     }
 
     private fun sendObservations(singleShot: Boolean) {
@@ -137,6 +159,8 @@ fun ObservationType.randomNumericValue(): Float {
         ObservationType.MDC_ECG_HEART_RATE ->  kotlin.random.Random.nextInt(60, 70).toFloat()
         ObservationType.MDC_TEMP_BODY ->  kotlin.random.Random.nextInt(358, 370).toFloat() / 10f
         ObservationType.MDC_PULS_OXIM_SAT_O2 ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS ->  kotlin.random.Random.nextInt(120, 130).toFloat()
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA ->  kotlin.random.Random.nextInt(70, 80).toFloat()
         else -> Float.NaN
     }
 }
@@ -153,9 +177,9 @@ fun ObservationType.randomSampleArray(): ByteArray {
 
 fun ObservationType.numericPrecision(): Int {
     return when(this) {
-        ObservationType.MDC_ECG_HEART_RATE ->  0
+        ObservationType.MDC_ECG_HEART_RATE,
         ObservationType.MDC_TEMP_BODY,
-            ObservationType.MDC_PULS_OXIM_SAT_O2->  1
+        ObservationType.MDC_PULS_OXIM_SAT_O2->  1
         else -> 0
     }
 }
@@ -166,6 +190,9 @@ fun ObservationType.unitCode(): UnitCode {
         ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
         ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
+        ObservationType.MDC_PRESS_BLD_NONINV ->  UnitCode.MDC_DIM_MMHG
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS ->  UnitCode.MDC_DIM_MMHG
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA ->  UnitCode.MDC_DIM_MMHG
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
 }

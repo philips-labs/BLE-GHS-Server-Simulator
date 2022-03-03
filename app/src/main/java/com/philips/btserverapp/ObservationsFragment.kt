@@ -35,6 +35,7 @@ class ObservationsFragment : Fragment() {
         binding.checkboxHRObs.setOnClickListener { clickHRObs() }
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
         binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
+        binding.checkboxBPObs.setOnClickListener { clickBPObs() }
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
@@ -69,6 +70,14 @@ class ObservationsFragment : Fragment() {
             ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
+        }
+    }
+
+    fun clickBPObs() {
+        if (binding.checkboxBPObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
         }
     }
 

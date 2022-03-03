@@ -28,18 +28,25 @@
             android:text="@string/choiceHRObs" />
 
         <CheckBox
-            android:id="@+id/checkboxPPGObs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/choicePPGObs" />
-
-        <CheckBox
             android:id="@+id/checkboxSPO2Obs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:text="@string/choiceSPO2Obs" />
+
+        <CheckBox
+            android:id="@+id/checkboxBPObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choiceBPObs" />
+
+        <CheckBox
+            android:id="@+id/checkboxPPGObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/choicePPGObs" />
 
         <CheckBox
             android:id="@+id/checkboxBundleObs"

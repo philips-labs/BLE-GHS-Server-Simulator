@@ -134,3 +134,9 @@ fun BluetoothBytesParser.setLongValue(value: Long): Boolean {
     if (result) { offset += 8 }
     return result
 }
+
+fun BluetoothBytesParser.setFloat(value: Float, precision: Int): Boolean {
+    val result = setFloatValue(value, precision)
+    if (result) { offset += 4 }
+    return result
+}

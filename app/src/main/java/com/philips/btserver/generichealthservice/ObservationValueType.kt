@@ -30,6 +30,7 @@ fun ObservationType.valueType(): ObservationValueType {
         ObservationType.MDC_PULS_OXIM_SAT_O2,
         ObservationType.MDC_TEMP_BODY-> ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP
         ObservationType.MDC_PPG_TIME_PD_PP-> ObservationValueType.MDC_ATTR_SA_VAL_OBS
+        ObservationType.MDC_PRESS_BLD_NONINV-> ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS
         else -> ObservationValueType.UNKNOWN_TYPE_VAL_OBS
 
     }

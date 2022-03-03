@@ -974,8 +974,12 @@ enum class ObservationType(val value: Int) {
         if (this == UNKNOWN_TYPE) return byteArrayOf()
 
         val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        this.writeOn(parser)
         return parser.value
+    }
+
+    fun writeOn(parser: BluetoothBytesParser) {
+        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
     }
 
     companion object {

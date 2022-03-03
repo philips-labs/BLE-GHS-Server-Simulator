@@ -4,21 +4,34 @@
  */
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.setFloat
+import com.welie.blessed.BluetoothBytesParser
+import java.nio.ByteOrder
 import java.util.*
 
 data class CompoundNumericObservation(
     override val id: Short,
     override val type: ObservationType,
-    override val value: Array<Pair<ObservationType, Float>>,
-    val valuePrecision: Int,
+    override val value: Array<SimpleNumericValue>,
     override val unitCode: UnitCode,
     override val timestamp: Date
 ) : Observation() {
 
+    // This is the nibble that represents the observation class in the header bytes
+    override val classByte: Int = 0x04   // Compound Numeric observation
+
     override val valueByteArray: ByteArray
         get() {
-            // TODO ENCODE VALUES... ALSO NEED UNIT CODES FOR EACH PAIR
-            return byteArrayOf()
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
+            value.forEach {
+                it.type.writeOn(parser)
+                it.unitCode.writeOn(parser)
+                parser.setFloat(it.value, type.numericPrecision())
+                // TODO: Talk with Martijn about why setIntValue updates offset, yet setFloatValue() doesn't.
+                // Also confusing in BluetoothBytesParser>>setFloatValue that arg is same name as property (offset)
+            }
+            return parser.value
         }
 
     override fun equals(other: Any?): Boolean {
@@ -30,7 +43,6 @@ data class CompoundNumericObservation(
         if (id != other.id) return false
         if (type != other.type) return false
         if (!value.contentEquals(other.value)) return false
-        if (valuePrecision != other.valuePrecision) return false
         if (unitCode != other.unitCode) return false
         if (timestamp != other.timestamp) return false
 
@@ -41,7 +53,6 @@ data class CompoundNumericObservation(
         var result = id.toInt()
         result = 31 * result + type.hashCode()
         result = 31 * result + value.contentHashCode()
-        result = 31 * result + valuePrecision
         result = 31 * result + unitCode.hashCode()
         result = 31 * result + timestamp.hashCode()
         return result

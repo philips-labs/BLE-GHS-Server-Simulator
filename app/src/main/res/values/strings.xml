@@ -15,6 +15,7 @@
     <string name="choiceTempObs">Include temperature (Simple Numeric)</string>
     <string name="choiceHRObs">Include heart rate (Simple Numeric)</string>
     <string name="choiceSPO2Obs">Include SpO2 (Simple Numeric)</string>
+    <string name="choiceBPObs">Include Blood Pressure (Compound Numeric)</string>
     <string name="choicePPGObs">Include PPG array (Sample Array)</string>
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
     <string name="choiceBundleObs">Bundle heart rate &amp; SpO2</string>
