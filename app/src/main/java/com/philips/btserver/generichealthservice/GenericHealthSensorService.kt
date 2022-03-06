@@ -25,6 +25,8 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
+    private var currentSegmentNumber: Int = 0
+
     private val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
         PROPERTY_NOTIFY or PROPERTY_INDICATE,
@@ -57,6 +59,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
+        currentSegmentNumber = 0
     }
 
     /**
@@ -141,7 +144,10 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
      * send each segment in sequence over BLE
      */
     private fun sendBytesInSegments(bytes: ByteArray) {
-        bytes.asBLEDataSegments(minimalMTU - 5).forEach { it.sendSegment() }
+        // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
+        val segments = bytes.asBLEDataSegments(minimalMTU - 5, currentSegmentNumber)
+        segments.first.forEach { it.sendSegment() }
+        currentSegmentNumber = segments.second
     }
 
     companion object {

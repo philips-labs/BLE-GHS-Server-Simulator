@@ -64,13 +64,18 @@ fun List<ByteArray>.merge(): ByteArray {
     return this.fold(byteArrayOf(), { result, bytes -> result + bytes })
 }
 
-// TODO After sending segments the spec says don't reset segment number so need to make global/persistent
-fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): List<ByteArray> {
+/*
+ * Return the receiver as an array of BLE segments (with segment headers). This method returns a pair:
+ * First object in the pair is the list of byte arrays that make up the segment. Next item in the pair
+ * is the next segment number that will be used for next segments... this is because segment numbers
+ * persist during a device connection.
+ */
+fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): Pair<List<ByteArray>, Int> {
     val numSegs = ceil(size.toFloat().div(segmentSize)).toInt()
     val result = ArrayList<ByteArray>(numSegs)
+    var segmentNumber = startingSegNumber
     for (i in 0 until numSegs) {
         // Compute the segment header byte (first/last seg, seg number)
-        val segmentNumber = i + startingSegNumber
         var segByte = segmentNumber shl 2
         segByte = segByte or if (i == 0) 0x01 else 0x0
         segByte = segByte or if (i == numSegs - 1) 0x02 else 0x0
@@ -84,8 +89,9 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): L
         segment[0] = segByte.toByte()
         System.arraycopy(segmentData, 0, segment, 1, length)
         result.add(segment)
+        if (++segmentNumber > 63) segmentNumber = 0
     }
-    return result
+    return Pair(result, segmentNumber)
 }
 
 fun ByteArray.withLengthPrefix(): ByteArray {
