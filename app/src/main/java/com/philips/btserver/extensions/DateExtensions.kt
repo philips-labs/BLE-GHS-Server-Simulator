@@ -189,10 +189,10 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
     // Write the utc/local/tick clock value (either milliseconds or seconds)
     if (timestampFlags.hasFlag(TimestampFlags.isMilliseconds)) {
-        parser.setLongValue(millis)
+        parser.setLong(millis)
         Timber.i("Add Milliseconds Value: $millis")
     } else {
-        parser.setLongValue(millis / 1000L)
+        parser.setLong(millis / 1000L)
         Timber.i("Add Seconds Value: ${millis / 1000L}")
     }
 

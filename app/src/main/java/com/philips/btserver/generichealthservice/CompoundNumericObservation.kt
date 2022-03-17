@@ -4,7 +4,6 @@
  */
 package com.philips.btserver.generichealthservice
 
-import com.philips.btserver.extensions.setFloat
 import com.welie.blessed.BluetoothBytesParser
 import java.nio.ByteOrder
 import java.util.*
@@ -26,7 +25,7 @@ data class CompoundNumericObservation(
             value.forEach {
                 it.type.writeOn(parser)
                 it.unitCode.writeOn(parser)
-                parser.setFloat(it.value, type.numericPrecision())
+                parser.setFloatValue(it.value, type.numericPrecision())
                 // TODO: Talk with Martijn about why setIntValue updates offset, yet setFloatValue() doesn't.
                 // Also confusing in BluetoothBytesParser>>setFloatValue that arg is same name as property (offset)
             }

@@ -4,7 +4,6 @@
  */
 package com.philips.btserver.generichealthservice
 
-import com.philips.btserver.extensions.setFloat
 import com.welie.blessed.BluetoothBytesParser
 import java.nio.ByteOrder
 import java.util.*
@@ -29,11 +28,11 @@ data class SampleArrayObservation(
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             UnitCode.MDC_DIM_DIMLESS.writeOn(parser)
-            parser.setFloat(scaleFactor, 2)
-            parser.setFloat(scaleOffset, 2)
+            parser.setFloatValue(scaleFactor, 2)
+            parser.setFloatValue(scaleOffset, 2)
             parser.setIntValue((value.minOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt(), BluetoothBytesParser.FORMAT_SINT32)
             parser.setIntValue((value.maxOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt(), BluetoothBytesParser.FORMAT_SINT32)
-            parser.setFloat(samplePeriodSeconds, 2)
+            parser.setFloatValue(samplePeriodSeconds, 2)
 
             parser.setIntValue(samplesPerPeriod.toInt(), BluetoothBytesParser.FORMAT_UINT8)
             parser.setIntValue(bytesPerSample.toInt(), BluetoothBytesParser.FORMAT_UINT8)

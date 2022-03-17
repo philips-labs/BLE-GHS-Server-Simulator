@@ -40,36 +40,3 @@ override val timestamp: Date
         value.forEach { it.isBundledObservation = true }
     }
 }
-
-/**
- * Set byte array to the bytes at current offset
- *
- * @param byteArray byteArray to be added to parser's byte array
- */
-fun BluetoothBytesParser.setByteArray(bytes: ByteArray) {
-    setByteArray(bytes, offset)
-}
-
-/**
- * Set byte array to a string at specified offset position
- *
- * @param bytes  byte array to be added to byte array
- * @param offset the offset to place the string at
- */
-fun BluetoothBytesParser.setByteArray(bytes: ByteArray, offset: Int) {
-    expandArray(offset + bytes.size)
-    System.arraycopy(bytes, 0, getValue(), offset, bytes.size)
-    setOffset(offset + bytes.size)
-}
-
-/*
- * This is the same as prepareArray which is private
- */
-fun BluetoothBytesParser.expandArray(neededLength: Int) {
-    if (getValue() == null) setValue(ByteArray(neededLength))
-    if (neededLength > getValue().size) {
-        val largerByteArray = ByteArray(neededLength)
-        System.arraycopy(getValue(), 0, largerByteArray, 0, getValue().size)
-        setValue(largerByteArray)
-    }
-}
