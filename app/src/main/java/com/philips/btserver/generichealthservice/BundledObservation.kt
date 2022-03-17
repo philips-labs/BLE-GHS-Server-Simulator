@@ -16,8 +16,7 @@ override val timestamp: Date
     override val unitCode: UnitCode
         get() = UnitCode.UNKNOWN_CODE
 
-    // This is the nibble that represents the observation class in the header bytes
-    override val classByte: Int = 0x0F   // Bundled observation
+    override val classByte: ObservationClass = ObservationClass.ObservationBundle   // Bundled observation
 
     /*
      * For bundled observations value bytes are a byte with number of observations

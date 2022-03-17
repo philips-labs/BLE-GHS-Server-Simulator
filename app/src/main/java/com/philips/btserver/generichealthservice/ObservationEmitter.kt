@@ -43,7 +43,7 @@ object ObservationEmitter {
 
     private var lastHandle = 1
 
-    private val typesToEmit = mutableSetOf<ObservationType>()
+    val observationTypes = mutableSetOf<ObservationType>()
 
     // Made public for unit testing
     private val ghsService: GenericHealthSensorService?
@@ -54,12 +54,14 @@ object ObservationEmitter {
      */
 
     fun addObservationType(type: ObservationType) {
-        typesToEmit.add(type)
+        observationTypes.add(type)
+        setFeatureCharacteristicTypes()
     }
 
     fun removeObservationType(type: ObservationType) {
-        typesToEmit.remove(type)
+        observationTypes.remove(type)
         observations.removeAll { it.type == type }
+        setFeatureCharacteristicTypes()
     }
 
     fun startEmitter() {
@@ -77,7 +79,8 @@ object ObservationEmitter {
     }
 
     fun reset() {
-        typesToEmit.clear()
+        observationTypes.clear()
+        setFeatureCharacteristicTypes()
         observations.clear()
         lastHandle = 1
         mergeObservations = true
@@ -89,7 +92,7 @@ object ObservationEmitter {
 
     private fun generateObservationsToSend() {
         observations.clear()
-        val obsList = typesToEmit.mapNotNull { randomObservationOfType(it) }
+        val obsList = observationTypes.mapNotNull { randomObservationOfType(it) }
         if (bundleObservations) {
             observations.add(BundledObservation(1, obsList, Date()))
         } else {
@@ -145,6 +148,10 @@ object ObservationEmitter {
         )
     }
 
+    private fun setFeatureCharacteristicTypes() {
+        ghsService?.setFeatureCharacteristicTypes(observationTypes.toList())
+    }
+
     private fun sendObservations(singleShot: Boolean) {
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
@@ -165,7 +172,6 @@ fun ObservationType.randomNumericValue(): Float {
     }
 }
 
-// For now regardless of type the sample array is just totally random and alway a 255 element byte array (thus observation type is unused)
 fun ObservationType.randomSampleArray(): ByteArray {
     val numberOfCycles = 5
     val samplesPerSecond = kotlin.random.Random.nextInt(40, 70)

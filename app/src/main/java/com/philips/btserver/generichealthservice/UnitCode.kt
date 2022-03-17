@@ -47,6 +47,7 @@ enum class UnitCode(val value: Int, val symbol: String, val description : String
     MDC_DIM_DECIBEL_X_V(269952, "dB(V)", "decibel volt"),
     MDC_DIM_DECI_BEL(270160, "dB", "Decibel"),
     MDC_DIM_DEGC(268192, "C", "degree Celsius"),
+    MDC_DIM_DIV(262146, "-", "Unspecified"),
     MDC_DIM_DIMLESS(262656, "-", "dimensionless"),
     MDC_DIM_DROP(263168, "Drop", "drop"),
     MDC_DIM_DROPS_PER_MILLI_L(270834, "drops/mL", "drops per mL"),

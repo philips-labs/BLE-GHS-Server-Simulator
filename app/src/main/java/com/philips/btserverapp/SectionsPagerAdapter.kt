@@ -10,20 +10,20 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.philips.btserver.R
 
-private val TAB_TITLES = arrayOf(
-        R.string.tab_text_ble_info,
-        R.string.tab_text_observations,
-        R.string.tab_text_date
-)
-
 class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
     : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
+    private val TAB_TITLES = arrayOf(
+        R.string.tab_text_observations,
+        R.string.tab_text_date,
+        R.string.tab_text_ble_info
+    )
+
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            0 -> DeviceInformationFragment()
-            1 -> ObservationsFragment()
-            2 -> DateFragment()
+            0 -> ObservationsFragment()
+            1 -> DateFragment()
+            2 -> DeviceInformationFragment()
             else -> error(R.string.invalid_section_number)
         }
     }
@@ -37,7 +37,7 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
     }
 
     fun updatePages() {
-        getItem(0).let {
+        getItem(2).let {
             (it as DeviceInformationFragment).update()
         }
     }

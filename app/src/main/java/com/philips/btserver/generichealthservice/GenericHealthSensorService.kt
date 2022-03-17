@@ -4,6 +4,7 @@
  */
 package com.philips.btserver.generichealthservice
 
+import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
@@ -41,7 +42,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     private val featuresCharacteristic = BluetoothGattCharacteristic(
         GHS_FEATURES_CHARACTERISTIC_UUID,
-        PROPERTY_READ,
+        PROPERTY_READ or PROPERTY_INDICATE,
         PERMISSION_READ
     )
 
@@ -53,7 +54,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 
     private val racpCharacteristic = BluetoothGattCharacteristic(
         RACP_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_READ or PERMISSION_WRITE
     )
 
@@ -110,10 +111,23 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 //        }
 
 
-        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
+//        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
 //            ObservationEmitter.singleShotEmit()
+//        }
+
+        if (characteristic.uuid == GHS_FEATURES_CHARACTERISTIC_UUID) {
+            ObservationEmitter.singleShotEmit()
         }
 
+    }
+
+    fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
+        val bytes = listOf(
+            byteArrayOf(0x0, types.size.toByte()),
+            types.map { it.asGHSByteArray() }.merge()
+        ).merge()
+        featuresCharacteristic.value = bytes
+        notifyCharacteristicChanged(bytes, featuresCharacteristic)
     }
 
 //    /*
@@ -163,7 +177,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
         val UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3a-0000-1000-8000-00805f9b34fb")
         val RACP_CHARACTERISTIC_UUID =
-            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002a52-0000-1000-8000-00805f9b34fb")
         private const val OBSERVATION_DESCRIPTION = "Characteristic for live observation segments."
 //        private const val SIMPLE_TIME_DESCRIPTION = "Characteristic for GHS clock data and flags."
         private const val STORED_OBSERVATIONS_DESCRIPTION = "Characteristic for stored observation segments."
@@ -187,7 +201,7 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 //        initCharacteristic(simpleTimeCharacteristic, SIMPLE_TIME_DESCRIPTION)
         initCharacteristic(featuresCharacteristic, FEATURES_DESCRIPTION)
         initCharacteristic(uniqueDeviceIdCharacteristic, UNIQUE_DEVICE_ID_DESCRIPTION)
-//        initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
+        initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
     }
 
     private fun initCharacteristic(

@@ -18,7 +18,7 @@
     <string name="choiceBPObs">Include Blood Pressure (Compound Numeric)</string>
     <string name="choicePPGObs">Include PPG array (Sample Array)</string>
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
-    <string name="choiceBundleObs">Bundle heart rate &amp; SpO2</string>
+    <string name="choiceBundleObs">Bundle selected observations</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
     <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>

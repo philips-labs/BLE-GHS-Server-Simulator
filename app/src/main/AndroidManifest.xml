@@ -3,7 +3,10 @@
     package="com.philips.btserver" >
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
@@ -14,7 +17,8 @@
         android:theme="@style/PeripheralSimulatorTheme" >
         <activity
             android:name="com.philips.btserverapp.MainActivity"
-            android:label="@string/title_activity_main2" >
+            android:label="@string/title_activity_main2"
+            android:exported = "true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

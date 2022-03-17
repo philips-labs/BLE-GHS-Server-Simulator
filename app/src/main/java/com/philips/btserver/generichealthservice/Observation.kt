@@ -23,15 +23,20 @@ abstract class Observation {
     abstract val value: Any
     // TODO unitCode is moving/moved to observation values... should remove from Observation
     abstract val unitCode: UnitCode
+    val patientId: Int? = null
+    val supplimentalInfo: List<ObservationType> = emptyList()
     // This will be set to true for observations that are put into a BundledObservation.
     // This could be eliminated if timestamp becomes optional and timestamp is the only effected prop
     var isBundledObservation: Boolean = false
     val ghsByteArray: ByteArray
         get() {
             return listOf(
+                byteArrayOf(classByte.value),
                 flagsByteArray,
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
                 if (includeTimestamp) timestamp.asGHSByteArray() else byteArrayOf(),
+                patientIdByteArray,
+                supplimentalInfoByteArray,
                 valueByteArray
             ).merge().withLengthPrefix()
         }
@@ -41,11 +46,32 @@ abstract class Observation {
     open val valueByteArray: ByteArray
         get() { return byteArrayOf() }
 
+    val patientIdByteArray: ByteArray
+        get() {
+            return patientId?.let {
+                val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+                parser.setIntValue(it, BluetoothBytesParser.FORMAT_UINT16)
+                parser.value
+            } ?: byteArrayOf()
+        }
+
     val flagsByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(attributeFlags or classByte, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setIntValue(attributeFlags, BluetoothBytesParser.FORMAT_UINT16)
             return parser.value
+        }
+
+    val supplimentalInfoByteArray: ByteArray
+        get() {
+            return if (supplimentalInfo.isEmpty()) { byteArrayOf() } else {
+                val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+                parser.setIntValue(supplimentalInfo.size, BluetoothBytesParser.FORMAT_UINT8)
+                supplimentalInfo.forEach {
+                    parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
+                }
+                parser.value
+            }
         }
 
     private val includeTimestamp: Boolean
@@ -54,7 +80,7 @@ abstract class Observation {
         }
 
     // This is the nibble that represents the observation class in the header bytes
-    open val classByte: Int = 0x0   // Simple numeric
+    open val classByte: ObservationClass = ObservationClass.Unknown   // Simple numeric
 
     /*
     Bits 5-12: attribute presence
@@ -72,9 +98,10 @@ abstract class Observation {
     open val attributeFlags: Int
         get() {
             // TODO Add logic for other flags
-            val typeFlag = if (type == ObservationType.UNKNOWN_TYPE) 0x0 else 0x10
-            val timestampFlag = if (includeTimestamp) 0x20 else 0x0
-            return typeFlag or timestampFlag
+            val typeFlag = if (type == ObservationType.UNKNOWN_TYPE) 0x0 else 0x1
+            val supplementalInfoFlag = if (supplimentalInfo.isEmpty()) 0x0 else 0x40
+            val timestampFlag = if (includeTimestamp) 0x2 else 0x0
+            return typeFlag or supplementalInfoFlag or timestampFlag
         }
 
     companion object {
@@ -90,4 +117,24 @@ abstract class Observation {
         internal const val CONST_F0: UInt = 3840u
         internal const val CONST_F000: UInt = 65280u
     }
+}
+
+enum class ObservationClass(val value: Byte) {
+    SimpleDiscreet(0x01),
+    String(0x02),
+    RealTimeSampleArray(0x03),
+    CompoundNumeric(0x04),
+    CompoundDiscreteEvent(0x05),
+    CompoundState(0x06),
+    CompoundObservation(0x07),
+    TLVEncoded(0x08),
+    ObservationBundle(-1),  // 0xFF
+    Unknown(0x0);
+
+    companion object {
+        fun fromValue(value: Byte): ObservationClass {
+            return values().find { it.value == value } ?: Unknown
+        }
+    }
+
 }

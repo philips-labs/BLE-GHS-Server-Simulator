@@ -17,8 +17,7 @@ data class CompoundNumericObservation(
     override val timestamp: Date
 ) : Observation() {
 
-    // This is the nibble that represents the observation class in the header bytes
-    override val classByte: Int = 0x04   // Compound Numeric observation
+    override val classByte: ObservationClass = ObservationClass.CompoundNumeric
 
     override val valueByteArray: ByteArray
         get() {

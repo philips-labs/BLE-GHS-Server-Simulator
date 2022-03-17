@@ -19,13 +19,13 @@ data class SimpleNumericObservation(
 ) : Observation() {
 
     // This is the nibble that represents the observation class in the header bytes
-    override val classByte: Int = 0
+    override val classByte: ObservationClass = ObservationClass.SimpleDiscreet
 
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             unitCode.writeOn(parser)
-            // TODO setFloatValue doesn't update offset... this works because we're not adding anything after
+            // setFloatValue doesn't update offset... so created an extention setFloat that does
             parser.setFloat(value, valuePrecision)
             return parser.value
         }

@@ -39,6 +39,7 @@ class ObservationsFragment : Fragment() {
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
+        checkIfCanBundle()
     }
 
     fun clickTempObs() {
@@ -47,6 +48,7 @@ class ObservationsFragment : Fragment() {
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_TEMP_BODY)
         }
+        checkIfCanBundle()
     }
 
     fun clickHRObs() {
@@ -55,6 +57,7 @@ class ObservationsFragment : Fragment() {
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_ECG_HEART_RATE)
         }
+        checkIfCanBundle()
     }
 
     fun clickPPGObs() {
@@ -63,6 +66,7 @@ class ObservationsFragment : Fragment() {
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
         }
+        checkIfCanBundle()
     }
 
     fun clickSPO2Obs() {
@@ -71,6 +75,7 @@ class ObservationsFragment : Fragment() {
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         }
+        checkIfCanBundle()
     }
 
     fun clickBPObs() {
@@ -79,15 +84,19 @@ class ObservationsFragment : Fragment() {
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
         }
+        checkIfCanBundle()
     }
 
     fun clickBundleObs() {
         ObservationEmitter.bundleObservations = binding.checkboxBundleObs.isChecked
-        if (binding.checkboxBundleObs.isChecked) {
-            binding.checkboxSPO2Obs.isChecked = true
-            binding.checkboxHRObs.isChecked = true
-            ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
-            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
+    }
+
+    private fun checkIfCanBundle() {
+        if (ObservationEmitter.observationTypes.size > 1) {
+            binding.checkboxBundleObs.isEnabled = true
+        } else {
+            binding.checkboxBundleObs.isChecked = false
+            binding.checkboxBundleObs.isEnabled = false
         }
     }
 

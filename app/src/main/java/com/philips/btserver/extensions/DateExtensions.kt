@@ -46,6 +46,7 @@ infix fun <T : Flags> BitMask.unset(which: T): BitMask = BitMask(value xor which
 
 enum class TimestampFlags(override val bit: Long) : Flags {
 
+    zero((0 shl 0).toLong()),
     isTickCounter((1 shl 0).toLong()),
     isUTC((1 shl 1).toLong()),
     isMilliseconds((1 shl 2).toLong()),
@@ -120,34 +121,26 @@ fun Date.asGHSBytes(): ByteArray {
 }
 
 /*
- * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x46 time flags)
+ * This will assume (and return) a byte array based on UTC seconds and current (valid) time clock (0x42 time flags)
  */
 fun Date.asGHSByteArray(): ByteArray {
     val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+
+    val calendar = Calendar.getInstance(Locale.getDefault());
+    val zoneOffset = calendar.get(Calendar.ZONE_OFFSET)
+    val dstOffset = calendar.get(Calendar.DST_OFFSET)
+    val offset = ((zoneOffset + dstOffset) / (15 * 60 * 1000))
+    val timeFlags = TimestampFlags.isMilliseconds or
+            TimestampFlags.isTZPresent  or
+            (if(dstOffset == 0) TimestampFlags.zero else TimestampFlags.isTZPresent)  or
+            TimestampFlags.isCurrentTimeline
+
     parser.setLong(epoch2000mills())
     return listOf(
-        byteArrayOf(0x46),
-        parser.value.copyOfRange(2, 8),
-        byteArrayOf(0x06, 0x0)
+        byteArrayOf(timeFlags.value.toByte()),
+        parser.value.copyOfRange(0, 6),
+        byteArrayOf(0x06, offset.toByte())
     ).merge()
-}
-
-/*
- * This will assume (and return) a byte array based on UTC milliseconds and current (valid) time clock (0x46 time flags)
- * TODO This is basically asGHSByteArray()... let's clean up and add flags as a parameter
- * migrated usages to asGHSByteArray... here for comparison debugging, then can delete
- */
-@Deprecated("Use Date.asGHSByteArray()")
-fun Date.asSimpleTimeByteArray(): ByteArray {
-    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-    parser.setLong(time)
-    val timeBytes = parser.value.copyOfRange(2, 8)
-    val result = listOf(
-        byteArrayOf(0x46),
-        timeBytes,
-        byteArrayOf(0x06, 0x0)
-    ).merge()
-    return result
 }
 
 /*
@@ -166,6 +159,13 @@ private const val MILLIS_IN_15_MINUTES = 900000
  */
 fun Date.epoch2000mills(): Long {
     return time - UTC_TO_UNIX_EPOCH_MILLIS
+}
+
+/*
+ * Return the Epoch Y2K seconds (used by GHS)
+ */
+fun Date.epoch2000seconds(): Long {
+    return epoch2000mills() / 1000
 }
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
