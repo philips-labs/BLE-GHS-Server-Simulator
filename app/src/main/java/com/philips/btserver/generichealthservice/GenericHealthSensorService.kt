@@ -14,6 +14,7 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
+import timber.log.Timber
 import java.util.*
 
 /**
@@ -111,19 +112,19 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
 //        }
 
 
-//        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-//            ObservationEmitter.singleShotEmit()
-//        }
-
-        if (characteristic.uuid == GHS_FEATURES_CHARACTERISTIC_UUID) {
+        if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             ObservationEmitter.singleShotEmit()
         }
+
+//        if (characteristic.uuid == GHS_FEATURES_CHARACTERISTIC_UUID) {
+//            ObservationEmitter.singleShotEmit()
+//        }
 
     }
 
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
         val bytes = listOf(
-            byteArrayOf(0x0, types.size.toByte()),
+            byteArrayOf(types.size.toByte()),
             types.map { it.asGHSByteArray() }.merge()
         ).merge()
         featuresCharacteristic.value = bytes
@@ -160,7 +161,11 @@ internal class GenericHealthSensorService(peripheralManager: BluetoothPeripheral
     private fun sendBytesInSegments(bytes: ByteArray) {
         // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
         val segments = bytes.asBLEDataSegments(minimalMTU - 5, currentSegmentNumber)
-        segments.first.forEach { it.sendSegment() }
+        Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
+        segments.first.forEach {
+            Timber.i("Sending segment bytes: <${it.asFormattedHexString()}>")
+            it.sendSegment()
+        }
         currentSegmentNumber = segments.second
     }
 
