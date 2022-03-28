@@ -121,6 +121,7 @@ abstract class Observation {
 }
 
 enum class ObservationClass(val value: Byte) {
+    SimpleNumeric(0x0),
     SimpleDiscreet(0x01),
     String(0x02),
     RealTimeSampleArray(0x03),
@@ -129,8 +130,8 @@ enum class ObservationClass(val value: Byte) {
     CompoundState(0x06),
     CompoundObservation(0x07),
     TLVEncoded(0x08),
-    ObservationBundle(-1),  // 0xFF
-    Unknown(0x0);
+    ObservationBundle(0xFF.toByte()),
+    Unknown(0xF0.toByte());
 
     companion object {
         fun fromValue(value: Byte): ObservationClass {

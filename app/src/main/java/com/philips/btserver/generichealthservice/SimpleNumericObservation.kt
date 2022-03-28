@@ -18,7 +18,7 @@ data class SimpleNumericObservation(
 ) : Observation() {
 
     // This is the nibble that represents the observation class in the header bytes
-    override val classByte: ObservationClass = ObservationClass.SimpleDiscreet
+    override val classByte: ObservationClass = ObservationClass.SimpleNumeric
 
     override val valueByteArray: ByteArray
         get() {
