@@ -255,7 +255,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
      */
     fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
         characteristic.value = bytes
-        peripheralManager.notifyCharacteristicChanged(bytes, characteristic)
+//        peripheralManager.notifyCharacteristicChanged(bytes, characteristic)
         notifyCharacteristicChanged(bytes, characteristic)
     }
 }
