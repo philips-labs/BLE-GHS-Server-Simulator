@@ -32,13 +32,14 @@ abstract class Observation {
         get() {
             return listOf(
                 byteArrayOf(classByte.value),
+                listOf(
                 flagsByteArray,
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
                 if (includeTimestamp) timestamp.asGHSByteArray() else byteArrayOf(),
                 patientIdByteArray,
                 supplimentalInfoByteArray,
-                valueByteArray
-            ).merge().withLengthPrefix()
+                valueByteArray).merge().withLengthPrefix()
+            ).merge()
         }
 
     // Subclasses override to provide the byte array appropriate to their value

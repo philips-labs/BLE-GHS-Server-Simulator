@@ -16,10 +16,17 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
 
     override val service = BluetoothGattService(SIMPLE_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
+//    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
+//        SIMPLE_TIME_CHARACTERISTIC_UUID,
+//        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
+//        PERMISSION_READ or PERMISSION_WRITE
+//    )
+
+    // TODO Right now just have read only time
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         SIMPLE_TIME_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
-        PERMISSION_READ or PERMISSION_WRITE
+        PROPERTY_READ or PROPERTY_INDICATE,
+        PERMISSION_READ
     )
 
     override fun onCentralConnected(central: BluetoothCentral) {
@@ -54,10 +61,22 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
      * send the current clock in the GHS byte format based on current flags
      */
     private fun sendClockBytes() {
-        val bytes = Date().asGHSByteArray()
+        val bytes = listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
         // TODO Add the Clock status and clock capailities flags for real
-        simpleTimeCharacteristic.value = listOf(bytes, byteArrayOf(0, 0)).merge()
+        simpleTimeCharacteristic.value = bytes
         notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
+    }
+
+    private fun currentTimeBytes(): ByteArray {
+        return Date().asGHSByteArray()
+    }
+
+    private fun clockStatusBytes(): ByteArray {
+        return byteArrayOf(0x0)
+    }
+
+    private fun clockCapabilitiesBytes(): ByteArray {
+        return byteArrayOf(0x0)
     }
 
     init {
@@ -79,7 +98,7 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
         val SIMPLE_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
         val SIMPLE_TIME_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
-        private const val SIMPLE_TIME_DESCRIPTION = "Characteristic for GHS simple time."
+        private const val SIMPLE_TIME_DESCRIPTION = "Simple Time Service Characteristic"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)

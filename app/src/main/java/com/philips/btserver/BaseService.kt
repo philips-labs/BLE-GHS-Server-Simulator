@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-internal abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
+abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
     val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
 
     fun getCccDescriptor(): BluetoothGattDescriptor {

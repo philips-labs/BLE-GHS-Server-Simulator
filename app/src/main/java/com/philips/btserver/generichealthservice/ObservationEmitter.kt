@@ -6,10 +6,16 @@ package com.philips.btserver.generichealthservice
 
 import android.os.Handler
 import android.os.Looper
+import com.philips.btserver.extensions.epoch2000mills
 import timber.log.Timber
 import java.util.*
 
 object ObservationEmitter {
+
+    /*
+     * This property enables/disables observation emissions
+     */
+    var enabled = false
 
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
@@ -45,6 +51,21 @@ object ObservationEmitter {
 
     val observationTypes = mutableSetOf<ObservationType>()
 
+    val storedObservations = mutableListOf<Observation>()
+
+    var numberStoredRecords: Int = 10
+        set(value) {
+            field = value
+            generateStoredObservations()
+        }
+
+    var minuteIntervalStoredRecords: Int = 5
+        set(value) {
+            field = value
+            generateStoredObservations()
+        }
+
+
     // Made public for unit testing
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
@@ -55,12 +76,14 @@ object ObservationEmitter {
 
     fun addObservationType(type: ObservationType) {
         observationTypes.add(type)
+        generateStoredObservations()
         setFeatureCharacteristicTypes()
     }
 
     fun removeObservationType(type: ObservationType) {
         observationTypes.remove(type)
         observations.removeAll { it.type == type }
+        generateStoredObservations()
         setFeatureCharacteristicTypes()
     }
 
@@ -92,7 +115,7 @@ object ObservationEmitter {
 
     private fun generateObservationsToSend() {
         observations.clear()
-        val obsList = observationTypes.mapNotNull { randomObservationOfType(it) }
+        val obsList = observationTypes.mapNotNull { randomObservationOfType(it, Date()) }
         if (bundleObservations) {
             observations.add(BundledObservation(1, obsList, Date()))
         } else {
@@ -100,34 +123,49 @@ object ObservationEmitter {
         }
     }
 
-    private fun randomObservationOfType(type: ObservationType): Observation? {
+    private fun generateStoredObservations() {
+        val recordInterval = minuteIntervalStoredRecords * 60000
+        var recordTimestamp = Date(Date().time - (recordInterval * (numberStoredRecords + 1)))
+        storedObservations.clear()
+        repeat(numberStoredRecords, {
+            val obsList = observationTypes.mapNotNull { randomObservationOfType(it, recordTimestamp) }
+            if (bundleObservations) {
+                observations.add(BundledObservation(1, obsList, recordTimestamp))
+            } else {
+                observations.addAll(obsList)
+            }
+            recordTimestamp = Date(recordTimestamp.time + recordInterval)
+        })
+    }
+
+    private fun randomObservationOfType(type: ObservationType, timestamp: Date): Observation? {
         val obs = when(type.valueType()) {
-            ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type)
-            ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type)
-            ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS -> randomCompoundNumericObservation(type)
+            ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type, timestamp)
+            ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type, timestamp)
+            ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS -> randomCompoundNumericObservation(type, timestamp)
             else -> null
         }
         return obs
     }
 
-    private fun randomSimpleNumericObservation(type: ObservationType): Observation {
+    private fun randomSimpleNumericObservation(type: ObservationType, timestamp: Date): Observation {
         return SimpleNumericObservation(lastHandle++.toShort(),
                 type,
                 type.randomNumericValue(),
                 type.numericPrecision(),
                 type.unitCode(),
-                Date())
+                timestamp)
     }
 
-    private fun randomSampleArrayObservation(type: ObservationType): Observation {
+    private fun randomSampleArrayObservation(type: ObservationType, timestamp: Date): Observation {
         return SampleArrayObservation(lastHandle++.toShort(),
             type,
             type.randomSampleArray(),
             type.unitCode(),
-            Date())
+            timestamp)
     }
 
-    private fun randomCompoundNumericObservation(type: ObservationType): Observation {
+    private fun randomCompoundNumericObservation(type: ObservationType, timestamp: Date): Observation {
         // Right now only compound is BP
         val systolicValue = SimpleNumericValue(
             ObservationType.MDC_PRESS_BLD_NONINV_SYS,
@@ -144,7 +182,7 @@ object ObservationEmitter {
             type,
             arrayOf(systolicValue, diastolicValue),
             UnitCode.UNKNOWN_CODE,
-            Date()
+            timestamp
         )
     }
 
@@ -153,6 +191,8 @@ object ObservationEmitter {
     }
 
     private fun sendObservations(singleShot: Boolean) {
+        if (!enabled) return
+
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
         observations.forEach { ghsService?.sendObservation(it) }

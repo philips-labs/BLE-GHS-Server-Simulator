@@ -6,6 +6,7 @@ package com.philips.btserver.extensions
 
 import com.philips.btserver.util.CRC16
 import com.welie.blessed.BluetoothBytesParser
+import java.nio.ByteOrder
 import java.util.*
 import kotlin.math.ceil
 
@@ -13,6 +14,40 @@ fun Byte.asHexString(): String {
     var hexString = this.toUINT8().toString(16).uppercase(Locale.ROOT)
     if (this.toUINT8() < 16) hexString = "0$hexString"
     return hexString
+}
+
+fun Int.asLittleEndianArray(): ByteArray {
+    return byteArrayOf(this.asMaskedByte(), (this shr 8).asMaskedByte())
+}
+
+fun ByteArray.uInt16At(index: Int, isLittleEndian: Boolean = true): Int {
+    return if (isLittleEndian) {
+        (this[index + 1].toInt() shl 8) + this[index]
+    } else {
+        (this[index].toInt() shl 8) + this[index + 1]
+    }
+}
+
+fun ByteArray.getLongValue(offset: Int, byteOrder: ByteOrder): Long {
+    Objects.requireNonNull(byteOrder)
+    require(offset >= 0) { "offset must be greater or equal to zero" }
+    require(offset + 8 <= this.size) { "Invalid offset" }
+    if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+        var value = (0x00FF and this[offset + 7].toInt()).toLong()
+        for (i in 6 downTo 0) {
+            value = value shl 8
+            value += (0x00FF and this[i + offset].toInt()).toLong()
+        }
+        return value
+    } else if (byteOrder == ByteOrder.BIG_ENDIAN) {
+        var value = (0x00FF and this[offset].toInt()).toLong()
+        for (i in 1..7) {
+            value = value shl 8
+            value += (0x00FF and this[i + offset].toInt()).toLong()
+        }
+        return value
+    }
+    throw IllegalArgumentException("invalid byte order")
 }
 
 fun ByteArray.formatHexBytes(seperator: String?): String {
@@ -98,7 +133,7 @@ fun ByteArray.withLengthPrefix(): ByteArray {
     // Include length as first 2 bytes. Note length DOES NOT include the length bytes
     val length = this.size
     return listOf(
-        byteArrayOf(length.asMaskedByte(), (length shr 8).asMaskedByte()),
+        length.asLittleEndianArray(),
         this,
     ).merge()
 }
@@ -108,8 +143,7 @@ fun Int.asMaskedByte(): Byte {
 }
 
 private fun ByteArray.bleCRC(): ByteArray {
-    val crc = CRC16.CCITT_Kermit(this, 0, this.size)
-    return byteArrayOf(crc.asMaskedByte(), (crc shr 8).asMaskedByte())
+    return CRC16.CCITT_Kermit(this, 0, this.size).asLittleEndianArray()
 }
 
 fun ByteArray.fillWith(action: (Int) -> Byte) {
