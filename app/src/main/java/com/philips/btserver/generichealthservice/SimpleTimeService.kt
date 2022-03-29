@@ -6,8 +6,7 @@ import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
-import com.philips.btserver.extensions.asGHSByteArray
-import com.philips.btserver.extensions.merge
+import com.philips.btserver.extensions.*
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import java.util.*
@@ -68,7 +67,7 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     private fun currentTimeBytes(): ByteArray {
-        return Date().asGHSByteArray()
+        return Date().asGHSBytes()
     }
 
     private fun clockStatusBytes(): ByteArray {
@@ -76,7 +75,8 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     private fun clockCapabilitiesBytes(): ByteArray {
-        return byteArrayOf(0x0)
+        val clockFlags = TimestampFlags.currentFlags
+        return byteArrayOf(if (clockFlags.hasFlag(TimestampFlags.isTZPresent)) 0x6 else 0)
     }
 
     init {

@@ -33,17 +33,22 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         setupClockChoices()
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateTimeOptionViews()
+    }
+
     private fun setupClockChoices() {
         binding.choiceClockTickCounter.setOnClickListener { updateTimestampFlags() }
         binding.choiceClockUTCTime.setOnClickListener { updateTimestampFlags() }
         binding.choiceClockMilliseconds.setOnClickListener { updateTimestampFlags() }
         binding.choiceClockIncludesTZ.setOnClickListener { updateTimestampFlags() }
-        binding.choiceClockIncludesDST.setOnClickListener { updateTimestampFlags() }
     }
 
     private fun updateTimestampFlags() {
         TimestampFlags.currentFlags = this.timestampFlags
         updateChoiceBoxes()
+        updateTimesourceSpinner()
     }
 
     private fun updateChoiceBoxes() {
@@ -66,8 +71,6 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         binding.choiceClockUTCTime.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isUTC)
         binding.choiceClockIncludesTZ.setEnabled(timeChoicesEnabled)
         binding.choiceClockIncludesTZ.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isTZPresent)
-        binding.choiceClockIncludesDST.setEnabled(timeChoicesEnabled)
-        binding.choiceClockIncludesDST.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isDSTPresent)
     }
 
     private fun setupTimeSourceSpinner() {
@@ -81,8 +84,12 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
             // Apply the adapter to the spinner
             binding.dateSyncMethod.adapter = adapter
         }
-        binding.dateSyncMethod.setSelection(Timesource.currentSource.value)
         binding.dateSyncMethod.onItemSelectedListener = this
+        updateTimesourceSpinner()
+    }
+
+    private fun updateTimesourceSpinner() {
+        binding.dateSyncMethod.setSelection(Timesource.currentSource.value)
     }
 
     // Made public for ObservationTest
@@ -95,7 +102,6 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
             } else {
                 if (binding.choiceClockUTCTime.isChecked) flags = flags.plus(TimestampFlags.isUTC)
                 if (binding.choiceClockIncludesTZ.isChecked) flags = flags.plus(TimestampFlags.isTZPresent)
-                if (binding.choiceClockIncludesDST.isChecked) flags = flags.plus(TimestampFlags.isDSTPresent)
             }
 
             return flags

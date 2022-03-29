@@ -52,18 +52,27 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     isMilliseconds((1 shl 2).toLong()),
     isHundredthsMicroseconds((1 shl 3).toLong()),
     isTZPresent((1 shl 4).toLong()),
-    isDSTPresent((1 shl 5).toLong()),
-    isCurrentTimeline((1 shl 6).toLong()),
-    reserved_1((1 shl 7).toLong());
+    isCurrentTimeline((1 shl 5).toLong()),
+    reserved_1((1 shl 6).toLong()),
+    reserved_2((1 shl 7).toLong());
 
     companion object {
         // This "global" holds the flags used to send out observations
         var currentFlags: BitMask = BitMask(TimestampFlags.isMilliseconds.bit)
             .plus(TimestampFlags.isTZPresent)
-            .plus(TimestampFlags.isDSTPresent)
             .plus(TimestampFlags.isCurrentTimeline)
     }
 }
+
+fun BitMask.asTimestampFlagsString(): String {
+    val ticksOrTime = if (this hasFlag TimestampFlags.isTickCounter) "Ticks" else "Time"
+    val utcOrLocal = if (this hasFlag TimestampFlags.isUTC) "UTC" else "Local"
+    val millsOrSecs = if (this hasFlag TimestampFlags.isMilliseconds) "Millis" else "Seconds"
+    val hasTZ = if (this hasFlag TimestampFlags.isTZPresent) "TZ" else "No TZ"
+    val current = if (this hasFlag TimestampFlags.isCurrentTimeline) "Current" else "Not Current"
+    return "Value: ${value.toByte().asHexString()} : $ticksOrTime : $utcOrLocal : $millsOrSecs : $hasTZ : $current timeline"
+}
+
 
 enum class Timesource(val value: Int) {
     Unknown(0),
@@ -130,7 +139,7 @@ fun Date.asGHSByteArray(): ByteArray {
     val zoneOffset = calendar.get(Calendar.ZONE_OFFSET)
     val dstOffset = calendar.get(Calendar.DST_OFFSET)
     val offset = ((zoneOffset + dstOffset) / (15 * 60 * 1000))
-    val timeFlags = TimestampFlags.isMilliseconds or
+    val timeFlags = TimestampFlags.isUTC or TimestampFlags.isMilliseconds or
             TimestampFlags.isTZPresent  or
             (if(dstOffset == 0) TimestampFlags.zero else TimestampFlags.isTZPresent)  or
             TimestampFlags.isCurrentTimeline
@@ -173,7 +182,8 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
     val currentTimeMillis = System.currentTimeMillis()
     val isTickCounter = timestampFlags hasFlag TimestampFlags.isTickCounter
 
-    var millis = if (isTickCounter) SystemClock.elapsedRealtime() else currentTimeMillis - UTC_TO_UNIX_EPOCH_MILLIS
+    var millis = if (isTickCounter) SystemClock.elapsedRealtime() else epoch2000mills()
+    Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
 
     if (!isTickCounter) {
         // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
@@ -183,9 +193,10 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
 
     val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+
     // Write the flags byte
     parser.setIntValue(timestampFlags.value.toInt(), BluetoothBytesParser.FORMAT_UINT8)
-    Timber.i("Add Flag Byte: ${timestampFlags.value.toInt()}")
+    Timber.i("Add Flag: ${timestampFlags.asTimestampFlagsString()}")
 
     // Write the utc/local/tick clock value (either milliseconds or seconds)
     if (timestampFlags.hasFlag(TimestampFlags.isMilliseconds)) {
@@ -196,19 +207,37 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
         Timber.i("Add Seconds Value: ${millis / 1000L}")
     }
 
+    var offsetUnits = 0
+
     if (!isTickCounter) {
         // If a timestamp include the time sync source (NTP, GPS, Network, etc)
         parser.setIntValue(Timesource.currentSource.value, BluetoothBytesParser.FORMAT_UINT8)
         Timber.i("Add Timesource Value: ${Timesource.currentSource.value}")
-        val localCalendar: Calendar = Calendar.getInstance(TimeZone.getDefault())
-        val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) localCalendar.get(Calendar.ZONE_OFFSET) else 0
-        val dstMillis =if (timestampFlags hasFlag TimestampFlags.isDSTPresent) localCalendar.get(Calendar.DST_OFFSET) else 0
-        val offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
-        parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
+//        val localCalendar: Calendar = Calendar.getInstance(TimeZone.getDefault())
+//        val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) localCalendar.get(Calendar.ZONE_OFFSET) else 0
+//        val dstMillis =if (timestampFlags hasFlag TimestampFlags.isDSTPresent) localCalendar.get(Calendar.DST_OFFSET) else 0
+
+
+        val calendar = Calendar.getInstance(Locale.getDefault());
+        val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.ZONE_OFFSET) else 0
+        val dstMillis =if (timestampFlags hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.DST_OFFSET) else 0
+        offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
         Timber.i("Add Offset Value: $offsetUnits")
+
+        parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
     }
 
-    return parser.value
+//    return parser.value
+
+    val millParser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    millParser.setLong(millis)
+
+    return listOf(
+        byteArrayOf(timestampFlags.value.toByte()),
+        millParser.value.copyOfRange(0, 6),
+        byteArrayOf(Timesource.currentSource.value.toByte(), offsetUnits.toByte())
+    ).merge()
+
 }
 
 fun Date.testLogOffsets() {

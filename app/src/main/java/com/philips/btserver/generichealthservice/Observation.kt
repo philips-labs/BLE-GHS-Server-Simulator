@@ -35,7 +35,7 @@ abstract class Observation {
                 listOf(
                 flagsByteArray,
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
-                if (includeTimestamp) timestamp.asGHSByteArray() else byteArrayOf(),
+                if (includeTimestamp) timestamp.asGHSBytes() else byteArrayOf(),
                 patientIdByteArray,
                 supplimentalInfoByteArray,
                 valueByteArray).merge().withLengthPrefix()
