@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.BluetoothServerConnectionListener
 import com.philips.btserver.R
-import com.philips.btserver.extensions.testLogOffsets
 import com.welie.blessed.BluetoothCentral
 import java.util.*
 
@@ -36,8 +35,6 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         viewPager.adapter = sectionsPagerAdapter
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
-
-        Date().testLogOffsets()
 
         if (!isBluetoothEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)

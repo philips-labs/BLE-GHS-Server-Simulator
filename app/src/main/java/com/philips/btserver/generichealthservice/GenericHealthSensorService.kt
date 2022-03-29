@@ -119,10 +119,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ) {
-//        if (characteristic.uuid == SIMPLE_TIME_CHARACTERISTIC_UUID) {
-//            sendClockBytes()
-//        }
-
         when(characteristic.uuid) {
             OBSERVATION_CHARACTERISTIC_UUID -> ObservationEmitter.singleShotEmit()
         }
@@ -173,15 +169,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         racpHandler.reset()
     }
 
-//    /*
-//     * send the current clock in the GHS byte format based on current flags
-//     */
-//    private fun sendClockBytes() {
-//        val bytes = Date().asGHSBytes()
-//        simpleTimeCharacteristic.value = bytes
-//        notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
-//    }
-
     /**
      * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
      */
@@ -204,21 +191,18 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             UUID.fromString("00007f42-0000-1000-8000-00805f9b34fb")
         val GHS_FEATURES_CHARACTERISTIC_UUID =
             UUID.fromString("00007f41-0000-1000-8000-00805f9b34fb")
-//        val SIMPLE_TIME_CHARACTERISTIC_UUID =
-//            UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
         val UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3a-0000-1000-8000-00805f9b34fb")
         val GHS_CONTROL_POINT_CHARACTERISTIC_UUID =
             UUID.fromString("00007f40-0000-1000-8000-00805f9b34fb")
         val RACP_CHARACTERISTIC_UUID =
             UUID.fromString("00002a52-0000-1000-8000-00805f9b34fb")
-        private const val OBSERVATION_DESCRIPTION = "Characteristic for live observation segments."
-//        private const val SIMPLE_TIME_DESCRIPTION = "Characteristic for GHS clock data and flags."
-        private const val STORED_OBSERVATIONS_DESCRIPTION = "Characteristic for stored observation segments."
-        private const val FEATURES_DESCRIPTION = "Characteristic for GHS features."
-        private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Characteristic for unique device ID (UDI)."
+        private const val OBSERVATION_DESCRIPTION = "Live observation characteristic"
+        private const val STORED_OBSERVATIONS_DESCRIPTION = "Stored observation characteristic"
+        private const val FEATURES_DESCRIPTION = "GHS features characteristic"
+        private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Unique device ID (UDI) characteristic"
         private const val RACP_DESCRIPTION = "RACP Characteristic."
-        private const val GHS_CONTROL_POINT_DESCRIPTION = "RACP Characteristic."
+        private const val GHS_CONTROL_POINT_DESCRIPTION = ""
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)

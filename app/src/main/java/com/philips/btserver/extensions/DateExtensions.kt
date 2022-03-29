@@ -130,29 +130,6 @@ fun Date.asGHSBytes(): ByteArray {
 }
 
 /*
- * This will assume (and return) a byte array based on UTC seconds and current (valid) time clock (0x42 time flags)
- */
-fun Date.asGHSByteArray(): ByteArray {
-    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-
-    val calendar = Calendar.getInstance(Locale.getDefault());
-    val zoneOffset = calendar.get(Calendar.ZONE_OFFSET)
-    val dstOffset = calendar.get(Calendar.DST_OFFSET)
-    val offset = ((zoneOffset + dstOffset) / (15 * 60 * 1000))
-    val timeFlags = TimestampFlags.isUTC or TimestampFlags.isMilliseconds or
-            TimestampFlags.isTZPresent  or
-            (if(dstOffset == 0) TimestampFlags.zero else TimestampFlags.isTZPresent)  or
-            TimestampFlags.isCurrentTimeline
-
-    parser.setLong(epoch2000mills())
-    return listOf(
-        byteArrayOf(timeFlags.value.toByte()),
-        parser.value.copyOfRange(0, 6),
-        byteArrayOf(0x06, offset.toByte())
-    ).merge()
-}
-
-/*
  * Create a binary representation of the receiver based on the timestamp flags passed in.
  * The flags and bytes are in the GHS specification in section 2.5.3.2 (as of the 0.5 draft)
  *
@@ -168,13 +145,6 @@ private const val MILLIS_IN_15_MINUTES = 900000
  */
 fun Date.epoch2000mills(): Long {
     return time - UTC_TO_UNIX_EPOCH_MILLIS
-}
-
-/*
- * Return the Epoch Y2K seconds (used by GHS)
- */
-fun Date.epoch2000seconds(): Long {
-    return epoch2000mills() / 1000
 }
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
@@ -213,10 +183,6 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
         // If a timestamp include the time sync source (NTP, GPS, Network, etc)
         parser.setIntValue(Timesource.currentSource.value, BluetoothBytesParser.FORMAT_UINT8)
         Timber.i("Add Timesource Value: ${Timesource.currentSource.value}")
-//        val localCalendar: Calendar = Calendar.getInstance(TimeZone.getDefault())
-//        val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) localCalendar.get(Calendar.ZONE_OFFSET) else 0
-//        val dstMillis =if (timestampFlags hasFlag TimestampFlags.isDSTPresent) localCalendar.get(Calendar.DST_OFFSET) else 0
-
 
         val calendar = Calendar.getInstance(Locale.getDefault());
         val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.ZONE_OFFSET) else 0
@@ -240,27 +206,7 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
 }
 
-fun Date.testLogOffsets() {
-    val tz = TimeZone.getDefault()
-    val cal1: Calendar = Calendar.getInstance(tz) //currentZone: CET/CEST +1/+2, GMT+1:00
-    Timber.i("System time ${System.currentTimeMillis()}")
-    Timber.i("Calendar time ${cal1.getTime().getTime()}")
-    Timber.i("Calendar millis ${cal1.getTimeInMillis()}")
-    Timber.i("Calendar Zone Offset: ${cal1.get(Calendar.ZONE_OFFSET)}")
-    Timber.i("Calendar DST Offset: ${cal1.get(Calendar.DST_OFFSET)}")
-    Timber.i("Time Zone Raw Offset: ${tz.getRawOffset()}")
-    Timber.i("Time Zone DST Savings Offset: ${tz.getDSTSavings()}")
-    Timber.i("Time Zone millis: ${tz.getOffset(System.currentTimeMillis())}")
-    Timber.i("Is Time Zone in DST: ${tz.inDaylightTime(this)}")
-}
-
 // Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter
 fun BitMask.isTimestampSent(): Boolean {
     return !hasFlag(TimestampFlags.isTickCounter)
-}
-
-
-// Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter
-fun BitMask.isTimestampFlagSet(flag: TimestampFlags): Boolean {
-    return TimestampFlags.currentFlags hasFlag flag
 }
