@@ -7,6 +7,7 @@ import com.welie.blessed.BluetoothBytesParser
 import java.lang.Integer.max
 import java.lang.Integer.min
 import java.nio.ByteOrder
+import kotlin.concurrent.thread
 
 class GhsRacpHandler(val service: GenericHealthSensorService) {
 
@@ -17,7 +18,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
     fun reset() {}
 
     fun handleReceivedBytes(bytes: ByteArray) {
-        if (bytes.isEmpty()) return
+        if (bytes.isEmpty()) sendInvalidOperator(OP_NULL)
         val opCode = bytes.racpOpCode()
         when(opCode) {
             OP_CODE_COMBINED_REPORT -> reportCombinedStoredRecords(bytes)
@@ -45,7 +46,13 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
     private fun reportNumberStoredRecords(bytes: ByteArray) {
         val numberOfRecords = queryNumberStoredRecords(bytes)
         // If number of records is null then something happened and a response has already been sent
-        numberOfRecords?.let { sendNumberStoredRecords(it) }
+        numberOfRecords?.let {
+            if (it == 0) {
+                sendNoRecordsFound(bytes.racpOpCode())
+            } else {
+                sendNumberStoredRecords(it)
+            }
+        }
     }
 
     private fun queryStoredRecords(bytes: ByteArray): List<Observation>? {
@@ -149,12 +156,13 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
     }
 
     private fun sendNumberStoredRecords(numberOfRecords: Int) {
-        val response = listOf(
-            byteArrayOf(OP_CODE_RESPONSE_NUMBER_STORED_RECORDS, OP_NULL),
-            numberOfRecords.asLittleEndianArray()
-        ).merge()
-        // TODO: Ask Martijn about Blessed BluetoothPeripheralManager notifyCharacteristicChanged and indicate
-        service.sendBytesAndNotify(response, racpCharacteristic)
+        sendNumberCombinedStoredRecords(numberOfRecords)
+//        val response = listOf(
+//            byteArrayOf(OP_CODE_RESPONSE_NUMBER_STORED_RECORDS, OP_NULL),
+//            numberOfRecords.asLittleEndianArray()
+//        ).merge()
+//        // TODO: Ask Martijn about Blessed BluetoothPeripheralManager notifyCharacteristicChanged and indicate
+//        service.sendBytesAndNotify(response, racpCharacteristic)
     }
 
     private fun sendNumberCombinedStoredRecords(numberOfRecords: Int) {

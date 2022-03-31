@@ -29,8 +29,8 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return cudDescriptor
     }
 
-    protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        peripheralManager.notifyCharacteristicChanged(value, characteristic)
+    protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
+        return peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
     fun numberOfCentralsConnected(): Int {

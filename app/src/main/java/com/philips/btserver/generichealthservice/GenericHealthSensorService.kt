@@ -140,19 +140,26 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
-        val featureFlags = (if (hasDeviceSpeciazations(types)) 0x1 else 0x0).toByte()
         val bytes = listOf(
-            byteArrayOf(featureFlags, types.size.toByte()),
-            types.map { it.asGHSByteArray() }.merge(),
+            byteArrayOf(featureFlagsFor(types), types.size.toByte()),
+            featureTypeBytesFor(types),
             deviceSpecializationBytes(types)
         ).merge()
-        featuresCharacteristic.value = bytes
+//        featuresCharacteristic.value = bytes
         notifyCharacteristicChanged(bytes, featuresCharacteristic)
+    }
+
+    private fun featureFlagsFor(types: List<ObservationType>): Byte {
+        return (if (hasDeviceSpeciazations(types)) 0x1 else 0x0).toByte()
+    }
+
+    private fun featureTypeBytesFor(types: List<ObservationType>): ByteArray {
+        return types.map { it.asGHSByteArray() }.merge()
     }
 
     private fun deviceSpecializationBytes(types: List<ObservationType>): ByteArray {
         // Only sent for blood pressure for now
-        // Code = MDC_DEV_SPEC_PROFILE_BP = 00 0810 07; Version = 01
+        // Code = MDC_DEV_SPEC_PROFILE_BP = 00 08 10 07 (only use 2 bytes, assume partition 8), Version = 01
         return if (hasDeviceSpeciazations(types)) byteArrayOf(0x01, 0x07, 0x10, 0x01) else byteArrayOf()
     }
 
@@ -161,7 +168,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     internal fun setCharacteristicValueAndNotify(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        characteristic.value = value
         notifyCharacteristicChanged(value, characteristic)
     }
 
@@ -219,7 +225,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val FEATURES_DESCRIPTION = "GHS features characteristic"
         private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Unique device ID (UDI) characteristic"
         private const val RACP_DESCRIPTION = "RACP Characteristic."
-        private const val GHS_CONTROL_POINT_DESCRIPTION = ""
+        private const val GHS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
@@ -255,8 +261,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
      * Send ByteArray bytes and do a BLE notification over the characteristic.
      */
     fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        characteristic.value = bytes
-//        peripheralManager.notifyCharacteristicChanged(bytes, characteristic)
         notifyCharacteristicChanged(bytes, characteristic)
     }
 }
