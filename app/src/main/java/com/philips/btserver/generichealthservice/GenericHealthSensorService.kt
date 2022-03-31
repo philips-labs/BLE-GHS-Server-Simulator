@@ -68,8 +68,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val racpCharacteristic = BluetoothGattCharacteristic(
         RACP_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
-        PERMISSION_READ or PERMISSION_WRITE
+        PROPERTY_WRITE or PROPERTY_INDICATE,
+        PERMISSION_WRITE
     )
 
     override fun onCentralConnected(central: BluetoothCentral) {

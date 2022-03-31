@@ -130,9 +130,9 @@ object ObservationEmitter {
         repeat(numberStoredRecords, {
             val obsList = observationTypes.mapNotNull { randomObservationOfType(it, recordTimestamp) }
             if (bundleObservations) {
-                observations.add(BundledObservation(1, obsList, recordTimestamp))
+                storedObservations.add(BundledObservation(1, obsList, recordTimestamp))
             } else {
-                observations.addAll(obsList)
+                storedObservations.addAll(obsList)
             }
             recordTimestamp = Date(recordTimestamp.time + recordInterval)
         })
@@ -197,6 +197,11 @@ object ObservationEmitter {
         Timber.i("Emitting ${observations.size} observations")
         observations.forEach { ghsService?.sendObservation(it) }
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
+    }
+
+    init {
+        this.numberStoredRecords = 10
+        generateStoredObservations()
     }
 
 }
