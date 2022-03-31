@@ -5,9 +5,7 @@ import com.philips.btserver.extensions.asBLEDataSegments
 import com.philips.btserver.extensions.asFormattedHexString
 import timber.log.Timber
 
-class GhsObservationSendHandler(val service: GenericHealthSensorService) {
-    private val observationCharacteristic get() = service.observationCharacteristic
-
+class GhsObservationSendHandler(val service: GenericHealthSensorService, val observationCharacteristic: BluetoothGattCharacteristic) {
     private var currentSegmentNumber: Int = 0
     private val segmentSize get() = service.minimalMTU - 5
 

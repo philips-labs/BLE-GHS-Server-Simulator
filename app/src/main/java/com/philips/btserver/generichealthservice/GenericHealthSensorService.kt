@@ -31,7 +31,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     private val controlPointHandler = GhsControlPointHandler(this)
     private val racpHandler = GhsRacpHandler(this)
-    private val observationSendHandler = GhsObservationSendHandler(this)
 
     internal val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
@@ -44,6 +43,9 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         PROPERTY_READ or PROPERTY_INDICATE,
         PERMISSION_READ
     )
+
+    private val observationSendHandler = GhsObservationSendHandler(this, observationCharacteristic)
+    private val storedObservationSendHandler = GhsObservationSendHandler(this, storedObservationCharacteristic)
 
     internal val featuresCharacteristic = BluetoothGattCharacteristic(
         GHS_FEATURES_CHARACTERISTIC_UUID,
@@ -165,6 +167,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     private fun resetHandlers() {
         observationSendHandler.reset()
+        storedObservationSendHandler.reset()
         controlPointHandler.reset()
         racpHandler.reset()
     }
@@ -177,10 +180,24 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     /**
+     * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
+     */
+    fun sendStoredObservation(observation: Observation) {
+        storedObservationSendHandler.sendObservation(observation)
+    }
+
+    /**
      * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
      */
     fun sendObservations(observations: Collection<Observation>) {
         observationSendHandler.sendObservations(observations)
+    }
+
+    /**
+     * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
+     */
+    fun sendStoredObservations(observations: Collection<Observation>) {
+        storedObservationSendHandler.sendObservations(observations)
     }
 
     companion object {
