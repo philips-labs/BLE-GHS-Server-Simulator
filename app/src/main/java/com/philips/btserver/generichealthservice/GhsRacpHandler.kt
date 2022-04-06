@@ -156,13 +156,12 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
     }
 
     private fun sendNumberStoredRecords(numberOfRecords: Int) {
-        sendNumberCombinedStoredRecords(numberOfRecords)
-//        val response = listOf(
-//            byteArrayOf(OP_CODE_RESPONSE_NUMBER_STORED_RECORDS, OP_NULL),
-//            numberOfRecords.asLittleEndianArray()
-//        ).merge()
-//        // TODO: Ask Martijn about Blessed BluetoothPeripheralManager notifyCharacteristicChanged and indicate
-//        service.sendBytesAndNotify(response, racpCharacteristic)
+        val response = listOf(
+            byteArrayOf(OP_CODE_RESPONSE_NUMBER_STORED_RECORDS, OP_NULL),
+            numberOfRecords.asLittleEndianArray()
+        ).merge()
+        // TODO: Ask Martijn about Blessed BluetoothPeripheralManager notifyCharacteristicChanged and indicate
+        service.sendBytesAndNotify(response, racpCharacteristic)
     }
 
     private fun sendNumberCombinedStoredRecords(numberOfRecords: Int) {
