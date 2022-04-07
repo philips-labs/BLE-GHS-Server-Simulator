@@ -9,6 +9,8 @@
     <string name="advertisment_name">Device name</string>
     <string name="model_number">Model number</string>
     <string name="change">Change</string>
+    <string name="startAdvertising">Start Advertising</string>
+    <string name="stopAdvertising">Stop Advertising</string>
     <string name="startEmitter">Start emitter</string>
     <string name="stopEmitter">Stop emitter</string>
     <string name="singleShotEmit">Emit Once</string>

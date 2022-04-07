@@ -27,6 +27,11 @@ interface BluetoothServerConnectionListener {
     fun onCentralDisconnected(central: BluetoothCentral)
 }
 
+interface BluetoothServerAdvertisingListener {
+    fun onStartAdvertising()
+    fun onStopAdvertising()
+}
+
 internal class BluetoothServer(context: Context) {
 
     var bluetoothAdapter: BluetoothAdapter

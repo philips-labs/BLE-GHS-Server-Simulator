@@ -63,6 +63,15 @@
 
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btnToggleAdvertising"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/startAdvertising"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
+
     </LinearLayout>
 
 </FrameLayout>

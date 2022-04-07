@@ -17,11 +17,13 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.philips.btserver.BluetoothServerAdvertisingListener
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDeviceInformationBinding
+import com.welie.blessed.BluetoothCentral
 
-class DeviceInformationFragment : Fragment() {
+class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val hander = Handler(Looper.getMainLooper())
@@ -54,6 +56,7 @@ class DeviceInformationFragment : Fragment() {
         binding.btnAdvName.setOnClickListener { changeAdvName() }
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
+        binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)
     }
 
     private fun getAdvName(): String {
@@ -96,5 +99,13 @@ class DeviceInformationFragment : Fragment() {
         builder.setPositiveButton("Ok", onClick)
         builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
         builder.show()
+    }
+
+    override fun onStartAdvertising() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onStopAdvertising() {
+        TODO("Not yet implemented")
     }
 }
