@@ -1,4 +1,4 @@
-package com.philips.btserver.generichealthservice
+package com.philips.btserver.observations
 
 data class SimpleNumericValue(
     val type: ObservationType,

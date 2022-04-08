@@ -2,7 +2,7 @@
  * Copyright (c) Koninklijke Philips N.V. 2021.
  * All rights reserved.
  */
-package com.philips.btserver.generichealthservice
+package com.philips.btserver.observations
 
 enum class ObservationValueType(val value: Int) {
     MDC_ATTR_NU_VAL_OBS_SIMP(0x00010A56),  // Simple-Nu-Observed-Value
@@ -28,9 +28,9 @@ fun ObservationType.valueType(): ObservationValueType {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE,
         ObservationType.MDC_PULS_OXIM_SAT_O2,
-        ObservationType.MDC_TEMP_BODY-> ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP
-        ObservationType.MDC_PPG_TIME_PD_PP-> ObservationValueType.MDC_ATTR_SA_VAL_OBS
-        ObservationType.MDC_PRESS_BLD_NONINV-> ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS
+        ObservationType.MDC_TEMP_BODY -> ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP
+        ObservationType.MDC_PPG_TIME_PD_PP -> ObservationValueType.MDC_ATTR_SA_VAL_OBS
+        ObservationType.MDC_PRESS_BLD_NONINV -> ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS
         else -> ObservationValueType.UNKNOWN_TYPE_VAL_OBS
 
     }

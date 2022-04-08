@@ -3,6 +3,7 @@ package com.philips.btserver.generichealthservice
 import android.bluetooth.BluetoothGattCharacteristic
 import com.philips.btserver.extensions.asBLEDataSegments
 import com.philips.btserver.extensions.asFormattedHexString
+import com.philips.btserver.observations.Observation
 import timber.log.Timber
 
 class GhsObservationSendHandler(val service: GenericHealthSensorService, val observationCharacteristic: BluetoothGattCharacteristic) {

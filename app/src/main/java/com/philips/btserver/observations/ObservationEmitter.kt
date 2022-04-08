@@ -2,11 +2,11 @@
  * Copyright (c) Koninklijke Philips N.V. 2021.
  * All rights reserved.
  */
-package com.philips.btserver.generichealthservice
+package com.philips.btserver.observations
 
 import android.os.Handler
 import android.os.Looper
-import com.philips.btserver.extensions.epoch2000mills
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import java.util.*
 
@@ -200,7 +200,7 @@ object ObservationEmitter {
     }
 
     init {
-        this.numberStoredRecords = 10
+        numberStoredRecords = 10
         generateStoredObservations()
     }
 
@@ -230,20 +230,20 @@ fun ObservationType.numericPrecision(): Int {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE,
         ObservationType.MDC_TEMP_BODY,
-        ObservationType.MDC_PULS_OXIM_SAT_O2->  1
+        ObservationType.MDC_PULS_OXIM_SAT_O2 ->  1
         else -> 0
     }
 }
 
 fun ObservationType.unitCode(): UnitCode {
     return when(this) {
-        ObservationType.MDC_ECG_HEART_RATE ->  UnitCode.MDC_DIM_BEAT_PER_MIN
-        ObservationType.MDC_TEMP_BODY ->  UnitCode.MDC_DIM_DEGC
+        ObservationType.MDC_ECG_HEART_RATE -> UnitCode.MDC_DIM_BEAT_PER_MIN
+        ObservationType.MDC_TEMP_BODY -> UnitCode.MDC_DIM_DEGC
         ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
-        ObservationType.MDC_PPG_TIME_PD_PP ->  UnitCode.MDC_DIM_INTL_UNIT
-        ObservationType.MDC_PRESS_BLD_NONINV ->  UnitCode.MDC_DIM_MMHG
-        ObservationType.MDC_PRESS_BLD_NONINV_SYS ->  UnitCode.MDC_DIM_MMHG
-        ObservationType.MDC_PRESS_BLD_NONINV_DIA ->  UnitCode.MDC_DIM_MMHG
+        ObservationType.MDC_PPG_TIME_PD_PP -> UnitCode.MDC_DIM_INTL_UNIT
+        ObservationType.MDC_PRESS_BLD_NONINV -> UnitCode.MDC_DIM_MMHG
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> UnitCode.MDC_DIM_MMHG
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> UnitCode.MDC_DIM_MMHG
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
 }

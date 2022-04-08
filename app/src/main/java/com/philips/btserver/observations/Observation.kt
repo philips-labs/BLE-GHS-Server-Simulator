@@ -2,7 +2,7 @@
  * Copyright (c) Koninklijke Philips N.V. 2021.
  * All rights reserved.
  */
-package com.philips.btserver.generichealthservice
+package com.philips.btserver.observations
 
 import com.philips.btserver.extensions.*
 import com.welie.blessed.BluetoothBytesParser

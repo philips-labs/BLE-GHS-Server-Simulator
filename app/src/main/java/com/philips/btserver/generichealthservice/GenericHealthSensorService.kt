@@ -4,10 +4,8 @@
  */
 package com.philips.btserver.generichealthservice
 
-import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
-import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.welie.blessed.BluetoothCentral
@@ -15,8 +13,10 @@ import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
+import com.philips.btserver.observations.Observation
+import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationType
 import com.welie.blessed.GattStatus
-import timber.log.Timber
 import java.util.*
 
 /**

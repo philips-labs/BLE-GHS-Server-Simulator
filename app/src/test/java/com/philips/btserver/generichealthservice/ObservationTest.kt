@@ -5,8 +5,8 @@
 package com.philips.btserver.generichealthservice
 
 import com.philips.btserver.extensions.asGHSByteArray
-import com.philips.btserver.extensions.findFirst
 import com.philips.btserver.extensions.merge
+import com.philips.btserver.observations.*
 import com.welie.blessed.BluetoothBytesParser
 import org.junit.Assert.*
 import org.junit.Test

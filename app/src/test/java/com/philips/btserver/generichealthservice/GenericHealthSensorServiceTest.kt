@@ -6,6 +6,10 @@ package com.philips.btserver.generichealthservice
 
 import android.os.Build
 import com.philips.btserver.BaseService
+import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationType
+import com.philips.btserver.observations.SimpleNumericObservation
+import com.philips.btserver.observations.UnitCode
 import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager

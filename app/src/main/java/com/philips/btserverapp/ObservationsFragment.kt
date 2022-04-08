@@ -9,10 +9,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.philips.btserver.generichealthservice.ObservationType
+import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentObservationsBinding
-import com.philips.btserver.generichealthservice.ObservationEmitter
+import com.philips.btserver.observations.ObservationEmitter
 
 class ObservationsFragment : Fragment() {
 

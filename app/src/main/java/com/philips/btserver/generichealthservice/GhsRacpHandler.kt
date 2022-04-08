@@ -2,12 +2,11 @@ package com.philips.btserver.generichealthservice
 
 import com.philips.btserver.extensions.asLittleEndianArray
 import com.philips.btserver.extensions.merge
-import com.philips.btserver.extensions.uInt16At
+import com.philips.btserver.observations.Observation
+import com.philips.btserver.observations.ObservationEmitter
 import com.welie.blessed.BluetoothBytesParser
 import java.lang.Integer.max
-import java.lang.Integer.min
 import java.nio.ByteOrder
-import kotlin.concurrent.thread
 
 class GhsRacpHandler(val service: GenericHealthSensorService) {
 

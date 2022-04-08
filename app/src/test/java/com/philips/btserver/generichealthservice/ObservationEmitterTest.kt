@@ -6,6 +6,9 @@ package com.philips.btserver.generichealthservice
 
 import android.os.Build
 import com.philips.btserver.generichealthservice.GenericHealthSensorService.Companion.getInstance
+import com.philips.btserver.observations.Observation
+import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationType
 import com.welie.blessed.BluetoothPeripheralManager
 import io.mockk.*
 import io.mockk.impl.annotations.MockK

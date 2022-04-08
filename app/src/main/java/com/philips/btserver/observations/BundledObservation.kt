@@ -1,13 +1,13 @@
-package com.philips.btserver.generichealthservice
+package com.philips.btserver.observations
 
 import com.welie.blessed.BluetoothBytesParser
 import java.nio.ByteOrder
 import java.util.*
 
 data class BundledObservation(
-override val id: Short,
-override val value: List<Observation>,
-override val timestamp: Date
+    override val id: Short,
+    override val value: List<Observation>,
+    override val timestamp: Date
 ) : Observation() {
     // BundledObservations have no observation type
     override var type: ObservationType = ObservationType.UNKNOWN_TYPE
