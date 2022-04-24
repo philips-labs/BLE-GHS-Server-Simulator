@@ -8,16 +8,15 @@ import android.bluetooth.*
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
-import android.os.Build
 import android.os.ParcelUuid
 import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.generichealthservice.SimpleTimeService
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.BluetoothPeripheralManagerCallback
 import com.welie.blessed.GattStatus
-import com.philips.btserver.generichealthservice.GenericHealthSensorService
-import com.philips.btserver.generichealthservice.SimpleTimeService
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
@@ -51,6 +50,13 @@ internal class BluetoothServer(context: Context) {
                     ?: GattStatus.REQUEST_NOT_SUPPORTED
         }
 
+        override fun onCharacteristicWriteCompleted(
+            bluetoothCentral: BluetoothCentral,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray) {
+            serviceImplementations[characteristic.service]?.onCharacteristicWriteCompleted(bluetoothCentral, characteristic, value)
+        }
+
         override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
             serviceImplementations[descriptor.characteristic.service]?.onDescriptorRead(central, descriptor)
         }
@@ -66,6 +72,18 @@ internal class BluetoothServer(context: Context) {
 
         override fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
             serviceImplementations[characteristic.service]?.onNotifyingDisabled(central, characteristic)
+        }
+
+        override fun onNotificationSent(
+            bluetoothCentral: BluetoothCentral,
+            value: ByteArray,
+            characteristic: BluetoothGattCharacteristic,
+            status: GattStatus
+        ) {
+            serviceImplementations[characteristic.service]?.onNotificationSent(bluetoothCentral,
+                value,
+                characteristic,
+                status)
         }
 
         override fun onCentralConnected(central: BluetoothCentral) {

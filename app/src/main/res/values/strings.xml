@@ -9,6 +9,9 @@
     <string name="advertisment_name">Device name</string>
     <string name="model_number">Model number</string>
     <string name="change">Change</string>
+    <string name="clear">Clear</string>
+    <string name="obs_store_count">Obs Store Count</string>
+    <string name="unknown">Unknown</string>
     <string name="startAdvertising">Start Advertising</string>
     <string name="stopAdvertising">Stop Advertising</string>
     <string name="startEmitter">Start emitter</string>

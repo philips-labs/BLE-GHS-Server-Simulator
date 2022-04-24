@@ -8,16 +8,21 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
-import com.philips.btserver.extensions.*
+import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationType
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
 import java.util.*
+
+interface GenericHealthSensorServiceListener {
+    fun onObservationsSent(observations: Collection<Observation>) {}
+    fun onStoredObservationsSent(observations: Collection<Observation>) {}
+}
 
 /**
  * GenericHealthSensorService is the *BaseService* specific to handling
@@ -31,6 +36,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     private val controlPointHandler = GhsControlPointHandler(this)
     private val racpHandler = GhsRacpHandler(this)
+
+    internal val listeners = mutableSetOf<GenericHealthSensorServiceListener>()
 
     internal val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
@@ -71,6 +78,14 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_WRITE
     )
+
+    fun addListener(listener: GenericHealthSensorServiceListener) {
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: GenericHealthSensorServiceListener) {
+        listeners.remove(listener)
+    }
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
@@ -114,6 +129,25 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         // TODO: What if real-time observations have been enabled?
     }
 
+    /**
+     * A notification has been sent
+     *
+     * @param bluetoothCentral the central
+     * @param value the value of the notification
+     * @param characteristic the characteristic for which the notification was sent
+     * @param status the status of the operation
+     */
+    override fun onNotificationSent(
+        bluetoothCentral: BluetoothCentral,
+        value: ByteArray?,
+        characteristic: BluetoothGattCharacteristic,
+        status: GattStatus
+    ) {
+        if (characteristic.uuid == STORED_OBSERVATIONS_CHARACTERISTIC_UUID) {
+            value?.let { storedObservationSendHandler.onSegmentSent(value, status) }
+        }
+    }
+
     /*
      * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
      */
@@ -127,16 +161,26 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     }
 
-    override fun onCharacteristicWrite(
-        central: BluetoothCentral,
+    override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        return when(characteristic.uuid) {
+            GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> if (controlPointHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
+            RACP_CHARACTERISTIC_UUID -> if (racpHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
+            else -> GattStatus.SUCCESS
+        }
+    }
+
+    override fun onCharacteristicWriteCompleted(
+        bluetoothCentral: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic,
-        value: ByteArray
-    ): GattStatus {
+        value: ByteArray) {
         when(characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(value)
             RACP_CHARACTERISTIC_UUID -> racpHandler.handleReceivedBytes(value)
         }
-        return super.onCharacteristicWrite(central, characteristic, value)
+    }
+
+    internal fun isStoredObservationCharacteristic(characteristic: BluetoothGattCharacteristic): Boolean {
+        return characteristic == storedObservationCharacteristic
     }
 
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
@@ -206,6 +250,10 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         storedObservationSendHandler.sendObservations(observations)
     }
 
+    fun abortSendStoredObservations() {
+        storedObservationSendHandler.abortSendStoredObservations()
+    }
+
     companion object {
         val GHS_SERVICE_UUID = UUID.fromString("00007f44-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_CHARACTERISTIC_UUID =
@@ -263,4 +311,5 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
         notifyCharacteristicChanged(bytes, characteristic)
     }
+
 }

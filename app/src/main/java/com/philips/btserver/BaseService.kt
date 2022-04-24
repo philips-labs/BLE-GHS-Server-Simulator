@@ -59,6 +59,12 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return GattStatus.SUCCESS
     }
 
+    open fun onCharacteristicWriteCompleted(
+        bluetoothCentral: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray
+    ) {}
+
     /*
      * onDescriptorRead is a non-abstract method with an empty body to have a default behavior to do nothing
      * Subclasses do not need to provide an implementation
@@ -85,6 +91,23 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      */
     open fun onNotifyingDisabled(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
         // To be implemented by sub class
+    }
+
+
+    /**
+     * A notification has been sent to a central
+     *
+     * @param bluetoothCentral the central
+     * @param value the value of the notification
+     * @param characteristic the characteristic for which the notification was sent
+     * @param status the status of the operation
+     */
+    open fun onNotificationSent(
+        bluetoothCentral: BluetoothCentral,
+        value: ByteArray?,
+        characteristic: BluetoothGattCharacteristic,
+        status: GattStatus
+    ) {
     }
 
     /*

@@ -3,29 +3,53 @@ package com.philips.btserver.generichealthservice
 import com.philips.btserver.extensions.asLittleEndianArray
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
-import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationStore
 import com.welie.blessed.BluetoothBytesParser
-import java.lang.Integer.max
 import java.nio.ByteOrder
 
-class GhsRacpHandler(val service: GenericHealthSensorService) {
+class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSensorServiceListener {
 
     private val racpCharacteristic get() = service.racpCharacteristic
-    private val storedRecords get() = ObservationEmitter.storedObservations
+    private val storedRecords get() = ObservationStore.storedObservations.toList()
     private val numberStoredRecords get() = storedRecords.size
 
     fun reset() {}
+
+
+    fun isWriteValid(bytes: ByteArray): Boolean {
+        return true
+    }
 
     fun handleReceivedBytes(bytes: ByteArray) {
         if (bytes.isEmpty()) sendInvalidOperator(OP_NULL)
         val opCode = bytes.racpOpCode()
         when(opCode) {
+            OP_CODE_ABORT -> abortGetRecords(bytes)
             OP_CODE_COMBINED_REPORT -> reportCombinedStoredRecords(bytes)
             OP_CODE_NUMBER_STORED_RECORDS -> reportNumberStoredRecords(bytes)
             else -> service.sendBytesAndNotify(responseCodeBytes(
                 OP_CODE_RESPONSE_CODE,
                 opCode,
                 RESPONSE_CODE_OP_CODE_UNSUPPOERTED), racpCharacteristic)
+        }
+    }
+
+    override fun onStoredObservationsSent(observations: Collection<Observation>) {
+        sendNumberCombinedStoredRecords(observations.size)
+    }
+
+    private fun abortGetRecords(bytes: ByteArray)   {
+        if (bytes.size == 2 && bytes[1] == OP_NULL) {
+            service.abortSendStoredObservations()
+            service.sendBytesAndNotify(responseCodeBytes(
+                OP_CODE_RESPONSE_CODE,
+                RESPONSE_CODE_SUCCESS,
+                RESPONSE_CODE_SUCCESS), racpCharacteristic)
+        } else {
+            service.sendBytesAndNotify(responseCodeBytes(
+                OP_CODE_RESPONSE_CODE,
+                bytes[0],
+                RESPONSE_CODE_INVALID_OPERATOR), racpCharacteristic)
         }
     }
 
@@ -37,7 +61,6 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
                 sendNoRecordsFound(bytes.racpOpCode())
             } else {
                 service.sendStoredObservations(it)
-                sendNumberCombinedStoredRecords(it.size)
             }
         }
     }
@@ -98,7 +121,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
             null
         } else {
             val minValue = getQueryRecordNumber(bytes)
-            max(0, numberStoredRecords - minValue + 1)
+            ObservationStore.numberOfObservationsEqualOrGreaterThanRecordNumber(minValue)
+//            max(0, numberStoredRecords - minValue + 1)
         }
 
     }
@@ -113,7 +137,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
             null
         } else {
             val minValue = getQueryRecordNumber(bytes)
-            storedRecords.subList(minValue, storedRecords.size)
+            ObservationStore.observationsEqualOrGreaterThanRecordNumber(minValue)
+//            storedRecords.subList(minValue, storedRecords.size)
         }
     }
 
@@ -220,5 +245,4 @@ class GhsRacpHandler(val service: GenericHealthSensorService) {
 
     private fun ByteArray.racpOpCode(): Byte = this[0]
     private fun ByteArray.racpOperator(): Byte = this[1]
-
 }

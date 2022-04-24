@@ -16,8 +16,6 @@ import com.philips.btserver.observations.ObservationEmitter
 
 class ObservationsFragment : Fragment() {
 
-    private var emitterRunning = false;
-
     private var _binding: FragmentObservationsBinding? = null
 
     // This property is only valid between onCreateView and onDestroyView.
@@ -39,6 +37,7 @@ class ObservationsFragment : Fragment() {
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
+        updateEmitterButton()
         checkIfCanBundle()
     }
 
@@ -101,16 +100,23 @@ class ObservationsFragment : Fragment() {
     }
 
     private fun toggleEmitter() {
-        if (emitterRunning) {
+        if (ObservationEmitter.isEmitting) {
             ObservationEmitter.stopEmitter()
             binding.btnSingleShotEmit.isEnabled = true
-            binding.btnStartStopEmitter.text = getString(R.string.startEmitter)
         } else {
             binding.btnSingleShotEmit.isEnabled = false
             ObservationEmitter.emitterPeriod = 1
             ObservationEmitter.startEmitter()
-            binding.btnStartStopEmitter.text = getString(R.string.stopEmitter)
         }
-        emitterRunning = !emitterRunning
+        updateEmitterButton()
+    }
+
+    private fun updateEmitterButton() {
+        binding.btnStartStopEmitter.text =
+            if (ObservationEmitter.isEmitting)
+                getString(R.string.stopEmitter)
+            else
+                getString(R.string.startEmitter)
+
     }
 }

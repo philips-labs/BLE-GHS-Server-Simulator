@@ -21,9 +21,13 @@ import com.philips.btserver.BluetoothServerAdvertisingListener
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDeviceInformationBinding
+import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.ObservationStoreListener
 import com.welie.blessed.BluetoothCentral
+import timber.log.Timber
 
-class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener {
+class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener, ObservationStoreListener {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val hander = Handler(Looper.getMainLooper())
@@ -41,7 +45,13 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
             container: ViewGroup?,
             savedInstanceState: Bundle?): View {
         _binding = FragmentDeviceInformationBinding.inflate(inflater, container, false)
+        ObservationStore.addListener(this)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        ObservationStore.removeListener(this)
+        super.onDestroyView()
     }
 
     override fun onResume() {
@@ -54,13 +64,20 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         if (_binding == null) return
         binding.btnModelNumName.setOnClickListener { changeModelNumber() }
         binding.btnAdvName.setOnClickListener { changeAdvName() }
+        binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)
+        binding.txtObservationStoreCount.text = "${ObservationStore.numberOfStoredObservations}"
     }
 
     private fun getAdvName(): String {
-        return bluetoothAdapter.name
+        return try {
+            bluetoothAdapter.name
+        } catch (e: SecurityException) {
+            Timber.i("Security Exception in getting BT adapter name. Check permission logic")
+            "Can't get name"
+        }
     }
 
     private fun getModelNumber(): String {
@@ -70,8 +87,12 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
     private fun changeAdvName() {
         doAlertDialog("${getString(R.string.change)} ${getString(R.string.advertisment_name)}", getAdvName()) { _, _ ->
             val newName = dialogInputView?.text.toString()
-            bluetoothAdapter.name = newName
-            dialogUpdate("${getString(R.string.advertisment_name)} is $newName")
+            try {
+                bluetoothAdapter.name = newName
+                dialogUpdate("${getString(R.string.advertisment_name)} is $newName")
+            } catch (e: SecurityException) {
+                Timber.i("Security Exception in setting BT adapter name. Check permission logic")
+            }
         }
     }
 
@@ -107,5 +128,9 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
 
     override fun onStopAdvertising() {
         TODO("Not yet implemented")
+    }
+
+    override fun observationStoreChanged() {
+        binding.txtObservationStoreCount.text = "${ObservationStore.numberOfStoredObservations}"
     }
 }

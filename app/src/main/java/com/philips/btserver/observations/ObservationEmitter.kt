@@ -4,8 +4,10 @@
  */
 package com.philips.btserver.observations
 
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import java.util.*
@@ -15,7 +17,14 @@ object ObservationEmitter {
     /*
      * This property enables/disables observation emissions
      */
-    var enabled = false
+    var transmitEnabled = false
+
+
+    /*
+     * This property enables/disables observation emissions
+     */
+    var isEmitting = false
+        private set
 
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
@@ -26,7 +35,6 @@ object ObservationEmitter {
      * sequence of packets (packets start on send of first, packets end at send of last)
      */
     var mergeObservations = false
-
 
     /*
      * If bundleObservations true heart rate and SpO2 observations are sent as one bundle observation.
@@ -51,21 +59,6 @@ object ObservationEmitter {
 
     val observationTypes = mutableSetOf<ObservationType>()
 
-    val storedObservations = mutableListOf<Observation>()
-
-    var numberStoredRecords: Int = 10
-        set(value) {
-            field = value
-            generateStoredObservations()
-        }
-
-    var minuteIntervalStoredRecords: Int = 5
-        set(value) {
-            field = value
-            generateStoredObservations()
-        }
-
-
     // Made public for unit testing
     private val ghsService: GenericHealthSensorService?
         get() = GenericHealthSensorService.getInstance()
@@ -76,24 +69,26 @@ object ObservationEmitter {
 
     fun addObservationType(type: ObservationType) {
         observationTypes.add(type)
-        generateStoredObservations()
+        resetStoredObservations()
         setFeatureCharacteristicTypes()
     }
 
     fun removeObservationType(type: ObservationType) {
         observationTypes.remove(type)
         observations.removeAll { it.type == type }
-        generateStoredObservations()
+        resetStoredObservations()
         setFeatureCharacteristicTypes()
     }
 
     fun startEmitter() {
         Timber.i("Starting GHS Observtaion Emitter")
+        isEmitting = true
         handler.post(notifyRunnable)
     }
 
     fun stopEmitter() {
         Timber.i("Stopping GHS Observtaion Emitter")
+        isEmitting = false
         handler.removeCallbacks(notifyRunnable)
     }
 
@@ -121,21 +116,6 @@ object ObservationEmitter {
         } else {
             observations.addAll(obsList)
         }
-    }
-
-    private fun generateStoredObservations() {
-        val recordInterval = minuteIntervalStoredRecords * 60000
-        var recordTimestamp = Date(Date().time - (recordInterval * (numberStoredRecords + 1)))
-        storedObservations.clear()
-        repeat(numberStoredRecords, {
-            val obsList = observationTypes.mapNotNull { randomObservationOfType(it, recordTimestamp) }
-            if (bundleObservations) {
-                storedObservations.add(BundledObservation(1, obsList, recordTimestamp))
-            } else {
-                storedObservations.addAll(obsList)
-            }
-            recordTimestamp = Date(recordTimestamp.time + recordInterval)
-        })
     }
 
     private fun randomObservationOfType(type: ObservationType, timestamp: Date): Observation? {
@@ -191,18 +171,19 @@ object ObservationEmitter {
     }
 
     private fun sendObservations(singleShot: Boolean) {
-        if (!enabled) return
-
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
-        observations.forEach { ghsService?.sendObservation(it) }
+        if (ghsService?.noCentralsConnected() ?: true) {
+            observations.forEach { ObservationStore.addObservation(it) }
+        } else {
+            if (transmitEnabled) {
+                observations.forEach { ghsService?.sendObservation(it) }
+            }
+        }
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
     }
 
-    init {
-        numberStoredRecords = 10
-        generateStoredObservations()
-    }
+    private fun resetStoredObservations() { ObservationStore.clear() }
 
 }
 
