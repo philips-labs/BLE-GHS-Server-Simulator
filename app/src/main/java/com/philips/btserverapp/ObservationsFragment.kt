@@ -13,8 +13,10 @@ import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentObservationsBinding
 import com.philips.btserver.observations.ObservationEmitter
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.ObservationStoreListener
 
-class ObservationsFragment : Fragment() {
+class ObservationsFragment : Fragment(), ObservationStoreListener {
 
     private var _binding: FragmentObservationsBinding? = null
 
@@ -29,6 +31,7 @@ class ObservationsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ObservationStore.addListener(this)
         binding.checkboxTempObs.setOnClickListener { clickTempObs() }
         binding.checkboxHRObs.setOnClickListener { clickHRObs() }
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
@@ -37,8 +40,21 @@ class ObservationsFragment : Fragment() {
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
-        updateEmitterButton()
+        binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
+//        updateObservationCount()
+//        updateEmitterButton()
         checkIfCanBundle()
+    }
+
+    override fun onDestroyView() {
+        ObservationStore.removeListener(this)
+        super.onDestroyView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateObservationCount()
+        updateEmitterButton()
     }
 
     fun clickTempObs() {
@@ -119,4 +135,11 @@ class ObservationsFragment : Fragment() {
                 getString(R.string.startEmitter)
 
     }
+
+    private fun updateObservationCount() {
+        binding.txtObservationStoreCount.text = "${ObservationStore.numberOfStoredObservations}"
+    }
+
+    override fun observationStoreChanged() { updateObservationCount() }
+
 }

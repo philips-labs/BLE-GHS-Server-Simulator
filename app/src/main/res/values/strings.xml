@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GHS Server Simulator</string>
+    <string name="app_name">GHS Peripheral Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
     <string name="tab_text_ble_info">Device Info</string>
     <string name="tab_text_observations">Observations</string>
@@ -10,13 +10,13 @@
     <string name="model_number">Model number</string>
     <string name="change">Change</string>
     <string name="clear">Clear</string>
-    <string name="obs_store_count">Obs Store Count</string>
+    <string name="obs_store_count">Observation Store Count</string>
     <string name="unknown">Unknown</string>
     <string name="startAdvertising">Start Advertising</string>
     <string name="stopAdvertising">Stop Advertising</string>
-    <string name="startEmitter">Start emitter</string>
-    <string name="stopEmitter">Stop emitter</string>
-    <string name="singleShotEmit">Emit Once</string>
+    <string name="startEmitter">Start observation emitter</string>
+    <string name="stopEmitter">Stop observation emitter</string>
+    <string name="singleShotEmit">Emit single-shot observation(s)</string>
     <string name="choiceTempObs">Include temperature (Simple Numeric)</string>
     <string name="choiceHRObs">Include heart rate (Simple Numeric)</string>
     <string name="choiceSPO2Obs">Include SpO2 (Simple Numeric)</string>

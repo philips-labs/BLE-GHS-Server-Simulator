@@ -35,7 +35,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
     private val controlPointHandler = GhsControlPointHandler(this)
-    private val racpHandler = GhsRacpHandler(this)
+    val racpHandler = GhsRacpHandler(this)
 
     internal val listeners = mutableSetOf<GenericHealthSensorServiceListener>()
 
@@ -78,6 +78,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_WRITE
     )
+
+    fun setupHack() { racpHandler.setupHack() }
 
     fun addListener(listener: GenericHealthSensorServiceListener) {
         listeners.add(listener)

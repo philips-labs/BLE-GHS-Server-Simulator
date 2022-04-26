@@ -21,13 +21,9 @@ import com.philips.btserver.BluetoothServerAdvertisingListener
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDeviceInformationBinding
-import com.philips.btserver.observations.ObservationEmitter
-import com.philips.btserver.observations.ObservationStore
-import com.philips.btserver.observations.ObservationStoreListener
-import com.welie.blessed.BluetoothCentral
 import timber.log.Timber
 
-class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener, ObservationStoreListener {
+class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val hander = Handler(Looper.getMainLooper())
@@ -45,13 +41,7 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
             container: ViewGroup?,
             savedInstanceState: Bundle?): View {
         _binding = FragmentDeviceInformationBinding.inflate(inflater, container, false)
-        ObservationStore.addListener(this)
         return binding.root
-    }
-
-    override fun onDestroyView() {
-        ObservationStore.removeListener(this)
-        super.onDestroyView()
     }
 
     override fun onResume() {
@@ -64,11 +54,9 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         if (_binding == null) return
         binding.btnModelNumName.setOnClickListener { changeModelNumber() }
         binding.btnAdvName.setOnClickListener { changeAdvName() }
-        binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)
-        binding.txtObservationStoreCount.text = "${ObservationStore.numberOfStoredObservations}"
     }
 
     private fun getAdvName(): String {
@@ -130,7 +118,4 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         TODO("Not yet implemented")
     }
 
-    override fun observationStoreChanged() {
-        binding.txtObservationStoreCount.text = "${ObservationStore.numberOfStoredObservations}"
-    }
 }

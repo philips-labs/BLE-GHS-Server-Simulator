@@ -15,10 +15,11 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
 
     fun reset() {}
 
-
     fun isWriteValid(bytes: ByteArray): Boolean {
         return true
     }
+
+    fun setupHack() { service.addListener(this) }
 
     fun handleReceivedBytes(bytes: ByteArray) {
         if (bytes.isEmpty()) sendInvalidOperator(OP_NULL)

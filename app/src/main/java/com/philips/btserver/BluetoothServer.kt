@@ -189,6 +189,7 @@ internal class BluetoothServer(context: Context) {
         val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
+        ghs.setupHack()
         val time = SimpleTimeService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
