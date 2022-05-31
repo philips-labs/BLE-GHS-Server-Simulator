@@ -13,10 +13,7 @@ import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.SimpleTimeService
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.BluetoothPeripheralManagerCallback
-import com.welie.blessed.GattStatus
+import com.welie.blessed.*
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
@@ -93,6 +90,19 @@ internal class BluetoothServer(context: Context) {
         override fun onCentralDisconnected(central: BluetoothCentral) {
             (connectionListeners + serviceImplementations.values).forEach { it.onCentralDisconnected(central) }
         }
+
+        override fun onAdvertisingStarted(settingsInEffect: AdvertiseSettings) {
+            Timber.i("onAdvertisingStarted")
+        }
+
+        override fun onAdvertiseFailure(advertiseError: AdvertiseError) {
+            Timber.i("onAdvertiseFailure")
+        }
+
+        override fun onAdvertisingStopped() {
+            Timber.i("onAdvertisingStopped")
+        }
+
     }
 
     fun addConnectionListener(connectionListner: BluetoothServerConnectionListener) {
@@ -189,7 +199,7 @@ internal class BluetoothServer(context: Context) {
         val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
-        ghs.setupHack()
+        // ghs.setupHack()
         val time = SimpleTimeService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts

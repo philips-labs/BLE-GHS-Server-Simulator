@@ -79,15 +79,13 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         PERMISSION_WRITE
     )
 
-    fun setupHack() { racpHandler.setupHack() }
+//    fun setupHack() {
+//         racpHandler.setupHack()
+//    }
 
-    fun addListener(listener: GenericHealthSensorServiceListener) {
-        listeners.add(listener)
-    }
+    fun addListener(listener: GenericHealthSensorServiceListener) = listeners.add(listener)
 
-    fun removeListener(listener: GenericHealthSensorServiceListener) {
-        listeners.remove(listener)
-    }
+    fun removeListener(listener: GenericHealthSensorServiceListener) = listeners.remove(listener)
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
@@ -167,7 +165,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         return when(characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> if (controlPointHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
             RACP_CHARACTERISTIC_UUID -> if (racpHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
-            else -> GattStatus.SUCCESS
+            else -> GattStatus.WRITE_NOT_PERMITTED
         }
     }
 
@@ -186,31 +184,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
-        val bytes = listOf(
-            byteArrayOf(featureFlagsFor(types), types.size.toByte()),
-            featureTypeBytesFor(types),
-            deviceSpecializationBytes(types)
-        ).merge()
-//        featuresCharacteristic.value = bytes
-        notifyCharacteristicChanged(bytes, featuresCharacteristic)
-    }
-
-    private fun featureFlagsFor(types: List<ObservationType>): Byte {
-        return (if (hasDeviceSpeciazations(types)) 0x1 else 0x0).toByte()
-    }
-
-    private fun featureTypeBytesFor(types: List<ObservationType>): ByteArray {
-        return types.map { it.asGHSByteArray() }.merge()
-    }
-
-    private fun deviceSpecializationBytes(types: List<ObservationType>): ByteArray {
-        // Only sent for blood pressure for now
-        // Code = MDC_DEV_SPEC_PROFILE_BP = 00 08 10 07 (only use 2 bytes, assume partition 8), Version = 01
-        return if (hasDeviceSpeciazations(types)) byteArrayOf(0x01, 0x07, 0x10, 0x01) else byteArrayOf()
-    }
-
-    private fun hasDeviceSpeciazations(types: List<ObservationType>): Boolean {
-        return types.contains(ObservationType.MDC_PRESS_BLD_NONINV)
+        notifyCharacteristicChanged(types.featureCharacteristicBytes(), featuresCharacteristic)
     }
 
     internal fun setCharacteristicValueAndNotify(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
@@ -314,4 +288,37 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         notifyCharacteristicChanged(bytes, characteristic)
     }
 
+}
+
+private fun List<ObservationType>.featureCharacteristicBytes(): ByteArray {
+    return listOf(
+        byteArrayOf(featureFlagsFor(), this.size.toByte()),
+        featureTypeBytesFor(),
+        deviceSpecializationBytes()
+    ).merge()
+}
+
+private fun List<ObservationType>.featureFlagsFor(): Byte {
+    return (if (hasDeviceSpeciazations()) 0x1 else 0x0).toByte()
+}
+
+private fun List<ObservationType>.featureTypeBytesFor(): ByteArray {
+    return this.map { it.asGHSByteArray() }.merge()
+}
+
+private fun List<ObservationType>.deviceSpecializationBytes(): ByteArray {
+    // Only sent for blood pressure for now
+    // Code = MDC_DEV_SPEC_PROFILE_BP = 00 08 10 07 (only use 2 bytes, assume partition 8), Version = 01
+    return if (hasDeviceSpeciazations()) byteArrayOf(0x01, 0x07, 0x10, 0x01) else byteArrayOf()
+}
+
+private fun List<ObservationType>.hasDeviceSpeciazations(): Boolean {
+    return this.contains(ObservationType.MDC_PRESS_BLD_NONINV)
+}
+
+private fun ObservationType.deviceSpecializationBytes(): ByteArray {
+    return when (this) {
+        ObservationType.MDC_PRESS_BLD_NONINV -> byteArrayOf(0x01, 0x07, 0x10, 0x01)
+        else -> byteArrayOf()
+    }
 }

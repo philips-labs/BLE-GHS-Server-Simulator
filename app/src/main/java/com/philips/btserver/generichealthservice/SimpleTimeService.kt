@@ -52,18 +52,18 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
         characteristic: BluetoothGattCharacteristic
     ) {
         if (characteristic.uuid == SIMPLE_TIME_CHARACTERISTIC_UUID) {
-            sendClockBytes()
+            sendClockBytes(notify = false)
         }
     }
 
     /*
      * send the current clock in the GHS byte format based on current flags
      */
-    private fun sendClockBytes() {
+    private fun sendClockBytes(notify: Boolean = true) {
         val bytes = listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
         // TODO Add the Clock status and clock capailities flags for real
         simpleTimeCharacteristic.value = bytes
-        notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
+        if (notify) notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
     }
 
     private fun currentTimeBytes(): ByteArray {

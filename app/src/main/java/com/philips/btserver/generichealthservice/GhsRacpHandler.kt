@@ -9,9 +9,14 @@ import java.nio.ByteOrder
 
 class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSensorServiceListener {
 
+
     private val racpCharacteristic get() = service.racpCharacteristic
     private val storedRecords get() = ObservationStore.storedObservations.toList()
     private val numberStoredRecords get() = storedRecords.size
+
+    fun init() {
+        service.addListener(this)
+    }
 
     fun reset() {}
 
@@ -19,7 +24,6 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
         return true
     }
 
-    fun setupHack() { service.addListener(this) }
 
     fun handleReceivedBytes(bytes: ByteArray) {
         if (bytes.isEmpty()) sendInvalidOperator(OP_NULL)
