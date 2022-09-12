@@ -12,7 +12,7 @@ import android.os.ParcelUuid
 import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
-import com.philips.btserver.generichealthservice.SimpleTimeService
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.welie.blessed.*
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -200,7 +200,7 @@ internal class BluetoothServer(context: Context) {
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
         // ghs.setupHack()
-        val time = SimpleTimeService(peripheralManager)
+        val time = ElapsedTimeService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs

@@ -14,7 +14,7 @@ import com.welie.blessed.GattStatus
 import timber.log.Timber
 import java.util.*
 
-internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
+internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(SIMPLE_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
@@ -144,10 +144,10 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
          */
-        fun getInstance(): SimpleTimeService? {
+        fun getInstance(): ElapsedTimeService? {
             val bleServer = BluetoothServer.getInstance()
             val ghs = bleServer?.getServiceWithUUID(SIMPLE_TIME_SERVICE_UUID)
-            return ghs?.let { it as SimpleTimeService }
+            return ghs?.let { it as ElapsedTimeService }
         }
     }
 }
