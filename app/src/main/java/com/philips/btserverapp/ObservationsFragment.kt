@@ -37,10 +37,14 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
         binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
         binding.checkboxBPObs.setOnClickListener { clickBPObs() }
+        binding.checkboxDiscreteObs.setOnClickListener { clickDiscreteObs() }
+        binding.checkboxStringObs.setOnClickListener { clickStringObs() }
+        binding.checkboxTLVObs.setOnClickListener { clickTLVObs() }
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
+        binding.btnAddStored.setOnClickListener { ObservationEmitter.addStoredObservation() }
 //        updateObservationCount()
 //        updateEmitterButton()
         checkIfCanBundle()
@@ -98,6 +102,33 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
             ObservationEmitter.addObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
         } else {
             ObservationEmitter.removeObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickDiscreteObs() {
+        if (binding.checkboxDiscreteObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickStringObs() {
+        if (binding.checkboxStringObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickTLVObs() {
+        if (binding.checkboxTLVObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
         }
         checkIfCanBundle()
     }

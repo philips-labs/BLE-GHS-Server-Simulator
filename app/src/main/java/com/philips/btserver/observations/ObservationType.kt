@@ -967,6 +967,9 @@ enum class ObservationType(val value: Int) {
     MDC_WORK_OF_BREATHING_PATIENT_RESISTIVE(153280),
     MDC_WORK_OF_BREATHING_VENTILATOR(153288),
 
+    // Using this from Partition 129 as a placeholder for discrete activity event
+    MDC_HF_SESSION( 8454267), //
+
     UNKNOWN_TYPE(-0x1);
 
     fun asGHSByteArray(): ByteArray {

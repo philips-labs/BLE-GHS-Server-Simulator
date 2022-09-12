@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
+import com.philips.btserver.util.TickCounter
 
 class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
@@ -115,16 +116,12 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         Handler(Looper.getMainLooper()).post(object : Runnable {
             override fun run() {
                 TimestampFlags.currentFlags = timestampFlags
-                binding.tickCounter.text = currentTickCounter().toString()
+                binding.tickCounter.text = TickCounter.currentTickCounter().toString()
                 if (binding.choiceClockTickCounter.isChecked) {
                     Handler(Looper.getMainLooper()).postDelayed(this, 1000)
                 }
             }
         })
-    }
-
-    private fun currentTickCounter(): Long {
-        return SystemClock.elapsedRealtime() / if (isFlagSet(TimestampFlags.isMilliseconds)) 1L else 1000L
     }
 
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {

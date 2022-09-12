@@ -7,26 +7,29 @@ import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
+import com.philips.btserver.util.TickCounter
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
+import com.welie.blessed.GattStatus
+import timber.log.Timber
 import java.util.*
 
 internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
     override val service = BluetoothGattService(SIMPLE_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
-//    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
-//        SIMPLE_TIME_CHARACTERISTIC_UUID,
-//        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
-//        PERMISSION_READ or PERMISSION_WRITE
-//    )
-
-    // TODO Right now just have read only time
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         SIMPLE_TIME_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_INDICATE,
-        PERMISSION_READ
+        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
+        PERMISSION_READ or PERMISSION_WRITE
     )
+
+//    // TODO Right now just have read only time
+//    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
+//        SIMPLE_TIME_CHARACTERISTIC_UUID,
+//        PROPERTY_READ or PROPERTY_INDICATE,
+//        PERMISSION_READ
+//    )
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
@@ -56,6 +59,44 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
+
+    override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        Timber.i("onCharacteristicWrite with Bytes: ${value.asFormattedHexString()}")
+        return writeSTSBytes(value)
+    }
+
+    override fun onCharacteristicWriteCompleted(
+        bluetoothCentral: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray
+    ) {
+        Timber.i("onCharacteristicWriteCompleted")
+    }
+
+    private fun writeSTSBytes(value: ByteArray) : GattStatus {
+        val writeFlags = value.first().asBitmask()
+        if (!writeFlagsValid(writeFlags)) return GattStatus.INTERNAL_ERROR
+        if (writeFlags.hasFlag(TimestampFlags.isTickCounter)) {
+            val ticks = value[1].toLong() +
+                    value[2].toLong().shl(8) +
+                    value[3].toLong().shl(16) +
+                    value[4].toLong().shl(24) +
+                    value[5].toLong().shl(32) +
+                    value[6].toLong().shl(40)
+            val milliScale = if (writeFlags.hasFlag(TimestampFlags.isMilliseconds)) 1L else 1000L
+            TickCounter.setTickCounter(ticks * milliScale)
+        } else {
+            Timber.i("Writing STS Time Bytes: ${value.asFormattedHexString()}")
+        }
+
+        return GattStatus.SUCCESS
+    }
+
+    private fun writeFlagsValid(flags: BitMask) : Boolean {
+        val myFlags = TimestampFlags.currentFlags
+        return flags.hasFlag(TimestampFlags.isTickCounter) == myFlags.hasFlag(TimestampFlags.isTickCounter)
+    }
+
     /*
      * send the current clock in the GHS byte format based on current flags
      */
@@ -71,7 +112,7 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     private fun clockStatusBytes(): ByteArray {
-        return byteArrayOf(0x0)
+        return byteArrayOf(0x1)
     }
 
     private fun clockCapabilitiesBytes(): ByteArray {
@@ -109,4 +150,8 @@ internal class SimpleTimeService(peripheralManager: BluetoothPeripheralManager) 
             return ghs?.let { it as SimpleTimeService }
         }
     }
+}
+
+fun Byte.asBitmask(): BitMask {
+    return BitMask(toLong())
 }

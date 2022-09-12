@@ -125,7 +125,7 @@ enum class ObservationClass(val value: Byte) {
     SimpleDiscreet(0x01),
     String(0x02),
     RealTimeSampleArray(0x03),
-    CompoundNumeric(0x04),
+    Compound(0x04),
     CompoundDiscreteEvent(0x05),
     CompoundState(0x06),
     CompoundObservation(0x07),

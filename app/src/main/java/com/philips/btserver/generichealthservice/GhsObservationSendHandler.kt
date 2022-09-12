@@ -3,7 +3,10 @@ package com.philips.btserver.generichealthservice
 import android.bluetooth.BluetoothGattCharacteristic
 import com.philips.btserver.extensions.asBLEDataSegments
 import com.philips.btserver.extensions.asFormattedHexString
+import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
+import com.philips.btserver.observations.ObservationStore
+import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.GattStatus
 import timber.log.Timber
@@ -18,17 +21,25 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
     /**
      * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
      */
-    fun sendObservation(observation: Observation) {
-        val bytes = observation.ghsByteArray
+    fun sendObservation(observation: Observation, isStored: Boolean = false) {
+        val bytes = if (isStored) {
+            val parser = BluetoothBytesParser()
+            val recordId = ObservationStore.recordIdFor(observation)
+            parser.setIntValue(recordId, BluetoothBytesParser.FORMAT_UINT32)
+            Timber.i("Send Stored Observation record id: $recordId")
+            listOf<ByteArray>(parser.value, observation.ghsByteArray).merge()
+        } else {
+            observation.ghsByteArray
+        }
         sendBytesInSegments(bytes)
     }
 
     /**
      * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
      */
-    fun sendObservations(observations: Collection<Observation>) {
+    fun sendObservations(observations: Collection<Observation>, isStored: Boolean = false) {
         Executors.newSingleThreadExecutor().execute {
-            sendingObservationsComplete(observations, interruptableSendObservations(observations))
+            sendingObservationsComplete(observations, interruptableSendObservations(observations, isStored))
         }
     }
 
@@ -38,14 +49,14 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
      * @param observations  Observations to be sent
      * @return true if all observations were sent, false if the sending was interrupted
      */
-    private fun interruptableSendObservations(observations: Collection<Observation>): Boolean {
+    private fun interruptableSendObservations(observations: Collection<Observation>,  isStored: Boolean): Boolean {
         sendingObservations = true
         observations.forEach {
             if (!sendingObservations) {
                 Timber.i("Aborting sendObservations")
                 return false
             }
-            sendObservation(it)
+            sendObservation(it, isStored)
         }
         return true
     }
@@ -81,6 +92,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
         val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
         Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
+        Timber.i("Raw bytes: [ ${bytes.asFormattedHexString()} ]")
         segments.first.forEach {
             Timber.i("Sending segment bytes: <${it.asFormattedHexString()}>")
             service.sendBytesAndNotify(it, observationCharacteristic)
@@ -113,6 +125,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
         val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
         Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
+        Timber.i("Raw bytes: [ ${bytes.asFormattedHexString()} ]")
         segmentsToSend = segments.first.toMutableList()
         sendNextSegment()
         currentSegmentNumber = segments.second
