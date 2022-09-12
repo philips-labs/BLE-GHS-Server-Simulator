@@ -8,6 +8,7 @@ import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
 import com.philips.btserver.util.TickCounter
+import com.philips.btserver.util.TimeCounter
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
@@ -16,20 +17,13 @@ import java.util.*
 
 internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
 
-    override val service = BluetoothGattService(SIMPLE_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
+    override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
-        SIMPLE_TIME_CHARACTERISTIC_UUID,
+        ELASPED_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_READ or PERMISSION_WRITE
     )
-
-//    // TODO Right now just have read only time
-//    private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
-//        SIMPLE_TIME_CHARACTERISTIC_UUID,
-//        PROPERTY_READ or PROPERTY_INDICATE,
-//        PERMISSION_READ
-//    )
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
@@ -54,7 +48,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ) {
-        if (characteristic.uuid == SIMPLE_TIME_CHARACTERISTIC_UUID) {
+        if (characteristic.uuid == ELASPED_TIME_CHARACTERISTIC_UUID) {
             sendClockBytes(notify = false)
         }
     }
@@ -70,6 +64,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
     ) {
+        sendClockBytes(notify = true)
         Timber.i("onCharacteristicWriteCompleted")
     }
 
@@ -86,7 +81,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
             val milliScale = if (writeFlags.hasFlag(TimestampFlags.isMilliseconds)) 1L else 1000L
             TickCounter.setTickCounter(ticks * milliScale)
         } else {
-            Timber.i("Writing STS Time Bytes: ${value.asFormattedHexString()}")
+            Timber.i("Writing ETS Time Bytes: ${value.asFormattedHexString()}")
+            TimeCounter.setTimeCounterWithETSBytes(value)
         }
 
         return GattStatus.SUCCESS
@@ -136,8 +132,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     companion object {
-        val SIMPLE_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
-        val SIMPLE_TIME_CHARACTERISTIC_UUID =
+        val ELAPSED_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
+        val ELASPED_TIME_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
         private const val SIMPLE_TIME_DESCRIPTION = "Simple Time Service Characteristic"
 
@@ -146,7 +142,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
          */
         fun getInstance(): ElapsedTimeService? {
             val bleServer = BluetoothServer.getInstance()
-            val ghs = bleServer?.getServiceWithUUID(SIMPLE_TIME_SERVICE_UUID)
+            val ghs = bleServer?.getServiceWithUUID(ELAPSED_TIME_SERVICE_UUID)
             return ghs?.let { it as ElapsedTimeService }
         }
     }
