@@ -75,6 +75,8 @@ object ObservationEmitter {
         observationTypes.add(type)
         resetStoredObservations()
         setFeatureCharacteristicTypes()
+        ghsService?.setObservationSchedule(type, 1.0f, 1.0f)
+        ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
     }
 
     fun removeObservationType(type: ObservationType) {
@@ -275,6 +277,46 @@ fun ObservationType.unitCode(): UnitCode {
         else -> UnitCode.MDC_DIM_INTL_UNIT
     }
 }
+
+fun ObservationType.lowerLimit(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 0f
+        ObservationType.MDC_TEMP_BODY -> 20f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 0f
+        else -> 0f
+    }
+}
+
+fun ObservationType.upperLimit(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 300f
+        ObservationType.MDC_TEMP_BODY -> 50f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 100f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 255f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 300f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 300f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 300f
+        else -> 100f
+    }
+}
+
+fun ObservationType.accuracy(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 1f
+        ObservationType.MDC_TEMP_BODY -> 1f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0.1f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 1f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 2f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 2f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 2f
+        else -> 0f
+    }
+}
+
 
 fun ByteArray.fillWith(action: (Int) -> Byte) {
     for (i in 0 until size) { this[i] = action(i) }

@@ -6,6 +6,7 @@ package com.philips.btserver.generichealthservice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
@@ -15,10 +16,13 @@ import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationType
+import com.philips.btserver.observations.UnitCode
+import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
 import timber.log.Timber
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 interface GenericHealthSensorServiceListener {
@@ -222,6 +226,29 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     internal fun setCharacteristicValueAndNotify(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
         characteristic.value = value
         notifyCharacteristicChanged(value, characteristic)
+    }
+
+    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
+        val scheduleDesc = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
+        val parser = BluetoothBytesParser()
+        parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setFloatValue(measurementPeriod, 3)
+        parser.setFloatValue(updateInterval, 3)
+        scheduleDesc.value = parser.value
+        featuresCharacteristic.addDescriptor(scheduleDesc)
+    }
+
+    fun setValidRangeAndAccuracy(observationType: ObservationType, unitCode: UnitCode, lowerLimit: Float, upperLimit: Float, accuracy: Float) {
+        val validDesc = BluetoothGattDescriptor(VALID_RANGE_AND_ACCURACY_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
+        val parser = BluetoothBytesParser()
+        parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT16)
+
+        parser.setFloatValue(lowerLimit, 3)
+        parser.setFloatValue(upperLimit, 3)
+        parser.setFloatValue(accuracy, 3)
+        validDesc.value = parser.value
+        featuresCharacteristic.addDescriptor(validDesc)
     }
 
     private fun resetHandlers() {
