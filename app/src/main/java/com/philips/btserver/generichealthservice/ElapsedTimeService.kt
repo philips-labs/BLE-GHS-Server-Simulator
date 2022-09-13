@@ -78,8 +78,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
                     value[4].toLong().shl(24) +
                     value[5].toLong().shl(32) +
                     value[6].toLong().shl(40)
-            val milliScale = if (writeFlags.hasFlag(TimestampFlags.isMilliseconds)) 1L else 1000L
-            TickCounter.setTickCounter(ticks * milliScale)
+            TickCounter.setTickCounter(ticks)
         } else {
             Timber.i("Writing ETS Time Bytes: ${value.asFormattedHexString()}")
             TimeCounter.setTimeCounterWithETSBytes(value)
@@ -90,7 +89,11 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     private fun writeFlagsValid(flags: BitMask) : Boolean {
         val myFlags = TimestampFlags.currentFlags
-        return flags.hasFlag(TimestampFlags.isTickCounter) == myFlags.hasFlag(TimestampFlags.isTickCounter)
+        return (flags.hasFlag(TimestampFlags.isTickCounter) == myFlags.hasFlag(TimestampFlags.isTickCounter)) &&
+                (flags.hasFlag(TimestampFlags.isUTC) == myFlags.hasFlag(TimestampFlags.isUTC)) &&
+                (flags.hasFlag(TimestampFlags.isTZPresent) == myFlags.hasFlag(TimestampFlags.isTZPresent)) &&
+                (flags.hasFlag(TimestampFlags.isMilliseconds) == myFlags.hasFlag(TimestampFlags.isMilliseconds)) &&
+                (flags.hasFlag(TimestampFlags.isHundredthsMilliseconds) == myFlags.hasFlag(TimestampFlags.isHundredthsMilliseconds))
     }
 
     /*
@@ -104,7 +107,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     private fun currentTimeBytes(): ByteArray {
-        return Date().asGHSBytes()
+        return TimeCounter.asGHSBytes()
     }
 
     private fun clockStatusBytes(): ByteArray {

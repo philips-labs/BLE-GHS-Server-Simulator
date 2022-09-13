@@ -36,7 +36,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         var status = GattStatus.SUCCESS
         var result = byteArrayOf(CONTROL_POINT_SUCCESS)
         // TODO: isIndicateEnabled and isNotifyEnabled is always returning false!
-        if (isLiveObservationsEnabled()) {
+        if (isLiveObservationNotifyEnabled()) {
             Timber.i("Sending ${this.javaClass} startSendingLiveObservations successful")
             service.setCharacteristicValueAndNotify(result, ghsControlPointCharacteristic)
         } else {
@@ -51,7 +51,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         return status
     }
 
-    private fun isLiveObservationsEnabled(): Boolean {
+    private fun isLiveObservationNotifyEnabled(): Boolean {
         return service.isLiveObservationNotifyEnabled
 //        return observationCharacteristic.isIndicateEnabled() or observationCharacteristic.isNotifyEnabled()
     }

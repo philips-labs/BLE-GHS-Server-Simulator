@@ -41,6 +41,7 @@ infix fun <T : Flags> BitMask.hasFlag(which: T): Boolean {
 }
 
 infix fun <T : Flags> BitMask.unset(which: T): BitMask = BitMask(value xor which.bit)
+infix fun <T: Flags> BitMask.set(which: T): BitMask = BitMask(value or which.bit)
 
 // End Flags support stuff
 
@@ -61,7 +62,55 @@ enum class TimestampFlags(override val bit: Long) : Flags {
         var currentFlags: BitMask = BitMask(TimestampFlags.isMilliseconds.bit)
             .plus(TimestampFlags.isTZPresent)
             .plus(TimestampFlags.isCurrentTimeline)
+
+
+        fun setLocalFlags() {
+            currentFlags = currentFlags.unset(isUTC)
+            currentFlags = currentFlags.unset(isTZPresent)
+            currentFlags = currentFlags.unset(isTickCounter)
+        }
+
+        fun setLocalWithOffsetFlags() {
+            currentFlags = currentFlags.unset(isUTC)
+            currentFlags = currentFlags.set(isTZPresent)
+            currentFlags = currentFlags.unset(isTickCounter)
+        }
+
+        fun setUtcOnlyFlags() {
+            currentFlags = currentFlags.set(isUTC)
+            currentFlags = currentFlags.unset(isTZPresent)
+            currentFlags = currentFlags.unset(isTickCounter)
+        }
+
+        fun setUtcWithOffsetFlags() {
+            currentFlags = currentFlags.set(isUTC)
+            currentFlags = currentFlags.set(isTZPresent)
+            currentFlags = currentFlags.unset(isTickCounter)
+        }
+
+        fun setTickCounterFlags() {
+            currentFlags = currentFlags.unset(isUTC)
+            currentFlags = currentFlags.unset(isTZPresent)
+            currentFlags = currentFlags.set(isTickCounter)
+        }
+
     }
+}
+
+fun BitMask.convertToTimeResolutionScaledMillisValue(value: Long): Long {
+    return if (isSeconds()) value * 1000L
+    else if (isMilliseconds()) value
+    else if(isHundredMilliseconds()) value * 100L
+    else if(isHundredthsMicroseconds()) value / 10L
+    else value
+}
+
+fun BitMask.getTimeResolutionScaledValue(millis: Long): Long {
+    return if (isSeconds()) millis / 1000L
+    else if (isMilliseconds()) millis
+    else if(isHundredMilliseconds()) millis / 10L
+    else if(isHundredthsMicroseconds()) millis * 10L
+    else millis
 }
 
 fun BitMask.asTimestampFlagsString(): String {
@@ -137,8 +186,8 @@ fun Date.asGHSBytes(): ByteArray {
  */
 
 // Magic number 946684800000 is the millisecond offset from 1970 Epoch to Y2K Epoch
-private const val UTC_TO_UNIX_EPOCH_MILLIS = 946684800000L
-private const val MILLIS_IN_15_MINUTES = 900000
+const val UTC_TO_UNIX_EPOCH_MILLIS = 946684800000L
+const val MILLIS_IN_15_MINUTES = 900000
 
 /*
  * Return the Epoch Y2K milliseconds (used by GHS)
@@ -193,20 +242,37 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
         parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
     }
 
-//    return parser.value
-
-    val millParser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-    millParser.setLong(millis)
-
     return listOf(
         byteArrayOf(timestampFlags.value.toByte()),
-        millParser.value.copyOfRange(0, 6),
+        millis.asUInt48ByteArray(),
         byteArrayOf(Timesource.currentSource.value.toByte(), offsetUnits.toByte())
     ).merge()
 
 }
 
+fun Long.asUInt48ByteArray(): ByteArray {
+    val millParser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+    millParser.setLong(this)
+    return millParser.value.copyOfRange(0, 6)
+}
+
 // Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter
 fun BitMask.isTimestampSent(): Boolean {
     return !hasFlag(TimestampFlags.isTickCounter)
+}
+
+fun BitMask.isMilliseconds(): Boolean {
+    return (this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isHundredthsMilliseconds)
+}
+
+fun BitMask.isHundredMilliseconds(): Boolean {
+    return !(this hasFlag TimestampFlags.isMilliseconds) and (this hasFlag TimestampFlags.isHundredthsMilliseconds)
+}
+
+fun BitMask.isSeconds(): Boolean {
+    return !(this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isHundredthsMilliseconds)
+}
+
+fun BitMask.isHundredthsMicroseconds(): Boolean {
+    return !(this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isMilliseconds)
 }
