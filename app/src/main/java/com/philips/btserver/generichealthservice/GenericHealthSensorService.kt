@@ -115,7 +115,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         super.onCentralDisconnected(central)
         if (noCentralsConnected()) {
             ObservationEmitter.stopEmitter()
-            ObservationEmitter.transmitEnabled = false
+            isLiveObservationNotifyEnabled = false
         }
     }
 
@@ -130,7 +130,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         characteristic: BluetoothGattCharacteristic
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
-            ObservationEmitter.stopEmitter()
             isLiveObservationNotifyEnabled = true
         }
 //        ObservationEmitter.startEmitter()

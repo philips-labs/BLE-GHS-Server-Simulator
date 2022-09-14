@@ -18,12 +18,6 @@ object ObservationEmitter {
     /*
      * This property enables/disables observation emissions
      */
-    var transmitEnabled = false
-
-
-    /*
-     * This property enables/disables observation emissions
-     */
     var isEmitting = false
         private set(value) {
             ghsService?.canHandleRACP = !value
@@ -218,7 +212,7 @@ object ObservationEmitter {
             Timber.i("No centrals connected, storing observation")
             observations.forEach { ObservationStore.addObservation(it) }
         } else {
-            if (transmitEnabled) {
+            if (ghsService?.isLiveObservationNotifyEnabled ?: false) {
                 observations.forEach { ghsService?.sendObservation(it) }
             } else {
                 Timber.i("Transmit observations is not enabled")

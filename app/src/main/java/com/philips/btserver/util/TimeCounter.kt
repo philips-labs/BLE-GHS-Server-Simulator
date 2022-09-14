@@ -26,12 +26,17 @@ object TimeCounter {
         val parser = BluetoothBytesParser(clockBytes)
         val flags = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8).toByte().asBitmask()
         val lowUint24Value = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT24).toLong()
-        val value =  lowUint24Value + (parser.getIntValue(BluetoothBytesParser.FORMAT_UINT24).toLong().shl(24))
+        val highUint24Value = (parser.getIntValue(BluetoothBytesParser.FORMAT_UINT24).toLong().shl(24))
+        val value =  lowUint24Value + highUint24Value
+
+        val timesource = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
+
+        Timesource.currentSource = Timesource.value(timesource)
 
         val offsetUnits = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
-        val offsetMillis = if(flags.hasFlag(TimestampFlags.isTZPresent)) 0 else offsetUnits * MILLIS_IN_15_MINUTES
+        val offsetMillis = if(!flags.hasFlag(TimestampFlags.isTZPresent)) 0 else offsetUnits * MILLIS_IN_15_MINUTES
         val milliScaledValue = flags.convertToTimeResolutionScaledMillisValue(value)
-        Timber.i("setTimeCounterWithETSBytes value: $value scaled millis: $milliScaledValue offset millis: $offsetMillis")
+        Timber.i("setTimeCounterWithETSBytes value: $value scaled millis: $milliScaledValue offset millis: $offsetMillis source: $timesource")
 
         tzDstOffsetMillis = offsetMillis.toLong()
         epoch2kMillis = milliScaledValue
@@ -46,7 +51,7 @@ object TimeCounter {
 
         // Get the current
         var millis = currentEpoch2kMillis
-        Timber.i("Epoch Y2K: $currentEpoch2kMillis")
+        Timber.i("Current in Epoch Y2K: $currentEpoch2kMillis")
 
         // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
         millis += if (timestampFlags hasFlag TimestampFlags.isUTC) 0L else tzDstOffsetMillis
@@ -57,6 +62,7 @@ object TimeCounter {
         parser.setIntValue(timestampFlags.value.toInt(), BluetoothBytesParser.FORMAT_UINT8)
         Timber.i("Add Flag: ${timestampFlags.asTimestampFlagsString()}")
 
+        Timber.i("Scaled Current Epoch Y2K: ${timestampFlags.getTimeResolutionScaledValue(millis)}")
         // Write the utc/local/tick clock value in the time resolution units
         parser.setLong(timestampFlags.getTimeResolutionScaledValue(millis))
 

@@ -15,6 +15,7 @@ import com.welie.blessed.BluetoothCentralManager
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
 import timber.log.Timber
+import java.sql.Time
 import java.util.*
 
 internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -95,14 +96,21 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     private fun writeSTSBytes(value: ByteArray) : GattStatus {
         val writeFlags = value.first().asBitmask()
-        if (!writeFlagsValid(writeFlags)) return GattStatus.INTERNAL_ERROR
+        if (!writeFlagsValid(writeFlags)) return ERROR_INCORRECT_TIME_FORMAT
+        val source = Timesource.value(value[7].toInt())
+        if (!isTimesourceValid(source)) return ERROR_TIMESOUCE_QUALITY_TOO_LOW
+        val minimumDateAllowed = 1640995200000 - UTC_TO_UNIX_EPOCH_MILLIS
+        val ticks = value[1].toLong() +
+                value[2].toLong().shl(8) +
+                value[3].toLong().shl(16) +
+                value[4].toLong().shl(24) +
+                value[5].toLong().shl(32) +
+                value[6].toLong().shl(40)
+//        if (!writeFlags.hasFlag(TimestampFlags.isTickCounter) && (writeFlags.getTimeResolutionScaledValue(ticks) < minimumDateAllowed) ) {
+//            return ERROR_OUT_OF_RANGE
+//        }
+
         if (writeFlags.hasFlag(TimestampFlags.isTickCounter)) {
-            val ticks = value[1].toLong() +
-                    value[2].toLong().shl(8) +
-                    value[3].toLong().shl(16) +
-                    value[4].toLong().shl(24) +
-                    value[5].toLong().shl(32) +
-                    value[6].toLong().shl(40)
             TickCounter.setTickCounter(ticks)
         } else {
             Timber.i("Writing ETS Time Bytes: ${value.asFormattedHexString()}")
@@ -112,13 +120,17 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         return GattStatus.SUCCESS
     }
 
+    private fun isTimesourceValid(source: Timesource): Boolean {
+        return source != Timesource.Manual
+    }
+
     private fun writeFlagsValid(flags: BitMask) : Boolean {
         val myFlags = TimestampFlags.currentFlags
         return (flags.hasFlag(TimestampFlags.isTickCounter) == myFlags.hasFlag(TimestampFlags.isTickCounter)) &&
                 (flags.hasFlag(TimestampFlags.isUTC) == myFlags.hasFlag(TimestampFlags.isUTC)) &&
-                (flags.hasFlag(TimestampFlags.isTZPresent) == myFlags.hasFlag(TimestampFlags.isTZPresent)) &&
-                (flags.hasFlag(TimestampFlags.isMilliseconds) == myFlags.hasFlag(TimestampFlags.isMilliseconds)) &&
-                (flags.hasFlag(TimestampFlags.isHundredthsMilliseconds) == myFlags.hasFlag(TimestampFlags.isHundredthsMilliseconds))
+                (flags.hasFlag(TimestampFlags.isTZPresent) == myFlags.hasFlag(TimestampFlags.isTZPresent))
+//                && (flags.hasFlag(TimestampFlags.isMilliseconds) == myFlags.hasFlag(TimestampFlags.isMilliseconds)) &&
+//                (flags.hasFlag(TimestampFlags.isHundredthsMilliseconds) == myFlags.hasFlag(TimestampFlags.isHundredthsMilliseconds))
     }
 
     /*
@@ -126,6 +138,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
      */
     fun sendClockBytes(notify: Boolean = true) {
         val bytes = listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
+        Timber.i("Sending ETS Bytes: ${bytes.asFormattedHexString()}")
         simpleTimeCharacteristic.value = bytes
         if (notify) {
             notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
@@ -160,6 +173,10 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         val ELASPED_TIME_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
         private const val SIMPLE_TIME_DESCRIPTION = "Simple Time Service Characteristic"
+
+        private val ERROR_TIMESOUCE_QUALITY_TOO_LOW = GattStatus.fromValue(0x80)
+        private val ERROR_INCORRECT_TIME_FORMAT = GattStatus.fromValue(0x81)
+        private val ERROR_OUT_OF_RANGE = GattStatus.fromValue(0xFF)
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
