@@ -98,7 +98,11 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
                     ObservationStore.clear()
                     sendSuccessResponse(bytes.racpOpCode())
                 }
-                in listOf(OP_WITHIN_RANGE, OP_FIRST_RECORD, OP_LAST_RECORD, OP_LESS_THAN_OR_EQUAL, OP_GREATER_THAN_OR_EQUAL) -> {
+                OP_GREATER_THAN_OR_EQUAL ->  {
+                    // The delete call will send either a no records found or success code
+                    deleteRecordsGreaterOrEqual(bytes)
+                }
+                in listOf(OP_WITHIN_RANGE, OP_FIRST_RECORD, OP_LAST_RECORD, OP_LESS_THAN_OR_EQUAL) -> {
                     sendUnsupportedOperator(bytes.racpOpCode())
                 }
                 else -> {
@@ -161,7 +165,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
         } else {
             return if (isSupportedFilterType(bytes)) {
                 val minValue = getQueryRecordNumber(bytes)
-                ObservationStore.numberOfObservationsEqualOrGreaterThanRecordNumber(minValue)
+                ObservationStore.numberOfObservationsGreaterThanOrEqualRecordNumber(minValue)
 //            max(0, numberStoredRecords - minValue + 1)
             } else {
                 sendUnsupportedOperand(bytes.racpOpCode())
@@ -186,7 +190,23 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
     private fun recordsGreaterOrEqual(bytes: ByteArray): List<Observation>? {
         return if (isSupportedFilterType(bytes)) {
             val minValue = getQueryRecordNumber(bytes)
-            ObservationStore.observationsEqualOrGreaterThanRecordNumber(minValue)
+            ObservationStore.observationsGreaterThanOrEqualRecordNumber(minValue)
+//            max(0, numberStoredRecords - minValue + 1)
+        } else {
+            sendUnsupportedOperand(bytes.racpOpCode())
+            null
+        }
+    }
+
+
+    private fun deleteRecordsGreaterOrEqual(bytes: ByteArray) {
+        if (isSupportedFilterType(bytes)) {
+            val minValue = getQueryRecordNumber(bytes)
+            val numRecords = ObservationStore.removeObservationsGreaterThanOrEqualRecordNumber(minValue)
+            if (numRecords == 0)
+                sendResponseCodeBytes(bytes.racpOpCode(), RESPONSE_CODE_NO_RECORDS)
+            else sendSuccessResponse(bytes.racpOpCode())
+//            sendNoRecordsFound(bytes.racpOpCode())
 //            max(0, numberStoredRecords - minValue + 1)
         } else {
             sendUnsupportedOperand(bytes.racpOpCode())
