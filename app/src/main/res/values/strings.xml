@@ -28,6 +28,7 @@
     <string name="choiceTLVObs">Drug Injection (TLV)</string>
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
     <string name="choiceBundleObs">Bundle selected observations</string>
+    <string name="allow_multiclient_connect">Allow Multiple Connections</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
     <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>
@@ -60,5 +61,6 @@
     <string name="clockManagesDST">Clock manages DST changes</string>
     <string name="clockManagesTZ">Clock manages time zone changes</string>
     <string name="clockReset">Reset clock (time fault)</string>
+    <string name="clockUpdate">Update clock</string>
 
 </resources>

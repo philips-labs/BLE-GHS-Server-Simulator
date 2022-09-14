@@ -1,5 +1,6 @@
 package com.philips.btserver.generichealthservice
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
@@ -10,6 +11,7 @@ import com.philips.btserver.extensions.*
 import com.philips.btserver.util.TickCounter
 import com.philips.btserver.util.TimeCounter
 import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.BluetoothCentralManager
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
 import timber.log.Timber
@@ -19,26 +21,50 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
+    private val disconnectedBondedCentrals = mutableSetOf<String>()
+    private val bondedCentralsToNotify = mutableSetOf<String>()
+
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         ELASPED_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_READ or PERMISSION_WRITE
     )
 
+    private fun hasBondedCentralReconnected(central: BluetoothCentral): Boolean {
+        return disconnectedBondedCentrals.contains(central.address)
+    }
+
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
-        sendClockBytes()
+        if(hasBondedCentralReconnected(central)) bondedReconnected(central)
+    }
+
+    private fun bondedReconnected(central: BluetoothCentral) {
+        Timber.i("Reconnecting bonded central: $central")
+        disconnectedBondedCentrals.remove(central.address)
+        if (bondedCentralsToNotify.contains(central.address)) {
+            notifyReconnectedBondedCentral(central)
+            bondedCentralsToNotify.remove(central.address)
+        }
+    }
+
+    override fun onCentralDisconnected(central: BluetoothCentral) {
+        super.onCentralDisconnected(central)
+        if(central.isBonded()) {
+            Timber.i("Disconnecting bonded central: $central")
+            disconnectedBondedCentrals.add(central.address)
+        }
     }
 
     /**
-     * Notification from [central] that [characteristic] has notification enabled. Implies that
-     * there is a connection so start emitting observations.
+     * Notification from [central] that [characteristic] has notification enabled.
      */
     override fun onNotifyingEnabled(
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ) {
-        sendClockBytes()
+        // TODO: Remove after testing as the ETS spec does not call for doing this so don't just send the clock bytes
+        // sendClockBytes()
     }
 
     /*
@@ -52,7 +78,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
             sendClockBytes(notify = false)
         }
     }
-
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
         Timber.i("onCharacteristicWrite with Bytes: ${value.asFormattedHexString()}")
@@ -99,39 +124,35 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     /*
      * send the current clock in the GHS byte format based on current flags
      */
-    private fun sendClockBytes(notify: Boolean = true) {
+    fun sendClockBytes(notify: Boolean = true) {
         val bytes = listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
-        // TODO Add the Clock status and clock capailities flags for real
         simpleTimeCharacteristic.value = bytes
-        if (notify) notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
+        if (notify) {
+            notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
+            // Mark any disconnected bonded centrals as needing to be notified on connection.
+            bondedCentralsToNotify.addAll(disconnectedBondedCentrals)
+        }
+    }
+
+    private fun notifyReconnectedBondedCentral(central: BluetoothCentral) {
+        // TODO This should only notify the central passed in, but doing that gets buried in BluetoothPerpheralManager>>notifyCharacteristicChanged
+        notifyCharacteristicChanged(simpleTimeCharacteristic.value, simpleTimeCharacteristic)
     }
 
     private fun currentTimeBytes(): ByteArray {
         return TimeCounter.asGHSBytes()
     }
 
-    private fun clockStatusBytes(): ByteArray {
-        return byteArrayOf(0x1)
-    }
+    // Always wants the clock to be set
+    private fun clockStatusBytes(): ByteArray { return byteArrayOf(0x1) }
 
-    private fun clockCapabilitiesBytes(): ByteArray {
-        val clockFlags = TimestampFlags.currentFlags
-        return byteArrayOf(if (clockFlags.hasFlag(TimestampFlags.isTZPresent)) 0x6 else 0)
-    }
+    private fun clockCapabilitiesBytes(): ByteArray { return byteArrayOf(0) }
 
     init {
-        initCharacteristic(simpleTimeCharacteristic, SIMPLE_TIME_DESCRIPTION)
-    }
-
-    // TODO This is a dupe of the method in SimpleTimeService... let's make this an extension!
-    private fun initCharacteristic(
-        characteristic: BluetoothGattCharacteristic,
-        description: String
-    ) {
-        service.addCharacteristic(characteristic)
-        characteristic.addDescriptor(getCccDescriptor())
-        characteristic.addDescriptor(getCudDescriptor(description))
-        characteristic.value = byteArrayOf(0x00)
+        service.addCharacteristic(simpleTimeCharacteristic)
+        simpleTimeCharacteristic.addDescriptor(getCccDescriptor())
+        simpleTimeCharacteristic.addDescriptor(getCudDescriptor(SIMPLE_TIME_DESCRIPTION))
+        sendClockBytes(false)
     }
 
     companion object {
@@ -154,3 +175,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 fun Byte.asBitmask(): BitMask {
     return BitMask(toLong())
 }
+
+fun BluetoothCentral.isBonded(): Boolean {
+    return BluetoothServer.getInstance()?.isCentralBonded(this) ?: false
+}
+

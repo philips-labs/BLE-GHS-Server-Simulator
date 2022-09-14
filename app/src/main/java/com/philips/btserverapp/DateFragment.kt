@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.util.TickCounter
 
 class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
@@ -32,6 +33,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         super.onViewCreated(view, savedInstanceState)
         setupTimeSourceSpinner()
         setupClockChoices()
+        setupButtons()
     }
 
     override fun onResume() {
@@ -74,9 +76,17 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         binding.choiceClockIncludesTZ.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isTZPresent)
     }
 
+    private fun setupButtons() {
+        binding.btnUpdateClock.setOnClickListener { updateClock() }
+    }
+
+    private fun updateClock() {
+        ElapsedTimeService.getInstance()?.sendClockBytes()
+    }
+
     private fun setupTimeSourceSpinner() {
         ArrayAdapter.createFromResource(
-            this.context!!,
+            context!!,
             R.array.date_sync_methods_array,
             android.R.layout.simple_spinner_item
         ).also { adapter ->

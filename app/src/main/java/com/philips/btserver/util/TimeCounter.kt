@@ -9,9 +9,9 @@ import java.util.*
 
 object TimeCounter {
 
-    private var tzDstOffsetMillis = 0L
-    private var epoch2kMillis = 0L
-    private var currentTimeMillis = 0L
+    private var epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
+    private var currentTimeMillis = System.currentTimeMillis()
+    private var tzDstOffsetMillis = TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
 
     private val currentEpoch2kMillis
         get() = epoch2kMillis + System.currentTimeMillis() - currentTimeMillis

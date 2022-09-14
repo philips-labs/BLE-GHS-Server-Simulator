@@ -72,6 +72,14 @@
             android:textAllCaps="false"
             android:textColor="@android:color/white" />
 
+        <android.widget.Switch
+            android:id="@+id/toggleMultiClientConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/allow_multiclient_connect"
+            android:textSize="16sp"/>
+
     </LinearLayout>
 
 </FrameLayout>
