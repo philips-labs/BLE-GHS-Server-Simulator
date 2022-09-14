@@ -128,8 +128,7 @@ enum class ObservationClass(val value: Byte) {
     Compound(0x04),
     CompoundDiscreteEvent(0x05),
     CompoundState(0x06),
-    CompoundObservation(0x07),
-    TLVEncoded(0x08),
+    TLVEncoded(0x07),
     ObservationBundle(0xFF.toByte()),
     Unknown(0xF0.toByte());
 
