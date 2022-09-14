@@ -122,6 +122,10 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     var isLiveObservationNotifyEnabled = false
     var isLiveObservationsStarted = false
 
+    fun isSendLiveObservationsEnabled(): Boolean {
+        return isLiveObservationNotifyEnabled && isLiveObservationsStarted
+    }
+
     /**
      * Notification from [central] that [characteristic] has notification enabled. Implies that
      * there is a connection so start emitting observations.
