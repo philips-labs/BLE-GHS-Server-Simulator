@@ -205,6 +205,11 @@ object ObservationEmitter {
         ghsService?.setFeatureCharacteristicTypes(types)
     }
 
+    private fun sendObservationsEnabled(): Boolean {
+        return (ghsService?.isLiveObservationNotifyEnabled ?: false) &&
+                (ghsService?.isLiveObservationsStarted ?: false)
+    }
+
     private fun sendObservations(singleShot: Boolean, forceStore: Boolean = false) {
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
@@ -212,7 +217,7 @@ object ObservationEmitter {
             Timber.i("No centrals connected, storing observation")
             observations.forEach { ObservationStore.addObservation(it) }
         } else {
-            if (ghsService?.isLiveObservationNotifyEnabled ?: false) {
+            if (sendObservationsEnabled()) {
                 observations.forEach { ghsService?.sendObservation(it) }
             } else {
                 Timber.i("Transmit observations is not enabled")

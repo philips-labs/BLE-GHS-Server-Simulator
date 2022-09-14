@@ -120,6 +120,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     var isLiveObservationNotifyEnabled = false
+    var isLiveObservationsStarted = false
 
     /**
      * Notification from [central] that [characteristic] has notification enabled. Implies that
