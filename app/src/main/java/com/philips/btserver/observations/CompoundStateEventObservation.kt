@@ -12,7 +12,7 @@ data class CompoundStateEventObservation(
 ) : Observation() {
 
     // This is the nibble that represents the observation class in the header bytes
-    override val classByte: ObservationClass = ObservationClass.CompoundDiscreteEvent
+    override val classByte: ObservationClass = ObservationClass.CompoundState
 
     override val unitCode: UnitCode
         get() = UnitCode.UNKNOWN_CODE
