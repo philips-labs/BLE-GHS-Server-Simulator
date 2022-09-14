@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
+import android.os.SystemClock
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
@@ -110,7 +111,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 //            return ERROR_OUT_OF_RANGE
 //        }
 
-        if (writeFlags.hasFlag(TimestampFlags.isTickCounter)) {
+        if (writeFlags.isTickCounter()) {
             TickCounter.setTickCounter(ticks)
         } else {
             Timber.i("Writing ETS Time Bytes: ${value.asFormattedHexString()}")
@@ -126,7 +127,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     private fun writeFlagsValid(flags: BitMask) : Boolean {
         val myFlags = TimestampFlags.currentFlags
-        return (flags.hasFlag(TimestampFlags.isTickCounter) == myFlags.hasFlag(TimestampFlags.isTickCounter)) &&
+        return (flags.isTickCounter() == myFlags.isTickCounter()) &&
                 (flags.hasFlag(TimestampFlags.isUTC) == myFlags.hasFlag(TimestampFlags.isUTC)) &&
                 (flags.hasFlag(TimestampFlags.isTZPresent) == myFlags.hasFlag(TimestampFlags.isTZPresent)) &&
                 (flags.hasFlag(TimestampFlags.isMilliseconds) == myFlags.hasFlag(TimestampFlags.isMilliseconds)) &&
@@ -153,7 +154,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     private fun currentTimeBytes(): ByteArray {
-        return TimeCounter.asGHSBytes()
+        return if (TimestampFlags.currentFlags.isTickCounter()) TickCounter.asGHSBytes() else TimeCounter.asGHSBytes()
     }
 
     // Always wants the clock to be set

@@ -126,6 +126,11 @@ object ObservationEmitter {
     private fun randomObservationOfType(type: ObservationType, timestamp: Date): Observation? {
         return if (type == ObservationType.MDC_DOSE_DRUG_DELIV) {
             randomDrugInjectionObservation(type, timestamp)
+        } else if(type == ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS) {
+            // CompoundDiscreteObs
+            randomPumpProgramStatus(type, timestamp)
+        }  else if(type == ObservationType.MDC_ATTR_ALARM_STATE) {
+            randomAlarmState(type, timestamp)
         } else {
             when(type.valueType()) {
                 ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type, timestamp)
@@ -136,6 +141,26 @@ object ObservationEmitter {
                 else -> null
             }
         }
+    }
+
+    private fun randomPumpProgramStatus(type: ObservationType, timestamp: Date): Observation {
+        return CompoundDiscreetEventObservation(lastHandle++.toShort(),
+            type,
+            listOf(
+                ObservationEvent.MDC_EVT_SENSOR_DISCONN,
+                ObservationEvent.MDC_EVT_SENSOR_MALF
+            ),
+            timestamp)
+    }
+
+    private fun randomAlarmState(type: ObservationType, timestamp: Date): Observation {
+        return CompoundStateEventObservation(lastHandle++.toShort(),
+            type,
+            CompoundStateEventValue(
+                supportedMaskBits = byteArrayOf(0xFF.toByte()),
+                stateOrEventBits=  byteArrayOf(0xF0.toByte()),
+                value=  byteArrayOf(0xAA.toByte())),
+            timestamp)
     }
 
     private fun randomDrugInjectionObservation(type: ObservationType, timestamp: Date): Observation {

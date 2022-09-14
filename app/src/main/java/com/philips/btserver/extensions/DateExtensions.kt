@@ -1,6 +1,7 @@
 package com.philips.btserver.extensions
 
 import android.os.SystemClock
+import com.philips.btserver.util.TickCounter
 import com.welie.blessed.BluetoothBytesParser
 import timber.log.Timber
 import java.nio.ByteOrder
@@ -115,7 +116,7 @@ fun BitMask.getTimeResolutionScaledValue(millis: Long): Long {
 }
 
 fun BitMask.asTimestampFlagsString(): String {
-    val ticksOrTime = if (this hasFlag TimestampFlags.isTickCounter) "Ticks" else "Time"
+    val ticksOrTime = if (this.isTickCounter()) "Ticks" else "Time"
     val utcOrLocal = if (this hasFlag TimestampFlags.isUTC) "UTC" else "Local"
     val millsOrSecs = if (this hasFlag TimestampFlags.isMilliseconds) "Millis" else "Seconds"
     val hasTZ = if (this hasFlag TimestampFlags.isTZPresent) "TZ" else "No TZ"
@@ -123,6 +124,9 @@ fun BitMask.asTimestampFlagsString(): String {
     return "Value: ${value.toByte().asHexString()} : $ticksOrTime : $utcOrLocal : $millsOrSecs : $hasTZ : $current timeline"
 }
 
+fun BitMask.isTickCounter(): Boolean {
+    return this hasFlag TimestampFlags.isTickCounter
+}
 
 enum class Timesource(val value: Int) {
     Unknown(0),
@@ -200,12 +204,11 @@ fun Date.epoch2000mills(): Long {
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
     val currentTimeMillis = System.currentTimeMillis()
-    val isTickCounter = timestampFlags hasFlag TimestampFlags.isTickCounter
 
-    var millis = if (isTickCounter) SystemClock.elapsedRealtime() else epoch2000mills()
+    var millis = if (timestampFlags.isTickCounter()) SystemClock.elapsedRealtime() else epoch2000mills()
     Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
 
-    if (!isTickCounter) {
+    if (!timestampFlags.isTickCounter()) {
         // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
         val utcOffsetMillis = if (timestampFlags hasFlag TimestampFlags.isUTC) 0L else TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
         millis += utcOffsetMillis
@@ -229,7 +232,7 @@ fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
 
     var offsetUnits = 0
 
-    if (!isTickCounter) {
+    if (!timestampFlags.isTickCounter()) {
         // If a timestamp include the time sync source (NTP, GPS, Network, etc)
         parser.setIntValue(Timesource.currentSource.value, BluetoothBytesParser.FORMAT_UINT8)
         Timber.i("Add Timesource Value: ${Timesource.currentSource.value}")

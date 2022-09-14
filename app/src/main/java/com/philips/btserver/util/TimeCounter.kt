@@ -10,16 +10,16 @@ import java.util.*
 object TimeCounter {
 
     private var epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
-    private var currentTimeMillis = System.currentTimeMillis()
-    private var tzDstOffsetMillis = TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
+    private var counterStartTimeMillis = System.currentTimeMillis()
+    private var tzDstOffsetMillis = TimeZone.getDefault().getOffset(counterStartTimeMillis).toLong()
 
     private val currentEpoch2kMillis
-        get() = epoch2kMillis + System.currentTimeMillis() - currentTimeMillis
+        get() = epoch2kMillis + System.currentTimeMillis() - counterStartTimeMillis
 
     fun setToCurrentSystemTime() {
         epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
-        currentTimeMillis = System.currentTimeMillis()
-        tzDstOffsetMillis = TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
+        counterStartTimeMillis = System.currentTimeMillis()
+        tzDstOffsetMillis = TimeZone.getDefault().getOffset(counterStartTimeMillis).toLong()
     }
 
     fun setTimeCounterWithETSBytes(clockBytes: ByteArray) {
@@ -40,7 +40,7 @@ object TimeCounter {
 
         tzDstOffsetMillis = offsetMillis.toLong()
         epoch2kMillis = milliScaledValue
-        currentTimeMillis = System.currentTimeMillis()
+        counterStartTimeMillis = System.currentTimeMillis()
     }
 
     fun asGHSBytes(): ByteArray {

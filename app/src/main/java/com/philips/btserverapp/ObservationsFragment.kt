@@ -40,6 +40,8 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.checkboxDiscreteObs.setOnClickListener { clickDiscreteObs() }
         binding.checkboxStringObs.setOnClickListener { clickStringObs() }
         binding.checkboxTLVObs.setOnClickListener { clickTLVObs() }
+        binding.checkboxCompoundDiscreteObs.setOnClickListener { clickCompoundDiscreteObs() }
+        binding.checkboxCompoundStateEventObs.setOnClickListener { clickCompoundStateEventObs() }
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
@@ -123,6 +125,26 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         }
         checkIfCanBundle()
     }
+
+    fun clickCompoundDiscreteObs() {
+        if (binding.checkboxCompoundDiscreteObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
+        }
+        checkIfCanBundle()
+    }
+
+
+    fun clickCompoundStateEventObs() {
+        if (binding.checkboxCompoundStateEventObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
+        }
+        checkIfCanBundle()
+    }
+
 
     fun clickTLVObs() {
         if (binding.checkboxTLVObs.isChecked) {

@@ -79,6 +79,20 @@
                 android:text="@string/choiceTLVObs" />
 
             <CheckBox
+                android:id="@+id/checkboxCompoundDiscreteObs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/choiceCompoundDiscreteObs" />
+
+            <CheckBox
+                android:id="@+id/checkboxCompoundStateEventObs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/choiceCompoundStateEventObs" />
+
+            <CheckBox
                 android:id="@+id/checkboxBundleObs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
