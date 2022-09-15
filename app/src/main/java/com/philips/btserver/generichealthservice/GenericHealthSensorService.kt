@@ -76,12 +76,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         PERMISSION_WRITE
     )
 
-    internal val uniqueDeviceIdCharacteristic = BluetoothGattCharacteristic(
-        UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID,
-        PROPERTY_READ,
-        PERMISSION_READ
-    )
-
     internal val racpCharacteristic = BluetoothGattCharacteristic(
         RACP_CHARACTERISTIC_UUID,
         PROPERTY_WRITE or PROPERTY_INDICATE,
@@ -90,8 +84,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val observationScheduleCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_SCHEDULE_CHANGED_CHARACTERISTIC_UUID,
-        PROPERTY_INDICATE,
-        0
+        PROPERTY_READ or PROPERTY_INDICATE,
+        PERMISSION_READ
     )
 
 //    fun setupHack() {
@@ -209,6 +203,45 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
+    override fun onDescriptorWrite(
+        central: BluetoothCentral,
+        descriptor: BluetoothGattDescriptor,
+        value: ByteArray
+    ): GattStatus {
+        return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
+            configureObservationScheduleDescriptor(descriptor, value)
+        } else {
+            super.onDescriptorWrite(central, descriptor, value)
+        }
+    }
+
+    fun getObservationScheduleDescriptorFor(observationType: ObservationType): BluetoothGattDescriptor? {
+        return featuresCharacteristic.descriptors.first {
+            it.observationType() == observationType
+        }
+    }
+
+    fun BluetoothGattDescriptor.observationType(): ObservationType {
+        return ObservationType.MDC_ATTR_ALERT_TYPE
+    }
+
+    private fun configureObservationScheduleDescriptor(descriptor: BluetoothGattDescriptor,
+                                                       value: ByteArray): GattStatus {
+        // Validate the Observation Type
+        val parser = BluetoothBytesParser(value)
+        // Check that the observation type matches the descriptors observation type
+        val observationType = ObservationType.fromValue(parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32))
+        val descriptorObsType = ObservationType.fromValue(BluetoothBytesParser(descriptor.value).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
+        if (observationType != descriptorObsType) return GattStatus.VALUE_OUT_OF_RANGE
+
+        val measurementPeriod = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
+        val updateInterval = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
+        Timber.i("Observation schedule descriptor write for type: $observationType measurement period: $measurementPeriod update interval $updateInterval ")
+        descriptor.value = value
+        observationScheduleCharacteristic.value = value
+        return GattStatus.SUCCESS
+    }
+
     private fun writeGattStatusFor(value: ByteArray): GattStatus {
         return if (canHandleRACP) {
             controlPointHandler.writeGattStatusFor(value)
@@ -232,14 +265,25 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         notifyCharacteristicChanged(value, characteristic)
     }
 
+    private fun getObservationScheduleDescriptor(): BluetoothGattDescriptor {
+        val currentDescriptor = featuresCharacteristic.getDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID)
+        return if (currentDescriptor == null) {
+            val newDescriptor = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
+                BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
+            featuresCharacteristic.addDescriptor(newDescriptor)
+            newDescriptor
+        } else {
+            currentDescriptor
+        }
+    }
+
     fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
-        val scheduleDesc = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
+        val scheduleDesc = getObservationScheduleDescriptor()
         val parser = BluetoothBytesParser()
         parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
         parser.setFloatValue(measurementPeriod, 3)
         parser.setFloatValue(updateInterval, 3)
         scheduleDesc.value = parser.value
-        featuresCharacteristic.addDescriptor(scheduleDesc)
     }
 
     fun setValidRangeAndAccuracy(observationType: ObservationType, unitCode: UnitCode, lowerLimit: Float, upperLimit: Float, accuracy: Float) {
@@ -302,8 +346,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             UUID.fromString("00007f42-0000-1000-8000-00805f9b34fb")
         val GHS_FEATURES_CHARACTERISTIC_UUID =
             UUID.fromString("00007f41-0000-1000-8000-00805f9b34fb")
-        val UNIQUE_DEVICE_ID_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f3a-0000-1000-8000-00805f9b34fb")
         val GHS_CONTROL_POINT_CHARACTERISTIC_UUID =
             UUID.fromString("00007f40-0000-1000-8000-00805f9b34fb")
         val RACP_CHARACTERISTIC_UUID =
@@ -321,6 +363,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val UNIQUE_DEVICE_ID_DESCRIPTION = "Unique device ID (UDI) characteristic"
         private const val RACP_DESCRIPTION = "RACP Characteristic."
         private const val GHS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
+        private const val OBSERVATION_SCHEDULE_DESCRIPTION = "Observation Schedule characteristic"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
@@ -337,9 +380,9 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         initCharacteristic(storedObservationCharacteristic, STORED_OBSERVATIONS_DESCRIPTION)
 //        initCharacteristic(simpleTimeCharacteristic, SIMPLE_TIME_DESCRIPTION)
         initCharacteristic(featuresCharacteristic, FEATURES_DESCRIPTION)
-        initCharacteristic(uniqueDeviceIdCharacteristic, UNIQUE_DEVICE_ID_DESCRIPTION)
         initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
         initCharacteristic(ghsControlPointCharacteristic, GHS_CONTROL_POINT_DESCRIPTION)
+        initCharacteristic(observationScheduleCharacteristic, OBSERVATION_SCHEDULE_DESCRIPTION)
     }
 
     private fun initCharacteristic(
