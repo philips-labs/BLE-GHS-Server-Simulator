@@ -55,6 +55,13 @@ object ObservationEmitter {
 
     private var lastHandle = 1
 
+    val allObservationTypes = mutableSetOf(
+        ObservationType.MDC_ECG_HEART_RATE,
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO,
+        ObservationType.MDC_TEMP_BODY,
+        ObservationType.MDC_PPG_TIME_PD_PP
+    )
+
     val observationTypes = mutableSetOf<ObservationType>()
 
     // Made public for unit testing
@@ -99,6 +106,10 @@ object ObservationEmitter {
 
     fun addStoredObservation() {
         sendObservations(true, true)
+    }
+
+    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float) {
+
     }
 
     fun reset() {

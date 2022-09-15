@@ -84,8 +84,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val observationScheduleCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_SCHEDULE_CHANGED_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_INDICATE,
-        PERMISSION_READ
+        PROPERTY_INDICATE,
+        0
     )
 
 //    fun setupHack() {
@@ -215,14 +215,17 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    fun getObservationScheduleDescriptorFor(observationType: ObservationType): BluetoothGattDescriptor? {
-        return featuresCharacteristic.descriptors.first {
-            it.observationType() == observationType
-        }
+    fun BluetoothGattDescriptor.observationType(): ObservationType {
+        val type = value.getObservationType()
+        return if (type == null)
+            ObservationType.UNKNOWN_TYPE
+        else type
     }
 
-    fun BluetoothGattDescriptor.observationType(): ObservationType {
-        return ObservationType.MDC_ATTR_ALERT_TYPE
+    fun ByteArray.getObservationType(): ObservationType? {
+        return if (size > 3)
+            ObservationType.fromValue(BluetoothBytesParser(this).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
+        else null
     }
 
     private fun configureObservationScheduleDescriptor(descriptor: BluetoothGattDescriptor,
@@ -231,14 +234,23 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         val parser = BluetoothBytesParser(value)
         // Check that the observation type matches the descriptors observation type
         val observationType = ObservationType.fromValue(parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32))
-        val descriptorObsType = ObservationType.fromValue(BluetoothBytesParser(descriptor.value).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
-        if (observationType != descriptorObsType) return GattStatus.VALUE_OUT_OF_RANGE
+        descriptor.value.let {
+            val descriptorObsType = ObservationType.fromValue(BluetoothBytesParser(it).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
+            if (observationType != descriptorObsType) return GattStatus.VALUE_OUT_OF_RANGE
+        }
 
         val measurementPeriod = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
+        if (measurementPeriod < MIN_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
+        if (measurementPeriod > MAX_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
         val updateInterval = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
+        if (updateInterval < MIN_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
+        if (updateInterval > MAX_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
+
         Timber.i("Observation schedule descriptor write for type: $observationType measurement period: $measurementPeriod update interval $updateInterval ")
         descriptor.value = value
-        observationScheduleCharacteristic.value = value
+        setCharacteristicValueAndNotify(value, observationScheduleCharacteristic)
+        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter
+        ObservationEmitter.setObservationSchedule(observationType, updateInterval)
         return GattStatus.SUCCESS
     }
 
@@ -265,20 +277,27 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         notifyCharacteristicChanged(value, characteristic)
     }
 
-    private fun getObservationScheduleDescriptor(): BluetoothGattDescriptor {
-        val currentDescriptor = featuresCharacteristic.getDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID)
+    private fun getObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
+        val currentDescriptor = featuresCharacteristic.descriptors
+            .filter { it.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID }
+            .firstOrNull { it.observationType() == observationType }
+
         return if (currentDescriptor == null) {
-            val newDescriptor = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
-                BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
-            featuresCharacteristic.addDescriptor(newDescriptor)
-            newDescriptor
+            createObservationScheduleDescriptor(observationType)
         } else {
             currentDescriptor
         }
     }
 
+    fun createObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
+        val newDescriptor = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
+            BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
+        featuresCharacteristic.addDescriptor(newDescriptor)
+        return newDescriptor
+    }
+
     fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
-        val scheduleDesc = getObservationScheduleDescriptor()
+        val scheduleDesc = getObservationScheduleDescriptor(observationType)
         val parser = BluetoothBytesParser()
         parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
         parser.setFloatValue(measurementPeriod, 3)
@@ -365,6 +384,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val GHS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
         private const val OBSERVATION_SCHEDULE_DESCRIPTION = "Observation Schedule characteristic"
 
+        private const val MIN_MEASUREMENT_PERIOD = 0f
+        private const val MAX_MEASUREMENT_PERIOD = 60f
+        private const val MIN_UPDATE_INVERVAL = 1f
+        private const val MAX_UPDATE_INVERVAL = 1f
+
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
          */
@@ -392,7 +416,22 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         service.addCharacteristic(characteristic)
         characteristic.addDescriptor(getCccDescriptor())
         characteristic.addDescriptor(getCudDescriptor(description))
+        if(characteristic.uuid == GHS_FEATURES_CHARACTERISTIC_UUID) {
+            initObservationScheduleDescriptors()
+        }
         characteristic.value = byteArrayOf(0x00)
+    }
+
+    private fun initObservationScheduleDescriptors() {
+//        ObservationEmitter.allObservationTypes.first {
+        listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
+            val descriptor = createObservationScheduleDescriptor(it)
+            val parser = BluetoothBytesParser()
+            parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setFloatValue(1f, 3)
+            parser.setFloatValue(1f, 3)
+            descriptor.value = parser.value
+        }
     }
 
     /**
