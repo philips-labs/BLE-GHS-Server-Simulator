@@ -23,9 +23,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
-    private val disconnectedBondedCentrals = mutableSetOf<String>()
-    private val bondedCentralsToNotify = mutableSetOf<String>()
-
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         ELASPED_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
@@ -34,28 +31,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     private fun hasBondedCentralReconnected(central: BluetoothCentral): Boolean {
         return disconnectedBondedCentrals.contains(central.address)
-    }
-
-    override fun onCentralConnected(central: BluetoothCentral) {
-        super.onCentralConnected(central)
-        if(hasBondedCentralReconnected(central)) bondedReconnected(central)
-    }
-
-    private fun bondedReconnected(central: BluetoothCentral) {
-        Timber.i("Reconnecting bonded central: $central")
-        disconnectedBondedCentrals.remove(central.address)
-        if (bondedCentralsToNotify.contains(central.address)) {
-            notifyReconnectedBondedCentral(central)
-            bondedCentralsToNotify.remove(central.address)
-        }
-    }
-
-    override fun onCentralDisconnected(central: BluetoothCentral) {
-        super.onCentralDisconnected(central)
-        if(central.isBonded()) {
-            Timber.i("Disconnecting bonded central: $central")
-            disconnectedBondedCentrals.add(central.address)
-        }
     }
 
     /**
@@ -144,13 +119,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         if (notify) {
             notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
             // Mark any disconnected bonded centrals as needing to be notified on connection.
-            bondedCentralsToNotify.addAll(disconnectedBondedCentrals)
+            updateDisconnectedBondedCentralsToNotify(simpleTimeCharacteristic)
         }
-    }
-
-    private fun notifyReconnectedBondedCentral(central: BluetoothCentral) {
-        // TODO This should only notify the central passed in, but doing that gets buried in BluetoothPerpheralManager>>notifyCharacteristicChanged
-        notifyCharacteristicChanged(simpleTimeCharacteristic.value, simpleTimeCharacteristic)
     }
 
     private fun currentTimeBytes(): ByteArray {

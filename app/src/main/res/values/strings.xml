@@ -18,6 +18,7 @@
     <string name="stopEmitter">Stop observation emitter</string>
     <string name="singleShotEmit">Emit single-shot observation(s)</string>
     <string name="addStoredObs">Add stored observation(s)</string>
+    <string name="triggerObservationSchedule">Trigger Observation Schedule</string>
     <string name="choiceTempObs">Temperature (Simple Numeric)</string>
     <string name="choiceHRObs">Heart rate (Simple Numeric)</string>
     <string name="choiceSPO2Obs">SpO2 (Simple Numeric)</string>

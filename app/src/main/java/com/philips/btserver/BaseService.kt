@@ -7,15 +7,21 @@ package com.philips.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import com.philips.btserver.generichealthservice.isBonded
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
+import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
 abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
     val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
+
+
+    protected val disconnectedBondedCentrals = mutableSetOf<String>()
+    protected val bondedCentralsToNotify = mutableMapOf<BluetoothGattCharacteristic, MutableSet<String>>()
 
     fun getCccDescriptor(): BluetoothGattDescriptor {
         val cccDescriptor = BluetoothGattDescriptor(CCC_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
@@ -115,7 +121,34 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      * Subclasses do not need to provide an implementation
      */
     override fun onCentralConnected(central: BluetoothCentral) {
-        // To be implemented by sub class
+        if(hasBondedCentralReconnected(central)) bondedReconnected(central)
+    }
+
+    private fun hasBondedCentralReconnected(central: BluetoothCentral): Boolean {
+        return disconnectedBondedCentrals.contains(central.address)
+    }
+
+
+    private fun bondedReconnected(central: BluetoothCentral) {
+        Timber.i("Reconnecting bonded central: $central")
+        disconnectedBondedCentrals.remove(central.address)
+        bondedCentralsToNotify.forEach {
+            if (it.value.contains(central.address)) {
+                notifyReconnectedBondedCentral(central, it.key)
+                it.value.remove(central.address)
+                // TODO if the set is now empty should we remove the entry from the map?
+            }
+        }
+    }
+
+    protected fun updateDisconnectedBondedCentralsToNotify(characteristic: BluetoothGattCharacteristic) {
+        val centrals = bondedCentralsToNotify.getOrPut(characteristic, {mutableSetOf()})
+        centrals.addAll(disconnectedBondedCentrals)
+    }
+
+    private fun notifyReconnectedBondedCentral(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+        // TODO This should only notify the central passed in, but doing that gets buried in BluetoothPerpheralManager>>notifyCharacteristicChanged
+        notifyCharacteristicChanged(characteristic.value, characteristic)
     }
 
     /*
@@ -123,7 +156,10 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      * Subclasses do not need to provide an implementation
      */
     override fun onCentralDisconnected(central: BluetoothCentral) {
-        // To be implemented by sub class
+        if(central.isBonded()) {
+            Timber.i("Disconnecting bonded central: $central")
+            disconnectedBondedCentrals.add(central.address)
+        }
     }
 
     companion object {
@@ -131,4 +167,20 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         val CCC_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val MAX_MIN_MTU = 23
     }
+}
+
+fun BluetoothPeripheralManager.notifyCharacteristicChanged(
+    value: ByteArray,
+    characteristic: BluetoothGattCharacteristic
+): Boolean {
+    Objects.requireNonNull(value, BluetoothPeripheralManager.CHARACTERISTIC_VALUE_IS_NULL)
+    Objects.requireNonNull(characteristic, BluetoothPeripheralManager.CHARACTERISTIC_IS_NULL)
+    if (doesNotSupportNotifying(characteristic)) return false
+    var result = true
+    for (device in getConnectedDevices()) {
+        if (!notifyCharacteristicChanged(copyOf(value), device, characteristic)) {
+            result = false
+        }
+    }
+    return result
 }

@@ -47,6 +47,11 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
         binding.btnAddStored.setOnClickListener { ObservationEmitter.addStoredObservation() }
+        binding.btnTriggerObservationSchedule.setOnClickListener {
+            ObservationEmitter.setObservationSchedule(
+                ObservationType.MDC_ECG_HEART_RATE,
+                4f,
+                4f) }
 //        updateObservationCount()
 //        updateEmitterButton()
         checkIfCanBundle()
@@ -92,9 +97,9 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
 
     fun clickSPO2Obs() {
         if (binding.checkboxSPO2Obs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
+            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_O2)
         } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
+            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_O2)
         }
         checkIfCanBundle()
     }
@@ -145,7 +150,6 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         checkIfCanBundle()
     }
 
-
     fun clickTLVObs() {
         if (binding.checkboxTLVObs.isChecked) {
             ObservationEmitter.addObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
@@ -178,6 +182,11 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
             ObservationEmitter.startEmitter()
         }
         updateEmitterButton()
+    }
+
+
+    private fun triggerObservationScheduleChange() {
+        ObservationEmitter.setObservationSchedule(ObservationType.MDC_ECG_HEART_RATE, 4f, 4f)
     }
 
     private fun updateEmitterButton() {

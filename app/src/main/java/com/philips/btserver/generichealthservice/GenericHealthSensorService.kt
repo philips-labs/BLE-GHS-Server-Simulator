@@ -247,11 +247,15 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         if (updateInterval > MAX_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
 
         Timber.i("Observation schedule descriptor write for type: $observationType measurement period: $measurementPeriod update interval $updateInterval ")
+        setObservationScheduleDescriptorValue(descriptor, value)
+        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter
+        ObservationEmitter.setObservationSchedule(observationType, updateInterval, measurementPeriod)
+        return GattStatus.SUCCESS
+    }
+
+    private fun setObservationScheduleDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
         descriptor.value = value
         setCharacteristicValueAndNotify(value, observationScheduleCharacteristic)
-        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter
-        ObservationEmitter.setObservationSchedule(observationType, updateInterval)
-        return GattStatus.SUCCESS
     }
 
     private fun writeGattStatusFor(value: ByteArray): GattStatus {
@@ -302,7 +306,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
         parser.setFloatValue(measurementPeriod, 3)
         parser.setFloatValue(updateInterval, 3)
-        scheduleDesc.value = parser.value
+        setObservationScheduleDescriptorValue(scheduleDesc, parser.value)
     }
 
     fun setValidRangeAndAccuracy(observationType: ObservationType, unitCode: UnitCode, lowerLimit: Float, upperLimit: Float, accuracy: Float) {
@@ -387,7 +391,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val MIN_MEASUREMENT_PERIOD = 0f
         private const val MAX_MEASUREMENT_PERIOD = 60f
         private const val MIN_UPDATE_INVERVAL = 1f
-        private const val MAX_UPDATE_INVERVAL = 1f
+        private const val MAX_UPDATE_INVERVAL = 60f
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
@@ -424,6 +428,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     private fun initObservationScheduleDescriptors() {
 //        ObservationEmitter.allObservationTypes.first {
+        // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
         listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
             val descriptor = createObservationScheduleDescriptor(it)
             val parser = BluetoothBytesParser()
@@ -487,7 +492,7 @@ private fun List<ObservationType>.deviceSpecializations(): List<DeviceSpecializa
 private fun ObservationType.deviceSpecialization(): DeviceSpecialization {
     return when(this) {
         ObservationType.MDC_TEMP_BODY -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_TEMP
-        ObservationType.MDC_PULS_OXIM_SAT_O2 -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_PULS_OXIM
+        ObservationType.MDC_PULS_OXIM_O2 -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_PULS_OXIM
         ObservationType.MDC_PPG_TIME_PD_PP -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_ECG
         ObservationType.MDC_PRESS_BLD_NONINV -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_BP
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_BP

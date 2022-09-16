@@ -190,6 +190,16 @@
             android:text="@string/addStoredObs"
             android:textAllCaps="false" />
 
+        <Button
+            android:id="@+id/btnTriggerObservationSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/triggerObservationSchedule"
+            android:textAllCaps="false" />
+
     </LinearLayout>
 
 </FrameLayout>
