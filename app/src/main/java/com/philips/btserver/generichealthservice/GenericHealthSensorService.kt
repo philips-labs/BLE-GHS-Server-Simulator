@@ -209,7 +209,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ): GattStatus {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
-            configureObservationScheduleDescriptor(descriptor, value)
+            configureObservationScheduleDescriptor(descriptor, central, value)
         } else {
             super.onDescriptorWrite(central, descriptor, value)
         }
@@ -229,6 +229,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     private fun configureObservationScheduleDescriptor(descriptor: BluetoothGattDescriptor,
+                                                       central: BluetoothCentral,
                                                        value: ByteArray): GattStatus {
         // Validate the Observation Type
         val parser = BluetoothBytesParser(value)
@@ -247,15 +248,25 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         if (updateInterval > MAX_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
 
         Timber.i("Observation schedule descriptor write for type: $observationType measurement period: $measurementPeriod update interval $updateInterval ")
-        setObservationScheduleDescriptorValue(descriptor, value)
-        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter
-        ObservationEmitter.setObservationSchedule(observationType, updateInterval, measurementPeriod)
+        setObservationScheduleDescriptorValue(descriptor, central, value)
+        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter (also get rid of double notifies and reason for that boolean)
+        ObservationEmitter.setObservationSchedule(observationType, updateInterval, measurementPeriod, false)
         return GattStatus.SUCCESS
     }
 
-    private fun setObservationScheduleDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
+    private fun setObservationScheduleDescriptorValue(descriptor: BluetoothGattDescriptor, central: BluetoothCentral?, value: ByteArray) {
+        Timber.i("setObservationScheduleDescriptorValue from central: ${central?.address}")
         descriptor.value = value
-        setCharacteristicValueAndNotify(value, observationScheduleCharacteristic)
+        observationScheduleCharacteristic.value = value
+        centralsToNotifyUpdateFromCentral(central).forEach {
+            Timber.i("setObservationScheduleDescriptorValue notify central: ${it.address}")
+            peripheralManager.notifyCharacteristicChanged(value, it, observationScheduleCharacteristic)
+        }
+        updateDisconnectedBondedCentralsToNotify(observationScheduleCharacteristic)
+    }
+
+    private fun centralsToNotifyUpdateFromCentral(central: BluetoothCentral?): List<BluetoothCentral> {
+        return getConnectedCentrals().filter { connCen -> central?.let { connCen.address != it.address } ?: true  }
     }
 
     private fun writeGattStatusFor(value: ByteArray): GattStatus {
@@ -278,7 +289,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal fun setCharacteristicValueAndNotify(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
         characteristic.value = value
-        notifyCharacteristicChanged(value, characteristic)
+        peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
     private fun getObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
@@ -306,7 +317,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
         parser.setFloatValue(measurementPeriod, 3)
         parser.setFloatValue(updateInterval, 3)
-        setObservationScheduleDescriptorValue(scheduleDesc, parser.value)
+        setObservationScheduleDescriptorValue(scheduleDesc, null, parser.value)
     }
 
     fun setValidRangeAndAccuracy(observationType: ObservationType, unitCode: UnitCode, lowerLimit: Float, upperLimit: Float, accuracy: Float) {

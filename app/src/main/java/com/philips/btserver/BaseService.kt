@@ -14,6 +14,8 @@ import com.welie.blessed.GattStatus
 import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
@@ -37,10 +39,25 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
 
     protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
         return peripheralManager.notifyCharacteristicChanged(value, characteristic)
+        updateDisconnectedBondedCentralsToNotify(characteristic)
     }
 
-    fun numberOfCentralsConnected(): Int {
-        return peripheralManager.getConnectedCentrals().size
+    protected fun notifyCharacteristicChanged(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
+        return peripheralManager.notifyCharacteristicChanged(value, central, characteristic )
+        updateDisconnectedBondedCentralsToNotify(characteristic)
+    }
+
+    protected fun notifyCharacteristicChangedSkipCentral(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
+        var success = true
+        getConnectedCentrals().filter { connCen -> central?.let { connCen.address != it.address } ?: true  }.forEach {
+            if (!peripheralManager.notifyCharacteristicChanged(value, it, characteristic)) success = false
+        }
+        updateDisconnectedBondedCentralsToNotify(characteristic)
+        return success
+    }
+
+    fun getConnectedCentrals(): Set<BluetoothCentral>{
+        return peripheralManager.connectedCentrals
     }
 
     fun noCentralsConnected(): Boolean {
@@ -130,12 +147,15 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
 
 
     private fun bondedReconnected(central: BluetoothCentral) {
-        Timber.i("Reconnecting bonded central: $central")
+        Timber.i("Reconnecting bonded central: ${central.address} to notify list is: ${bondedCentralsToNotify.values}")
         disconnectedBondedCentrals.remove(central.address)
         bondedCentralsToNotify.forEach {
             if (it.value.contains(central.address)) {
-                notifyReconnectedBondedCentral(central, it.key)
+                Timber.i("Notifiying reconnected bonded central: ${central.address} char: ${it.key.uuid}")
                 it.value.remove(central.address)
+                Executors.newSingleThreadScheduledExecutor().schedule({
+                    notifyReconnectedBondedCentral(central, it.key)
+                }, 1, TimeUnit.SECONDS)
                 // TODO if the set is now empty should we remove the entry from the map?
             }
         }
@@ -147,8 +167,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     private fun notifyReconnectedBondedCentral(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-        // TODO This should only notify the central passed in, but doing that gets buried in BluetoothPerpheralManager>>notifyCharacteristicChanged
-        notifyCharacteristicChanged(characteristic.value, characteristic)
+        notifyCharacteristicChanged(characteristic.value, central, characteristic)
     }
 
     /*
@@ -167,20 +186,4 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         val CCC_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val MAX_MIN_MTU = 23
     }
-}
-
-fun BluetoothPeripheralManager.notifyCharacteristicChanged(
-    value: ByteArray,
-    characteristic: BluetoothGattCharacteristic
-): Boolean {
-    Objects.requireNonNull(value, BluetoothPeripheralManager.CHARACTERISTIC_VALUE_IS_NULL)
-    Objects.requireNonNull(characteristic, BluetoothPeripheralManager.CHARACTERISTIC_IS_NULL)
-    if (doesNotSupportNotifying(characteristic)) return false
-    var result = true
-    for (device in getConnectedDevices()) {
-        if (!notifyCharacteristicChanged(copyOf(value), device, characteristic)) {
-            result = false
-        }
-    }
-    return result
 }
