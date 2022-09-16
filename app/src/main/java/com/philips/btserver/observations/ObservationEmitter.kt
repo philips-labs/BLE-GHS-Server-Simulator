@@ -108,8 +108,8 @@ object ObservationEmitter {
         sendObservations(true, true)
     }
 
-    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
-        ghsService?.setObservationSchedule(observationType, updateInterval, measurementPeriod)
+    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float, notify: Boolean = true) {
+        if(notify) ghsService?.setObservationSchedule(observationType, updateInterval, measurementPeriod)
     }
 
     fun reset() {
