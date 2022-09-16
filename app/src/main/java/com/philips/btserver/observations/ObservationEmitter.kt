@@ -265,7 +265,7 @@ fun ObservationType.randomNumericValue(): Float {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE ->  kotlin.random.Random.nextInt(60, 70).toFloat()
         ObservationType.MDC_TEMP_BODY ->  kotlin.random.Random.nextInt(358, 370).toFloat() / 10f
-        ObservationType.MDC_PULS_OXIM_O2 ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
         ObservationType.MDC_PRESS_BLD_NONINV_SYS ->  kotlin.random.Random.nextInt(120, 130).toFloat()
         ObservationType.MDC_PRESS_BLD_NONINV_DIA ->  kotlin.random.Random.nextInt(70, 80).toFloat()
         ObservationType.MDC_ATTR_ALERT_TYPE ->  kotlin.random.Random.nextInt(1, 10).toFloat()
@@ -290,7 +290,7 @@ fun ObservationType.numericPrecision(): Int {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE,
         ObservationType.MDC_TEMP_BODY,
-        ObservationType.MDC_PULS_OXIM_O2 ->  1
+        ObservationType.MDC_PULS_OXIM_SAT_O2 ->  1
         else -> 0
     }
 }
@@ -299,7 +299,7 @@ fun ObservationType.unitCode(): UnitCode {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE -> UnitCode.MDC_DIM_BEAT_PER_MIN
         ObservationType.MDC_TEMP_BODY -> UnitCode.MDC_DIM_DEGC
-        ObservationType.MDC_PULS_OXIM_O2 -> UnitCode.MDC_DIM_PERCENT
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> UnitCode.MDC_DIM_PERCENT
         ObservationType.MDC_PPG_TIME_PD_PP -> UnitCode.MDC_DIM_INTL_UNIT
         ObservationType.MDC_PRESS_BLD_NONINV -> UnitCode.MDC_DIM_MMHG
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> UnitCode.MDC_DIM_MMHG
@@ -312,7 +312,7 @@ fun ObservationType.lowerLimit(): Float {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE -> 0f
         ObservationType.MDC_TEMP_BODY -> 20f
-        ObservationType.MDC_PULS_OXIM_O2 -> 0f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0f
         ObservationType.MDC_PPG_TIME_PD_PP -> 0f
         ObservationType.MDC_PRESS_BLD_NONINV -> 0f
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 0f
@@ -325,7 +325,7 @@ fun ObservationType.upperLimit(): Float {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE -> 300f
         ObservationType.MDC_TEMP_BODY -> 50f
-        ObservationType.MDC_PULS_OXIM_O2 -> 100f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 100f
         ObservationType.MDC_PPG_TIME_PD_PP -> 255f
         ObservationType.MDC_PRESS_BLD_NONINV -> 300f
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 300f
@@ -338,7 +338,7 @@ fun ObservationType.accuracy(): Float {
     return when(this) {
         ObservationType.MDC_ECG_HEART_RATE -> 1f
         ObservationType.MDC_TEMP_BODY -> 1f
-        ObservationType.MDC_PULS_OXIM_O2 -> 0.1f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0.1f
         ObservationType.MDC_PPG_TIME_PD_PP -> 1f
         ObservationType.MDC_PRESS_BLD_NONINV -> 2f
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 2f

@@ -97,9 +97,9 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
 
     fun clickSPO2Obs() {
         if (binding.checkboxSPO2Obs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_O2)
+            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_O2)
+            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
         }
         checkIfCanBundle()
     }

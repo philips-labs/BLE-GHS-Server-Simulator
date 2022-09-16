@@ -503,7 +503,7 @@ private fun List<ObservationType>.deviceSpecializations(): List<DeviceSpecializa
 private fun ObservationType.deviceSpecialization(): DeviceSpecialization {
     return when(this) {
         ObservationType.MDC_TEMP_BODY -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_TEMP
-        ObservationType.MDC_PULS_OXIM_O2 -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_PULS_OXIM
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_PULS_OXIM
         ObservationType.MDC_PPG_TIME_PD_PP -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_ECG
         ObservationType.MDC_PRESS_BLD_NONINV -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_BP
         ObservationType.MDC_PRESS_BLD_NONINV_SYS -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_BP
