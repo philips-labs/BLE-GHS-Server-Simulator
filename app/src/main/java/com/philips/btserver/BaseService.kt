@@ -7,6 +7,7 @@ package com.philips.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.isBonded
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
@@ -186,4 +187,15 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         val CCC_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val MAX_MIN_MTU = 23
     }
+
+
+    protected open fun initCharacteristic(
+        characteristic: BluetoothGattCharacteristic,
+        description: String
+    ) {
+        service.addCharacteristic(characteristic)
+        characteristic.addDescriptor(getCccDescriptor())
+        characteristic.addDescriptor(getCudDescriptor(description))
+    }
+
 }

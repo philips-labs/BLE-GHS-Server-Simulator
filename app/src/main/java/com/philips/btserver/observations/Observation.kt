@@ -25,22 +25,21 @@ abstract class Observation {
     abstract val unitCode: UnitCode
     val patientId: Int? = null
     val supplimentalInfo: List<ObservationType> = emptyList()
-    // This will be set to true for observations that are put into a BundledObservation.
-    // This could be eliminated if timestamp becomes optional and timestamp is the only effected prop
-    var isBundledObservation: Boolean = false
     val ghsByteArray: ByteArray
-        get() {
-            return listOf(
-                byteArrayOf(classByte.value),
-                listOf(
-                flagsByteArray,
+        get() { return ghsByteArray(false) }
+
+    fun ghsByteArray(isBundled: Boolean = false): ByteArray {
+        return listOf(
+            byteArrayOf(classByte.value),
+            listOf(
+                flagsByteArray(!isBundled),
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
-                if (includeTimestamp) timestamp.asGHSBytes() else byteArrayOf(),
+                if (isBundled) byteArrayOf() else timestamp.asGHSBytes(),
                 patientIdByteArray,
                 supplimentalInfoByteArray,
                 valueByteArray).merge().withLengthPrefix()
-            ).merge()
-        }
+        ).merge()
+    }
 
     // Subclasses override to provide the byte array appropriate to their value
     // TODO May want to throw an exception here as this is (and should be declared?) an abstract class
@@ -56,12 +55,11 @@ abstract class Observation {
             } ?: byteArrayOf()
         }
 
-    val flagsByteArray: ByteArray
-        get() {
+    private fun flagsByteArray(includeTS: Boolean): ByteArray {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(attributeFlags, BluetoothBytesParser.FORMAT_UINT16)
+            parser.setIntValue(attributeFlags(includeTS), BluetoothBytesParser.FORMAT_UINT16)
             return parser.value
-        }
+    }
 
     val supplimentalInfoByteArray: ByteArray
         get() {
@@ -73,11 +71,6 @@ abstract class Observation {
                 }
                 parser.value
             }
-        }
-
-    private val includeTimestamp: Boolean
-        get() {
-            return !isBundledObservation
         }
 
     // This is the nibble that represents the observation class in the header bytes
@@ -97,13 +90,15 @@ abstract class Observation {
         14.	TLVs present
      */
     open val attributeFlags: Int
-        get() {
-            // TODO Add logic for other flags
-            val typeFlag = if (type == ObservationType.UNKNOWN_TYPE) 0x0 else 0x1
-            val supplementalInfoFlag = if (supplimentalInfo.isEmpty()) 0x0 else 0x40
-            val timestampFlag = if (includeTimestamp) 0x2 else 0x0
-            return typeFlag or supplementalInfoFlag or timestampFlag
-        }
+        get() { return attributeFlags(true) }
+
+    fun attributeFlags(includeTS: Boolean = true): Int {
+        // TODO Add logic for other flags
+        val typeFlag = if (type == ObservationType.UNKNOWN_TYPE) 0x0 else 0x1
+        val supplementalInfoFlag = if (supplimentalInfo.isEmpty()) 0x0 else 0x40
+        val timestampFlag = if (includeTS) 0x2 else 0x0
+        return typeFlag or supplementalInfoFlag or timestampFlag
+    }
 
     companion object {
         internal const val handleCode = 0x00010921

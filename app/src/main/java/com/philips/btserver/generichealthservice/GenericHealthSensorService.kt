@@ -88,10 +88,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
-//    fun setupHack() {
-//         racpHandler.setupHack()
-//    }
-
     fun addListener(listener: GenericHealthSensorServiceListener) = listeners.add(listener)
 
     fun removeListener(listener: GenericHealthSensorServiceListener) = listeners.remove(listener)
@@ -417,24 +413,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     init {
         initCharacteristic(observationCharacteristic, OBSERVATION_DESCRIPTION)
         initCharacteristic(storedObservationCharacteristic, STORED_OBSERVATIONS_DESCRIPTION)
-//        initCharacteristic(simpleTimeCharacteristic, SIMPLE_TIME_DESCRIPTION)
         initCharacteristic(featuresCharacteristic, FEATURES_DESCRIPTION)
         initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
         initCharacteristic(ghsControlPointCharacteristic, GHS_CONTROL_POINT_DESCRIPTION)
         initCharacteristic(observationScheduleCharacteristic, OBSERVATION_SCHEDULE_DESCRIPTION)
-    }
-
-    private fun initCharacteristic(
-        characteristic: BluetoothGattCharacteristic,
-        description: String
-    ) {
-        service.addCharacteristic(characteristic)
-        characteristic.addDescriptor(getCccDescriptor())
-        characteristic.addDescriptor(getCudDescriptor(description))
-        if(characteristic.uuid == GHS_FEATURES_CHARACTERISTIC_UUID) {
-            initObservationScheduleDescriptors()
-        }
-        characteristic.value = byteArrayOf(0x00)
+        initObservationScheduleDescriptors()
     }
 
     private fun initObservationScheduleDescriptors() {
