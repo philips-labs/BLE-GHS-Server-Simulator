@@ -17,13 +17,21 @@
     <string name="startEmitter">Start observation emitter</string>
     <string name="stopEmitter">Stop observation emitter</string>
     <string name="singleShotEmit">Emit single-shot observation(s)</string>
-    <string name="choiceTempObs">Include temperature (Simple Numeric)</string>
-    <string name="choiceHRObs">Include heart rate (Simple Numeric)</string>
-    <string name="choiceSPO2Obs">Include SpO2 (Simple Numeric)</string>
-    <string name="choiceBPObs">Include Blood Pressure (Compound Numeric)</string>
-    <string name="choicePPGObs">Include PPG array (Sample Array)</string>
+    <string name="addStoredObs">Add stored observation(s)</string>
+    <string name="triggerObservationSchedule">Trigger Observation Schedule</string>
+    <string name="choiceTempObs">Temperature (Simple Numeric)</string>
+    <string name="choiceHRObs">Heart rate (Simple Numeric)</string>
+    <string name="choiceSPO2Obs">SpO2 (Simple Numeric)</string>
+    <string name="choiceBPObs">Blood Pressure (Compound Numeric)</string>
+    <string name="choicePPGObs">PPG array (Sample Array)</string>
+    <string name="choiceDiscreteObs">Alert Type (Discrete)</string>
+    <string name="choiceStringObs">Drug Name (String)</string>
+    <string name="choiceTLVObs">Drug Injection (TLV)</string>
+    <string name="choiceCompoundDiscreteObs">Pump Program (Compound Discrete)</string>
+    <string name="choiceCompoundStateEventObs">Alarm State (Compound State/Event)</string>
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
     <string name="choiceBundleObs">Bundle selected observations</string>
+    <string name="allow_multiclient_connect">Allow Multiple Connections</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
     <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>
@@ -56,5 +64,6 @@
     <string name="clockManagesDST">Clock manages DST changes</string>
     <string name="clockManagesTZ">Clock manages time zone changes</string>
     <string name="clockReset">Reset clock (time fault)</string>
+    <string name="clockUpdate">Trigger clock notify</string>
 
 </resources>

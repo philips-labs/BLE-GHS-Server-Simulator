@@ -34,15 +34,28 @@ object ObservationStore {
         broadcastChange()
     }
 
+    fun removeAll(recordNumbers: List<Int>) {
+        recordNumbers.forEach { observations.remove(it) }
+        broadcastChange()
+    }
+
     fun removeObservation(observation: Observation) = remove(observations.indexOfValue(observation))
 
     fun recordIdFor(observation: Observation): Int = observations.indexOfValue(observation)
 
-    fun numberOfObservationsEqualOrGreaterThanRecordNumber(recordNumber: Int): Int = observations.count { it.key >= recordNumber }
+    fun numberOfObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int): Int = observations.count { it.key >= recordNumber }
 
-    fun observationsEqualOrGreaterThanRecordNumber(recordNumber: Int): List<Observation> = observations.filter { it.key >= recordNumber }.map { it.value }
+    fun observationsGreaterThanOrEqualRecordNumber(recordNumber: Int): List<Observation> = observations.filter { it.key >= recordNumber }.map { it.value }
 
-    fun observationRecordNumbersInRange(range: Range<Int>): List<Observation> = observations.filter { range.contains(it.key) }.map { it.value }
+    fun removeObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int): Int  {
+        val obsToDelete = observationRecordNumbersInRange(Range(0, recordNumber))
+        removeAll(obsToDelete)
+        return obsToDelete.size
+    }
+
+    fun observationRecordNumbersInRange(range: Range<Int>): List<Int> = observations.filter { range.contains(it.key) }.map { it.key }
+
+    fun observationsInRange(range: Range<Int>): List<Observation> = observations.filter { range.contains(it.key) }.map { it.value }
 
     private fun broadcastChange() = listeners.forEach { it.observationStoreChanged() }
 

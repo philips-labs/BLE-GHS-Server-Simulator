@@ -20,6 +20,18 @@ fun Int.asLittleEndianArray(): ByteArray {
     return byteArrayOf(this.asMaskedByte(), (this shr 8).asMaskedByte())
 }
 
+fun Int.asLittleEndianUint32Array(): ByteArray {
+    val parser = BluetoothBytesParser()
+    parser.setIntValue(this, BluetoothBytesParser.FORMAT_UINT32)
+    return parser.value
+}
+
+fun Int.asByteArray(): ByteArray {
+    val parser = BluetoothBytesParser()
+    parser.setIntValue(this, BluetoothBytesParser.FORMAT_SINT32)
+    return parser.value
+}
+
 fun ByteArray.uInt16At(index: Int, isLittleEndian: Boolean = true): Int {
     return if (isLittleEndian) {
         (this[index + 1].toInt() shl 8) + this[index]

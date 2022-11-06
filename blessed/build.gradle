@@ -1,0 +1,49 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+group = 'com.github.weliem'
+
+android {
+    compileSdkVersion 31
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 31
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation 'org.jetbrains:annotations:20.1.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.robolectric:robolectric:4.5.1"
+    testImplementation "org.mockito:mockito-core:3.8.0"
+    testImplementation 'androidx.test:core:1.4.0'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.weliem'
+                artifactId = 'blessed-android'
+                version = '1.0-akn'
+            }
+        }
+    }
+}

@@ -4,15 +4,18 @@
  */
 package com.philips.btserver
 
+import android.Manifest
 import android.bluetooth.*
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.ParcelUuid
+import androidx.core.app.ActivityCompat
 import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
-import com.philips.btserver.generichealthservice.SimpleTimeService
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.welie.blessed.*
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -28,14 +31,28 @@ interface BluetoothServerAdvertisingListener {
     fun onStopAdvertising()
 }
 
-internal class BluetoothServer(context: Context) {
+internal class BluetoothServer(val context: Context) {
 
-    var bluetoothAdapter: BluetoothAdapter
+    lateinit var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
     private val peripheralManager: BluetoothPeripheralManager
 
     // Listeners for central connect/disconnects
     private val connectionListeners = mutableListOf<BluetoothServerConnectionListener>()
+
+
+    fun isCentralBonded(central: BluetoothCentral): Boolean {
+        return getBondedDevices().map { it.address }.contains(central.address)
+    }
+
+    fun getBondedDevices(): Set<BluetoothDevice> {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) { return emptySet() }
+        return bluetoothAdapter.bondedDevices
+    }
 
     private val peripheralManagerCallback: BluetoothPeripheralManagerCallback = object : BluetoothPeripheralManagerCallback() {
         override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
@@ -83,12 +100,16 @@ internal class BluetoothServer(context: Context) {
                 status)
         }
 
+        val disconnectedBondedCentrals = mutableListOf<BluetoothCentral>()
+
         override fun onCentralConnected(central: BluetoothCentral) {
             (connectionListeners + serviceImplementations.values).forEach { it.onCentralConnected(central) }
+            if(isCentralBonded(central)) disconnectedBondedCentrals.remove(central)
         }
 
         override fun onCentralDisconnected(central: BluetoothCentral) {
             (connectionListeners + serviceImplementations.values).forEach { it.onCentralDisconnected(central) }
+            if(isCentralBonded(central)) disconnectedBondedCentrals.add(central)
         }
 
         override fun onAdvertisingStarted(settingsInEffect: AdvertiseSettings) {
@@ -199,8 +220,7 @@ internal class BluetoothServer(context: Context) {
         val dis = DeviceInformationService(peripheralManager)
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
-        // ghs.setupHack()
-        val time = SimpleTimeService(peripheralManager)
+        val time = ElapsedTimeService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs

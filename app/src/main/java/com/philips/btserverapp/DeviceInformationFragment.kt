@@ -15,6 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.Switch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.philips.btserver.BluetoothServerAdvertisingListener
@@ -54,9 +55,14 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         if (_binding == null) return
         binding.btnModelNumName.setOnClickListener { changeModelNumber() }
         binding.btnAdvName.setOnClickListener { changeAdvName() }
+        binding.toggleMultiClientConnect.setOnClickListener {
+            Timber.i("${if ((it as Switch).isChecked) "Allowing" else "Disallowing"} multiple connections")
+            (activity as MainActivity).allowMultipleClientConnections = (it as Switch).isChecked
+        }
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)
+        binding.toggleMultiClientConnect.isChecked = (activity as MainActivity).allowMultipleClientConnections
     }
 
     private fun getAdvName(): String {
@@ -83,6 +89,10 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
             }
         }
     }
+
+//    fun toggleMultiClientConnect(view: View) {
+//        (activity as MainActivity).allowMultipleClientConnections = (view as Switch).isChecked
+//    }
 
     private fun changeModelNumber() {
         doAlertDialog("${getString(R.string.change)} ${getString(R.string.model_number)}", getModelNumber()) { _, _ ->

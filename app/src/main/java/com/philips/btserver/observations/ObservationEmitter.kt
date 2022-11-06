@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
+import com.philips.btserver.generichealthservice.DeviceSpecialization
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 import java.util.*
@@ -17,14 +18,11 @@ object ObservationEmitter {
     /*
      * This property enables/disables observation emissions
      */
-    var transmitEnabled = false
-
-
-    /*
-     * This property enables/disables observation emissions
-     */
     var isEmitting = false
-        private set
+        private set(value) {
+            ghsService?.canHandleRACP = !value
+            field = value
+        }
 
     /*
      * If mergeObservations true observations are sent as one ACOM byte array.
@@ -57,6 +55,13 @@ object ObservationEmitter {
 
     private var lastHandle = 1
 
+    val allObservationTypes = mutableSetOf(
+        ObservationType.MDC_ECG_HEART_RATE,
+        ObservationType.MDC_SPO2_OXYGENATION_RATIO,
+        ObservationType.MDC_TEMP_BODY,
+        ObservationType.MDC_PPG_TIME_PD_PP
+    )
+
     val observationTypes = mutableSetOf<ObservationType>()
 
     // Made public for unit testing
@@ -71,6 +76,8 @@ object ObservationEmitter {
         observationTypes.add(type)
         resetStoredObservations()
         setFeatureCharacteristicTypes()
+        setObservationSchedule(type, 1f, 1f)
+        ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
     }
 
     fun removeObservationType(type: ObservationType) {
@@ -96,6 +103,15 @@ object ObservationEmitter {
         sendObservations(true)
     }
 
+
+    fun addStoredObservation() {
+        sendObservations(true, true)
+    }
+
+    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float, notify: Boolean = true) {
+        if(notify) ghsService?.setObservationSchedule(observationType, updateInterval, measurementPeriod)
+    }
+
     fun reset() {
         observationTypes.clear()
         setFeatureCharacteristicTypes()
@@ -119,13 +135,53 @@ object ObservationEmitter {
     }
 
     private fun randomObservationOfType(type: ObservationType, timestamp: Date): Observation? {
-        val obs = when(type.valueType()) {
-            ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type, timestamp)
-            ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type, timestamp)
-            ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS -> randomCompoundNumericObservation(type, timestamp)
-            else -> null
+        return if (type == ObservationType.MDC_DOSE_DRUG_DELIV) {
+            randomDrugInjectionObservation(type, timestamp)
+        } else if(type == ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS) {
+            // CompoundDiscreteObs
+            randomPumpProgramStatus(type, timestamp)
+        }  else if(type == ObservationType.MDC_ATTR_ALARM_STATE) {
+            randomAlarmState(type, timestamp)
+        } else {
+            when(type.valueType()) {
+                ObservationValueType.MDC_ATTR_NU_VAL_OBS_SIMP -> randomSimpleNumericObservation(type, timestamp)
+                ObservationValueType.MDC_ATTR_SA_VAL_OBS -> randomSampleArrayObservation(type, timestamp)
+                ObservationValueType.MDC_ATTR_NU_CMPD_VAL_OBS -> randomCompoundNumericObservation(type, timestamp)
+                ObservationValueType.MDC_ATTR_VAL_ENUM_OBS -> randomSimpleDiscreteObservation(type, timestamp)
+                ObservationValueType.MDC_ATTR_STRING_VAL_OBS_SIMPLE -> randomSimpleStringObservation(type, timestamp)
+                else -> null
+            }
         }
-        return obs
+    }
+
+    private fun randomPumpProgramStatus(type: ObservationType, timestamp: Date): Observation {
+        return CompoundDiscreetEventObservation(lastHandle++.toShort(),
+            type,
+            listOf(
+                ObservationEvent.MDC_EVT_SENSOR_DISCONN,
+                ObservationEvent.MDC_EVT_SENSOR_MALF
+            ),
+            timestamp)
+    }
+
+    private fun randomAlarmState(type: ObservationType, timestamp: Date): Observation {
+        return CompoundStateEventObservation(lastHandle++.toShort(),
+            type,
+            CompoundStateEventValue(
+                supportedMaskBits = byteArrayOf(0xFF.toByte()),
+                stateOrEventBits=  byteArrayOf(0xF0.toByte()),
+                value=  byteArrayOf(0xAA.toByte())),
+            timestamp)
+    }
+
+    private fun randomDrugInjectionObservation(type: ObservationType, timestamp: Date): Observation {
+        return TLVObservation(lastHandle++.toShort(),
+            type,
+            listOf(
+                TLValue(ObservationType.MDC_DRUG_NAME_LABEL, "Humulin"),
+                TLValue(ObservationType.MDC_DOSE_DRUG_BOLUS, 120)
+            ),
+            timestamp)
     }
 
     private fun randomSimpleNumericObservation(type: ObservationType, timestamp: Date): Observation {
@@ -135,6 +191,20 @@ object ObservationEmitter {
                 type.numericPrecision(),
                 type.unitCode(),
                 timestamp)
+    }
+
+    private fun randomSimpleStringObservation(type: ObservationType, timestamp: Date): Observation {
+        return SimpleStringObservation(lastHandle++.toShort(),
+            type,
+            "Desoxypipradrol",
+            timestamp)
+    }
+
+    private fun randomSimpleDiscreteObservation(type: ObservationType, timestamp: Date): Observation {
+        return SimpleDiscreteObservation(lastHandle++.toShort(),
+            type,
+            type.randomDiscreteValue(),
+            timestamp)
     }
 
     private fun randomSampleArrayObservation(type: ObservationType, timestamp: Date): Observation {
@@ -167,17 +237,21 @@ object ObservationEmitter {
     }
 
     private fun setFeatureCharacteristicTypes() {
-        ghsService?.setFeatureCharacteristicTypes(observationTypes.toList())
+        val types = observationTypes.toList()
+        ghsService?.setFeatureCharacteristicTypes(types)
     }
 
-    private fun sendObservations(singleShot: Boolean) {
+    private fun sendObservations(singleShot: Boolean, forceStore: Boolean = false) {
         generateObservationsToSend()
         Timber.i("Emitting ${observations.size} observations")
-        if (ghsService?.noCentralsConnected() ?: true) {
+        if (forceStore || (ghsService?.noCentralsConnected() ?: true)) {
+            Timber.i("No centrals connected, storing observation")
             observations.forEach { ObservationStore.addObservation(it) }
         } else {
-            if (transmitEnabled) {
+            if (ghsService?.isSendLiveObservationsEnabled() ?: false) {
                 observations.forEach { ghsService?.sendObservation(it) }
+            } else {
+                Timber.i("Transmit observations is not enabled")
             }
         }
         if (!singleShot) handler.postDelayed(notifyRunnable, (emitterPeriod * 1000).toLong())
@@ -194,8 +268,13 @@ fun ObservationType.randomNumericValue(): Float {
         ObservationType.MDC_PULS_OXIM_SAT_O2 ->  kotlin.random.Random.nextInt(970, 990).toFloat() / 10f
         ObservationType.MDC_PRESS_BLD_NONINV_SYS ->  kotlin.random.Random.nextInt(120, 130).toFloat()
         ObservationType.MDC_PRESS_BLD_NONINV_DIA ->  kotlin.random.Random.nextInt(70, 80).toFloat()
+        ObservationType.MDC_ATTR_ALERT_TYPE ->  kotlin.random.Random.nextInt(1, 10).toFloat()
         else -> Float.NaN
     }
+}
+
+fun ObservationType.randomDiscreteValue(): Int {
+    return MdcEventCode.MDC_EVT_TIMEOUT_ERR.value
 }
 
 fun ObservationType.randomSampleArray(): ByteArray {
@@ -229,6 +308,47 @@ fun ObservationType.unitCode(): UnitCode {
     }
 }
 
+fun ObservationType.lowerLimit(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 0f
+        ObservationType.MDC_TEMP_BODY -> 20f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 0f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 0f
+        else -> 0f
+    }
+}
+
+fun ObservationType.upperLimit(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 300f
+        ObservationType.MDC_TEMP_BODY -> 50f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 100f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 255f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 300f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 300f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 300f
+        else -> 100f
+    }
+}
+
+fun ObservationType.accuracy(): Float {
+    return when(this) {
+        ObservationType.MDC_ECG_HEART_RATE -> 1f
+        ObservationType.MDC_TEMP_BODY -> 1f
+        ObservationType.MDC_PULS_OXIM_SAT_O2 -> 0.1f
+        ObservationType.MDC_PPG_TIME_PD_PP -> 1f
+        ObservationType.MDC_PRESS_BLD_NONINV -> 2f
+        ObservationType.MDC_PRESS_BLD_NONINV_SYS -> 2f
+        ObservationType.MDC_PRESS_BLD_NONINV_DIA -> 2f
+        else -> 0f
+    }
+}
+
+
 fun ByteArray.fillWith(action: (Int) -> Byte) {
     for (i in 0 until size) { this[i] = action(i) }
 }
+

@@ -27,6 +27,12 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
 
     private lateinit var sectionsPagerAdapter: SectionsPagerAdapter
 
+    var allowMultipleClientConnections = false
+    set(value) {
+        field = value
+        getBluetoothServer()?.let { if(value) it.startAdvertising() }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -168,12 +174,12 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
     override fun onCentralConnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
         titleView.text = "${getString(R.string.app_name)} ${getString(R.string.central_connected)}"
-        getBluetoothServer()?.stopAdvertising()
+        if(!allowMultipleClientConnections) getBluetoothServer()?.stopAdvertising()
     }
 
     override fun onCentralDisconnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
         if (getBluetoothServer()?.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
-        getBluetoothServer()?.startAdvertising()
+        if(!allowMultipleClientConnections) getBluetoothServer()?.startAdvertising()
     }
 }

@@ -37,10 +37,21 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
         binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
         binding.checkboxBPObs.setOnClickListener { clickBPObs() }
+        binding.checkboxDiscreteObs.setOnClickListener { clickDiscreteObs() }
+        binding.checkboxStringObs.setOnClickListener { clickStringObs() }
+        binding.checkboxTLVObs.setOnClickListener { clickTLVObs() }
+        binding.checkboxCompoundDiscreteObs.setOnClickListener { clickCompoundDiscreteObs() }
+        binding.checkboxCompoundStateEventObs.setOnClickListener { clickCompoundStateEventObs() }
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
+        binding.btnAddStored.setOnClickListener { ObservationEmitter.addStoredObservation() }
+        binding.btnTriggerObservationSchedule.setOnClickListener {
+            ObservationEmitter.setObservationSchedule(
+                ObservationType.MDC_ECG_HEART_RATE,
+                4f,
+                4f) }
 //        updateObservationCount()
 //        updateEmitterButton()
         checkIfCanBundle()
@@ -102,6 +113,52 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         checkIfCanBundle()
     }
 
+    fun clickDiscreteObs() {
+        if (binding.checkboxDiscreteObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickStringObs() {
+        if (binding.checkboxStringObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickCompoundDiscreteObs() {
+        if (binding.checkboxCompoundDiscreteObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
+        }
+        checkIfCanBundle()
+    }
+
+
+    fun clickCompoundStateEventObs() {
+        if (binding.checkboxCompoundStateEventObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
+        }
+        checkIfCanBundle()
+    }
+
+    fun clickTLVObs() {
+        if (binding.checkboxTLVObs.isChecked) {
+            ObservationEmitter.addObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
+        } else {
+            ObservationEmitter.removeObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
+        }
+        checkIfCanBundle()
+    }
+
     fun clickBundleObs() {
         ObservationEmitter.bundleObservations = binding.checkboxBundleObs.isChecked
     }
@@ -125,6 +182,11 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
             ObservationEmitter.startEmitter()
         }
         updateEmitterButton()
+    }
+
+
+    private fun triggerObservationScheduleChange() {
+        ObservationEmitter.setObservationSchedule(ObservationType.MDC_ECG_HEART_RATE, 4f, 4f)
     }
 
     private fun updateEmitterButton() {

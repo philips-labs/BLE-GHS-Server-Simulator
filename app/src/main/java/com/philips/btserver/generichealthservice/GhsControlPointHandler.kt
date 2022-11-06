@@ -1,7 +1,10 @@
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.isIndicateEnabled
+import com.philips.btserver.extensions.isNotifyEnabled
 import com.philips.btserver.observations.ObservationEmitter
 import com.welie.blessed.GattStatus
+import timber.log.Timber
 
 class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
@@ -10,6 +13,12 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
     fun isWriteValid(bytes: ByteArray): Boolean {
         return (bytes.size == 1) && ((bytes[0] == START_SEND_LIVE_OBSERVATIONS) || (bytes[0] == STOP_SEND_LIVE_OBSERVATIONS))
+    }
+
+    fun writeGattStatusFor(value: ByteArray): GattStatus {
+        return if (isWriteValid(value))
+                if (service.isLiveObservationNotifyEnabled) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
+            else GattStatus.ILLEGAL_PARAMETER
     }
 
     fun handleReceivedBytes(bytes: ByteArray) {
@@ -23,23 +32,30 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
     fun reset() {}
 
-    private fun startSendingLiveObservations(): GattStatus {
+    private fun startSendingLiveObservations() {
+        var enableSend = false
         var result = byteArrayOf(CONTROL_POINT_SUCCESS)
         // TODO: isIndicateEnabled and isNotifyEnabled is always returning false!
-//        if (observationCharacteristic.isIndicateEnabled() or observationCharacteristic.isNotifyEnabled()) {
-//            ObservationEmitter.transmitEnabled = true
-//        } else {
-//            ObservationEmitter.transmitEnabled = false
-//            result = byteArrayOf(CONTROL_POINT_ERROR_LIVE_OBSERVATIONS)
-//            return GattStatus.CCCD_CFG_ERROR
-//        }
-        ObservationEmitter.transmitEnabled = true
+        if (isLiveObservationNotifyEnabled() && service.canHandleRACP) {
+            Timber.i("Sending ${this.javaClass} startSendingLiveObservations successful")
+            enableSend = true
+        } else {
+            Timber.i("Sending ${this.javaClass} startSendingLiveObservations without notify or indicate enabled")
+            result = byteArrayOf(CONTROL_POINT_ERROR_LIVE_OBSERVATIONS)
+        }
+
         service.setCharacteristicValueAndNotify(result, ghsControlPointCharacteristic)
-        return GattStatus.SUCCESS
+        service.isLiveObservationsStarted = enableSend
+    }
+
+    private fun isLiveObservationNotifyEnabled(): Boolean {
+        return service.isLiveObservationNotifyEnabled
+//        return observationCharacteristic.isIndicateEnabled() or observationCharacteristic.isNotifyEnabled()
     }
 
     private fun stopSendingLiveObservations() {
-        ObservationEmitter.transmitEnabled = false
+        service.isLiveObservationsStarted = false
+        Timber.i("Sending ${this.javaClass} stopSendingLiveObservations successful")
         val result = byteArrayOf(CONTROL_POINT_SUCCESS)
         service.setCharacteristicValueAndNotify(result, ghsControlPointCharacteristic)
     }
@@ -51,7 +67,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         const val START_SEND_LIVE_OBSERVATIONS = 0x01.toByte()
         const val STOP_SEND_LIVE_OBSERVATIONS = 0x02.toByte()
         private const val CONTROL_POINT_SUCCESS = 0x80.toByte()
-//        private const val CONTROL_POINT_SERVER_BUSY = 0x81.toByte()
-//        private const val CONTROL_POINT_ERROR_LIVE_OBSERVATIONS = 0x82.toByte()
+        private const val CONTROL_POINT_SERVER_BUSY = 0x81.toByte()
+        private const val CONTROL_POINT_ERROR_LIVE_OBSERVATIONS = 0x82.toByte()
     }
 }

@@ -16,7 +16,7 @@ data class CompoundNumericObservation(
     override val timestamp: Date
 ) : Observation() {
 
-    override val classByte: ObservationClass = ObservationClass.CompoundNumeric
+    override val classByte: ObservationClass = ObservationClass.Compound
 
     override val valueByteArray: ByteArray
         get() {
@@ -24,6 +24,7 @@ data class CompoundNumericObservation(
             parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
             value.forEach {
                 it.type.writeOn(parser)
+                parser.setIntValue(ObservationComponentValueType.NUMERIC.value, BluetoothBytesParser.FORMAT_UINT8)
                 it.unitCode.writeOn(parser)
                 parser.setFloatValue(it.value, type.numericPrecision())
                 // TODO: Talk with Martijn about why setIntValue updates offset, yet setFloatValue() doesn't.
