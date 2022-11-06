@@ -77,13 +77,11 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         }
 
     private fun checkPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val missingPermissions = getMissingPermissions(requiredPermissions)
-            if (missingPermissions.isNotEmpty()) {
-                requestPermissions(missingPermissions, ACCESS_LOCATION_REQUEST)
-            } else {
-                permissionsGranted()
-            }
+        val missingPermissions = getMissingPermissions(requiredPermissions)
+        if (missingPermissions.isNotEmpty()) {
+            requestPermissions(missingPermissions, ACCESS_LOCATION_REQUEST)
+        } else {
+            permissionsGranted()
         }
     }
 
@@ -96,11 +94,9 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
 
     private fun getMissingPermissions(requiredPermissions: Array<String>): Array<String> {
         val missingPermissions: MutableList<String> = ArrayList()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            for (requiredPermission in requiredPermissions) {
-                if (applicationContext.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                    missingPermissions.add(requiredPermission)
-                }
+        for (requiredPermission in requiredPermissions) {
+            if (applicationContext.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(requiredPermission)
             }
         }
         return missingPermissions.toTypedArray()

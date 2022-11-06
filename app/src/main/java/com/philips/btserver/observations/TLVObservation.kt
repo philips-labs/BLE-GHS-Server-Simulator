@@ -19,12 +19,8 @@ data class TLVObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
-            value.forEach {
-                val bytesToSend = it.asGHSBytes()
-                parser.setByteArray(bytesToSend)
-            }
+            parser.setUInt8(value.size)
+            value.forEach { parser.setByteArray(it.asGHSBytes()) }
             return parser.value
         }
-
 }

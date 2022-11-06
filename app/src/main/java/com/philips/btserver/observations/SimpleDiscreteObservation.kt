@@ -21,7 +21,7 @@ data class SimpleDiscreteObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setUInt32(value)
             return parser.value
         }
 

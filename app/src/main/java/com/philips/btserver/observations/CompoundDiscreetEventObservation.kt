@@ -20,8 +20,8 @@ data class CompoundDiscreetEventObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
-            value.forEach { parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32) }
+            parser.setUInt8(value.size)
+            value.forEach { parser.setUInt32(it.value) }
             return parser.value
         }
 

@@ -32,7 +32,7 @@ data class BundledObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
+            parser.setUInt8(value.size)
             value.forEach {
                 val bytesToSend = it.ghsBundledObservationByteArray
                 parser.setByteArray(bytesToSend)

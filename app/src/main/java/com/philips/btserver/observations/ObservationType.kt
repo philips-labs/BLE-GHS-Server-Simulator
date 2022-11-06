@@ -982,7 +982,7 @@ enum class ObservationType(val value: Int) {
     }
 
     fun writeOn(parser: BluetoothBytesParser) {
-        parser.setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setUInt32(value)
     }
 
     companion object {

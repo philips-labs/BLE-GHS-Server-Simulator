@@ -170,7 +170,6 @@ enum class Timesource(val value: Int) {
             }
         }
     }
-
 }
 
 /*
@@ -202,62 +201,48 @@ fun Date.epoch2000mills(): Long {
 }
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
-
-    val currentTimeMillis = System.currentTimeMillis()
-
-    var millis = if (timestampFlags.isTickCounter()) SystemClock.elapsedRealtime() else epoch2000mills()
-    Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
-
-    if (!timestampFlags.isTickCounter()) {
-        // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
-        val utcOffsetMillis = if (timestampFlags hasFlag TimestampFlags.isUTC) 0L else TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
-        millis += utcOffsetMillis
-    }
-
-
-    val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-
-    // Write the flags byte
-    parser.setIntValue(timestampFlags.value.toInt(), BluetoothBytesParser.FORMAT_UINT8)
-    Timber.i("Add Flag: ${timestampFlags.asTimestampFlagsString()}")
-
-    // Write the utc/local/tick clock value (either milliseconds or seconds)
-    if (timestampFlags.hasFlag(TimestampFlags.isMilliseconds)) {
-        parser.setLong(millis)
-        Timber.i("Add Milliseconds Value: $millis")
-    } else {
-        parser.setLong(millis / 1000L)
-        Timber.i("Add Seconds Value: ${millis / 1000L}")
-    }
-
-    var offsetUnits = 0
-
-    if (!timestampFlags.isTickCounter()) {
-        // If a timestamp include the time sync source (NTP, GPS, Network, etc)
-        parser.setIntValue(Timesource.currentSource.value, BluetoothBytesParser.FORMAT_UINT8)
-        Timber.i("Add Timesource Value: ${Timesource.currentSource.value}")
-
-        val calendar = Calendar.getInstance(Locale.getDefault());
-        val timeZoneMillis = if (timestampFlags hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.ZONE_OFFSET) else 0
-        val dstMillis =if (timestampFlags hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.DST_OFFSET) else 0
-        offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
-        Timber.i("Add Offset Value: $offsetUnits")
-
-        parser.setIntValue(offsetUnits, BluetoothBytesParser.FORMAT_SINT8)
-    }
-
+    Timber.i("Timestamp Flags: ${timestampFlags.asTimestampFlagsString()}")
     return listOf(
         byteArrayOf(timestampFlags.value.toByte()),
-        millis.asUInt48ByteArray(),
-        byteArrayOf(Timesource.currentSource.value.toByte(), offsetUnits.toByte())
+        timestampFlags.getElaspedTimeByteArray(this),
+        byteArrayOf(Timesource.currentSource.value.toByte(), timestampFlags.dstOffsetValue().toByte())
     ).merge()
 
 }
 
+private fun BitMask.getElaspedTimeByteArray(date: Date): ByteArray {
+    val currentTimeMillis = System.currentTimeMillis()
+
+    var millis = if (isTickCounter()) SystemClock.elapsedRealtime() else date.epoch2000mills()
+    Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
+
+    if (!isTickCounter()) {
+        // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
+        val utcOffsetMillis = if (this hasFlag TimestampFlags.isUTC) 0L else TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
+        millis += utcOffsetMillis
+    }
+
+    return getTimeResolutionScaledValue(millis).asUInt48ByteArray()
+}
+
+private fun BitMask.dstOffsetValue(): Int {
+    var offsetUnits = 0
+
+    if (!isTickCounter()) {
+        val calendar = Calendar.getInstance(Locale.getDefault());
+        val timeZoneMillis = if (this hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.ZONE_OFFSET) else 0
+        val dstMillis =if (this hasFlag TimestampFlags.isTZPresent) calendar.get(Calendar.DST_OFFSET) else 0
+        offsetUnits = (timeZoneMillis + dstMillis) / MILLIS_IN_15_MINUTES
+        Timber.i("Add Offset Value: $offsetUnits")
+    }
+
+    return offsetUnits
+}
+
 fun Long.asUInt48ByteArray(): ByteArray {
     val millParser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-    millParser.setLong(this)
-    return millParser.value.copyOfRange(0, 6)
+    millParser.setUInt48(this)
+    return millParser.value
 }
 
 // Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter

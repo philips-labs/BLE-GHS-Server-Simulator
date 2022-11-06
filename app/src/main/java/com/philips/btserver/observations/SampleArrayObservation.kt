@@ -30,13 +30,13 @@ data class SampleArrayObservation(
             UnitCode.MDC_DIM_DIMLESS.writeOn(parser)
             parser.setFloatValue(scaleFactor, 2)
             parser.setFloatValue(scaleOffset, 2)
-            parser.setIntValue((value.minOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt(), BluetoothBytesParser.FORMAT_SINT32)
-            parser.setIntValue((value.maxOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt(), BluetoothBytesParser.FORMAT_SINT32)
+            parser.setSInt32((value.minOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
+            parser.setSInt32((value.maxOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
             parser.setFloatValue(samplePeriodSeconds, 2)
 
-            parser.setIntValue(samplesPerPeriod.toInt(), BluetoothBytesParser.FORMAT_UINT8)
-            parser.setIntValue(bytesPerSample.toInt(), BluetoothBytesParser.FORMAT_UINT8)
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setUInt8(samplesPerPeriod.toInt())
+            parser.setUInt8(bytesPerSample.toInt())
+            parser.setUInt32(value.size)
 
             return parser.value + value
         }
