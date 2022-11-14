@@ -1,5 +1,8 @@
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.isIndicateEnabled
+import com.philips.btserver.extensions.isNotifyEnabled
+import com.philips.btserver.observations.ObservationEmitter
 import com.welie.blessed.GattStatus
 import timber.log.Timber
 

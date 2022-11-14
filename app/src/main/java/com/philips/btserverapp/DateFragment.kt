@@ -81,7 +81,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     }
 
     private fun updateClock() {
-        ElapsedTimeService.getInstance()?.sendClockBytes()
+        ElapsedTimeService.getInstance()?.notifyClockBytes()
     }
 
     private fun setupTimeSourceSpinner() {

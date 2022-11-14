@@ -55,8 +55,8 @@ internal class BluetoothServer(val context: Context) {
     }
 
     private val peripheralManagerCallback: BluetoothPeripheralManagerCallback = object : BluetoothPeripheralManagerCallback() {
-        override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
-            serviceImplementations[characteristic.service]?.onCharacteristicRead(central, characteristic)
+        override fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): ReadResponse {
+            return serviceImplementations[characteristic.service]?.onCharacteristicRead(central, characteristic) ?: ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
         }
 
         override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -71,8 +71,8 @@ internal class BluetoothServer(val context: Context) {
             serviceImplementations[characteristic.service]?.onCharacteristicWriteCompleted(bluetoothCentral, characteristic, value)
         }
 
-        override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
-            serviceImplementations[descriptor.characteristic.service]?.onDescriptorRead(central, descriptor)
+        override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse {
+            return serviceImplementations[descriptor.characteristic.service]?.onDescriptorRead(central, descriptor) ?: ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
         }
 
         override fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {

@@ -10,8 +10,8 @@ data class TLValue(val type: ObservationType, val value: Any) {
         val parser = BluetoothBytesParser()
         parser.setByteArray(type.asGHSByteArray())
         val valueBytes = value.asByteArray() // valueByteArray()
-        parser.setIntValue(valueBytes.size, BluetoothBytesParser.FORMAT_UINT16)
-        parser.setIntValue(formatType(), BluetoothBytesParser.FORMAT_UINT8)
+        parser.setUInt16(valueBytes.size)
+        parser.setUInt8(formatType())
         parser.setByteArray(valueBytes)
         return parser.value
     }

@@ -50,25 +50,23 @@ abstract class Observation {
         get() {
             return patientId?.let {
                 val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-                parser.setIntValue(it, BluetoothBytesParser.FORMAT_UINT16)
+                parser.setUInt16(it)
                 parser.value
             } ?: byteArrayOf()
         }
 
     private fun flagsByteArray(includeTS: Boolean): ByteArray {
-            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(attributeFlags(includeTS), BluetoothBytesParser.FORMAT_UINT16)
-            return parser.value
+        val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+        parser.setUInt16(attributeFlags(includeTS))
+        return parser.value
     }
 
     val supplimentalInfoByteArray: ByteArray
         get() {
             return if (supplimentalInfo.isEmpty()) { byteArrayOf() } else {
                 val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-                parser.setIntValue(supplimentalInfo.size, BluetoothBytesParser.FORMAT_UINT8)
-                supplimentalInfo.forEach {
-                    parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
-                }
+                parser.setUInt8(supplimentalInfo.size)
+                supplimentalInfo.forEach { parser.setUInt32(it.value) }
                 parser.value
             }
         }

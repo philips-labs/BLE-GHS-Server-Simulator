@@ -11,10 +11,7 @@ import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
 import com.philips.btserver.util.TickCounter
 import com.philips.btserver.util.TimeCounter
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothCentralManager
-import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.GattStatus
+import com.welie.blessed.*
 import timber.log.Timber
 import java.sql.Time
 import java.util.*
@@ -50,10 +47,11 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     override fun onCharacteristicRead(
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
-    ) {
-        if (characteristic.uuid == ELASPED_TIME_CHARACTERISTIC_UUID) {
-            sendClockBytes(notify = false)
-        }
+    ): ReadResponse {
+        return if (characteristic.uuid == ELASPED_TIME_CHARACTERISTIC_UUID) {
+            notifyClockBytes(notify = false)
+            ReadResponse(GattStatus.SUCCESS, currentClockBytes())
+        } else { super.onCharacteristicRead(central, characteristic)}
     }
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -66,7 +64,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
     ) {
-        sendClockBytes(notify = true)
+        notifyClockBytes(notify = true)
         Timber.i("onCharacteristicWriteCompleted")
     }
 
@@ -112,15 +110,18 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     /*
      * send the current clock in the GHS byte format based on current flags
      */
-    fun sendClockBytes(notify: Boolean = true) {
-        val bytes = listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
+    fun notifyClockBytes(notify: Boolean = true) {
+        val bytes = currentClockBytes()
         Timber.i("Sending ETS Bytes: ${bytes.asFormattedHexString()}")
-        simpleTimeCharacteristic.value = bytes
         if (notify) {
             notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
             // Mark any disconnected bonded centrals as needing to be notified on connection.
             updateDisconnectedBondedCentralsToNotify(simpleTimeCharacteristic)
         }
+    }
+
+    fun currentClockBytes(): ByteArray {
+        return listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
     }
 
     private fun currentTimeBytes(): ByteArray {
@@ -136,7 +137,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         service.addCharacteristic(simpleTimeCharacteristic)
         simpleTimeCharacteristic.addDescriptor(getCccDescriptor())
         simpleTimeCharacteristic.addDescriptor(getCudDescriptor(SIMPLE_TIME_DESCRIPTION))
-        sendClockBytes(false)
+        notifyClockBytes(false)
     }
 
     companion object {

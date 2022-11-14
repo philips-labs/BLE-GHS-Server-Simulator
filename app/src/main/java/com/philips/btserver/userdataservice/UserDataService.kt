@@ -4,11 +4,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
-import com.philips.btserver.generichealthservice.GenericHealthSensorService
-import com.philips.btserver.observations.ObservationEmitter
-import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.GattStatus
 import java.util.*
 
 class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -91,6 +87,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         val UDS_LAST_NAME_CHARACTERISTIC_UUID = UUID.fromString("00002a90-0000-1000-8000-00805f9b34fb")
 
         private const val USER_DATABASE_CHANGE_DESCRIPTION = "User database change increment"
+
         private const val USER_INDEX_DESCRIPTION = "User index characteristic"
         private const val UDS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
 
@@ -105,7 +102,6 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     }
 
     init {
-        initCharacteristic(indexCharacteristic, USER_INDEX_DESCRIPTION)
         initCharacteristic(indexCharacteristic, USER_INDEX_DESCRIPTION)
         initCharacteristic(controlPointCharacteristic, UDS_CONTROL_POINT_DESCRIPTION)
     }

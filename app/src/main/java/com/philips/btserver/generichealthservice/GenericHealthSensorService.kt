@@ -17,10 +17,7 @@ import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.observations.UnitCode
-import com.welie.blessed.BluetoothBytesParser
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.GattStatus
+import com.welie.blessed.*
 import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -168,12 +165,19 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
+    /*
+     * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
+     */
     override fun onCharacteristicRead(
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
-    ) {
-        when(characteristic.uuid) {
-            OBSERVATION_CHARACTERISTIC_UUID -> ObservationEmitter.singleShotEmit()
+    ): ReadResponse {
+        return when(characteristic.uuid) {
+            OBSERVATION_CHARACTERISTIC_UUID -> {
+                ObservationEmitter.singleShotEmit()
+                ReadResponse(GattStatus.SUCCESS, byteArrayOf())
+            }
+            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
         }
     }
 
@@ -427,6 +431,13 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             parser.setFloatValue(1f, 3)
             descriptor.value = parser.value
         }
+    }
+
+    /**
+     * Send ByteArray bytes and do a BLE notification over the characteristic.
+     */
+    fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
+        notifyCharacteristicChanged(bytes, characteristic)
     }
 
 }

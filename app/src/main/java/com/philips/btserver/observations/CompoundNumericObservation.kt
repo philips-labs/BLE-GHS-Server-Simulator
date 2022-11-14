@@ -21,14 +21,12 @@ data class CompoundNumericObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(value.size, BluetoothBytesParser.FORMAT_UINT8)
+            parser.setUInt8(value.size)
             value.forEach {
                 it.type.writeOn(parser)
-                parser.setIntValue(ObservationComponentValueType.NUMERIC.value, BluetoothBytesParser.FORMAT_UINT8)
+                parser.setUInt8(ObservationComponentValueType.NUMERIC.value)
                 it.unitCode.writeOn(parser)
                 parser.setFloatValue(it.value, type.numericPrecision())
-                // TODO: Talk with Martijn about why setIntValue updates offset, yet setFloatValue() doesn't.
-                // Also confusing in BluetoothBytesParser>>setFloatValue that arg is same name as property (offset)
             }
             return parser.value
         }

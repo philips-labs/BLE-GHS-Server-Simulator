@@ -22,7 +22,7 @@ data class SimpleStringObservation(
     override val valueByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setIntValue(min(value.length, 0xffff), BluetoothBytesParser.FORMAT_UINT16)
+            parser.setUInt16(min(value.length, 0xffff))
             parser.setString(value.take(0xffff))
             return parser.value
         }

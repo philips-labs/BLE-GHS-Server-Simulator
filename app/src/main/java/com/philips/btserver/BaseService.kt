@@ -7,11 +7,11 @@ package com.philips.btserver
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.isBonded
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
+import com.welie.blessed.ReadResponse
 import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -39,29 +39,22 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
-        return peripheralManager.notifyCharacteristicChanged(value, characteristic)
         updateDisconnectedBondedCentralsToNotify(characteristic)
+        return peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
     protected fun notifyCharacteristicChanged(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
-        return peripheralManager.notifyCharacteristicChanged(value, central, characteristic )
         updateDisconnectedBondedCentralsToNotify(characteristic)
+        return peripheralManager.notifyCharacteristicChanged(value, central, characteristic )
     }
 
     protected fun notifyCharacteristicChangedSkipCentral(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
         var success = true
-        getConnectedCentrals().filter { connCen -> central?.let { connCen.address != it.address } ?: true  }.forEach {
+        getConnectedCentrals().filter { connCen -> central.let { connCen.address != it.address } }.forEach {
             if (!peripheralManager.notifyCharacteristicChanged(value, it, characteristic)) success = false
         }
         updateDisconnectedBondedCentralsToNotify(characteristic)
         return success
-    }
-
-    /**
-     * Send ByteArray bytes and do a BLE notification over the characteristic.
-     */
-    internal fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        notifyCharacteristicChanged(bytes, characteristic)
     }
 
     fun getConnectedCentrals(): Set<BluetoothCentral>{
@@ -82,8 +75,9 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
      * Subclasses do not need to provide an implementation
      */
-    open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic) {
+    open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): ReadResponse  {
         // To be implemented by sub class
+        return ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
     }
 
     open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -100,8 +94,9 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      * onDescriptorRead is a non-abstract method with an empty body to have a default behavior to do nothing
      * Subclasses do not need to provide an implementation
      */
-    open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor) {
+    open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse  {
         // To be implemented by sub class
+        return ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
     }
 
     open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
