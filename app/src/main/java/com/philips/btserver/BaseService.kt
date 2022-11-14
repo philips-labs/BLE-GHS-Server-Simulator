@@ -184,6 +184,13 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         }
     }
 
+    /**
+     * Send ByteArray bytes and do a BLE notification over the characteristic.
+     */
+    fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
+        notifyCharacteristicChanged(bytes, characteristic)
+    }
+
     companion object {
         val CUD_DESCRIPTOR_UUID: UUID = UUID.fromString("00002901-0000-1000-8000-00805f9b34fb")
         val CCC_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")

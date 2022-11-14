@@ -33,7 +33,7 @@ interface BluetoothServerAdvertisingListener {
 
 internal class BluetoothServer(val context: Context) {
 
-    lateinit var bluetoothAdapter: BluetoothAdapter
+    var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
     private val peripheralManager: BluetoothPeripheralManager
 

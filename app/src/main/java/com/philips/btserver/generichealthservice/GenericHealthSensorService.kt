@@ -433,13 +433,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    /**
-     * Send ByteArray bytes and do a BLE notification over the characteristic.
-     */
-    fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        notifyCharacteristicChanged(bytes, characteristic)
-    }
-
 }
 
 private fun List<ObservationType>.featureCharacteristicBytes(): ByteArray {

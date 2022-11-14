@@ -4,7 +4,12 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.observations.ObservationEmitter
+import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
+import com.welie.blessed.GattStatus
+import com.welie.blessed.ReadResponse
 import java.util.*
 
 class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -49,9 +54,10 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     override fun onCharacteristicRead(
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
-    ) {
-        when(characteristic.uuid) {
-            USER_INDEX_CHARACTERISTIC_UUID -> ObservationEmitter.singleShotEmit()
+    ): ReadResponse {
+        return when(characteristic.uuid) {
+            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(currentUserIndex.toByte()))
+            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
         }
     }
 
