@@ -57,6 +57,13 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return success
     }
 
+    /**
+     * Send ByteArray bytes and do a BLE notification over the characteristic.
+     */
+    internal fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
+        notifyCharacteristicChanged(bytes, characteristic)
+    }
+
     fun getConnectedCentrals(): Set<BluetoothCentral>{
         return peripheralManager.connectedCentrals
     }

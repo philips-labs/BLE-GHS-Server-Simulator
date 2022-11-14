@@ -168,9 +168,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    /*
-     * onCharacteristicRead is a non-abstract method with an empty body to have a default behavior to do nothing
-     */
     override fun onCharacteristicRead(
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
@@ -178,7 +175,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         when(characteristic.uuid) {
             OBSERVATION_CHARACTERISTIC_UUID -> ObservationEmitter.singleShotEmit()
         }
-
     }
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -431,13 +427,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             parser.setFloatValue(1f, 3)
             descriptor.value = parser.value
         }
-    }
-
-    /**
-     * Send ByteArray bytes and do a BLE notification over the characteristic.
-     */
-    fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
-        notifyCharacteristicChanged(bytes, characteristic)
     }
 
 }
