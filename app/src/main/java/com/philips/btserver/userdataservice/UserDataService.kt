@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattService
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.generichealthservice.isBonded
 import com.philips.btserver.observations.ObservationEmitter
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
@@ -39,12 +40,11 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         0
     )
 
-    internal var currentUserIndex = 0xFF
-
     private val controlPointHandler = UserDataControlPointHandler(this)
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
+        if (!central.isBonded()) central.createBond()
     }
 
     override fun onCentralDisconnected(central: BluetoothCentral) {
@@ -56,7 +56,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
         return when(characteristic.uuid) {
-            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(currentUserIndex.toByte()))
+            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(UserDataManager.currentUserIndex.toByte()))
             else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
         }
     }
@@ -79,7 +79,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     }
 
     fun setUserIndex(index: Int) {
-        currentUserIndex = index
+        UserDataManager.currentUserIndex = index
     }
 
     companion object {

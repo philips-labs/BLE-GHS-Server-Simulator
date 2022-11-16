@@ -5,6 +5,7 @@
 package com.philips.btserver.observations
 
 import com.philips.btserver.extensions.*
+import com.philips.btserver.userdataservice.UserDataManager
 import com.welie.blessed.BluetoothBytesParser
 import java.util.*
 import java.nio.ByteOrder
@@ -23,7 +24,7 @@ abstract class Observation {
     abstract val value: Any
     // TODO unitCode is moving/moved to observation values... should remove from Observation
     abstract val unitCode: UnitCode
-    val patientId: Int? = null
+    val patientId: Int = UserDataManager.currentUserIndex
     val supplimentalInfo: List<ObservationType> = emptyList()
     val ghsByteArray: ByteArray
         get() { return ghsByteArray(false) }
@@ -48,11 +49,9 @@ abstract class Observation {
 
     val patientIdByteArray: ByteArray
         get() {
-            return patientId?.let {
-                val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-                parser.setUInt16(it)
-                parser.value
-            } ?: byteArrayOf()
+            val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
+            parser.setUInt16(patientId)
+            return parser.value
         }
 
     private fun flagsByteArray(includeTS: Boolean): ByteArray {

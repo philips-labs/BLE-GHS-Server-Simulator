@@ -2,14 +2,23 @@ package com.philips.btserver.observations
 
 import android.content.res.Resources
 import android.util.Range
+import com.philips.btserver.userdataservice.UserDataManager
 
 interface ObservationStoreListener {
     fun observationStoreChanged()
 }
 
 object ObservationStore {
-    private val observations = mutableMapOf<Int, Observation>()
-    private var lastRecordNumber = 0
+    private val userObservations = mutableMapOf<Int, MutableMap<Int, Observation>>()
+    private val observations: MutableMap<Int, Observation> get() {
+        return userObservations.getOrPut(UserDataManager.currentUserIndex) { mutableMapOf() }
+    }
+    private val userLastRecordNumber = mutableMapOf<Int, Int>()
+    private var lastRecordNumber: Int get() {
+        return userLastRecordNumber.getOrPut(UserDataManager.currentUserIndex) { 0 }
+    } set(value) {
+        userLastRecordNumber[UserDataManager.currentUserIndex] = value
+    }
     private val listeners = mutableListOf<ObservationStoreListener>()
     val storedObservations = observations.values
 
@@ -25,7 +34,8 @@ object ObservationStore {
     val numberOfStoredObservations get() = observations.size
 
     fun addObservation(observation: Observation){
-        observations.put(lastRecordNumber++, observation)
+        observations.put(lastRecordNumber, observation)
+        lastRecordNumber += 1
         broadcastChange()
     }
 

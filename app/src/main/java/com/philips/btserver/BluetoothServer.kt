@@ -16,6 +16,7 @@ import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.ElapsedTimeService
+import com.philips.btserver.userdataservice.UserDataService
 import com.welie.blessed.*
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -221,10 +222,12 @@ internal class BluetoothServer(val context: Context) {
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
         val time = ElapsedTimeService(peripheralManager)
+        val uds = UserDataService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs
         serviceImplementations[time.service] = time
+        serviceImplementations[uds.service] = uds
         setupServices()
         startAdvertising()
     }

@@ -4,6 +4,7 @@
     <string name="tab_text_ble_info">Device Info</string>
     <string name="tab_text_observations">Observations</string>
     <string name="tab_text_date">Date encoding</string>
+    <string name="tab_text_users">Users</string>
     <string name="tab_text_experimental">Experimental</string>
     <string name="tab_text_settings">Settings</string>
     <string name="advertisment_name">Device name</string>
@@ -65,5 +66,10 @@
     <string name="clockManagesTZ">Clock manages time zone changes</string>
     <string name="clockReset">Reset clock (time fault)</string>
     <string name="clockUpdate">Trigger clock notify</string>
+
+    <string name="currentUser">Current user:</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
