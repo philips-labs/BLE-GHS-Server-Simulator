@@ -27,7 +27,15 @@ object ObservationStore {
 
     fun clear() {
         observations.clear()
-        lastRecordNumber = 0
+        userObservations.clear()
+        userLastRecordNumber.clear()
+        broadcastChange()
+    }
+
+    fun clearUserData(userIndex: Int) {
+        observations.clear()
+        userObservations[userIndex] = mutableMapOf()
+        userLastRecordNumber[userIndex] = 0
         broadcastChange()
     }
 

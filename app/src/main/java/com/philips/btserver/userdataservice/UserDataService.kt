@@ -78,10 +78,6 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         }
     }
 
-    fun setUserIndex(index: Int) {
-        UserDataManager.currentUserIndex = index
-    }
-
     companion object {
         val USER_DATA_SERVICE_UUID = UUID.fromString("0000181C-0000-1000-8000-00805f9b34fb")
         val USER_DATABASE_CHANGE_INCREMENT = UUID.fromString("00002a99-0000-1000-8000-00805f9b34fb")

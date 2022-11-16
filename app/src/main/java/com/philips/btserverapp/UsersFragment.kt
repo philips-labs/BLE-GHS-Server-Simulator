@@ -66,7 +66,8 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
         // An item was selected. You can retrieve the selected item using
         //System.out.println("onItemSelected: ${parent.getItemAtPosition(pos)} pos: $pos ")
-        UserDataManager.currentUserIndex = if (pos == unknownUserIndex) UserDataManager.UNDEFINED_USER_INDEX else pos + 1
+        val userIndex = if (pos == unknownUserIndex) UserDataManager.UNDEFINED_USER_INDEX else pos + 1
+        UserDataManager.getInstance().setCurrentUser(userIndex)
         Timber.i("onItemSelected: ${parent.getItemAtPosition(pos)} pos: $pos  currentUserIndex: ${UserDataManager.currentUserIndex}")
     }
 

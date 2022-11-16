@@ -64,7 +64,7 @@ class UserDataControlPointHandler(val service: UserDataService) {
         when(getOpCode(bytes)) {
             UserDataControlPointOpCode.RegisterNewUser -> registerNewUser(bytes)
             UserDataControlPointOpCode.UserConsent -> requestUserConsent(bytes)
-            UserDataControlPointOpCode.DeleteUserData -> deleteUserData()
+            UserDataControlPointOpCode.DeleteUserData -> deleteUserData(bytes)
             UserDataControlPointOpCode.ListAllUsers -> unsupportedOperation(UserDataControlPointOpCode.ListAllUsers)
             UserDataControlPointOpCode.DeleteUser -> deleteUser(bytes)
             else -> return
@@ -74,25 +74,49 @@ class UserDataControlPointHandler(val service: UserDataService) {
     private fun registerNewUser(bytes: ByteArray) {
         val parser = BluetoothBytesParser(bytes)
         val opCode = parser.getUInt8().toByte()
-        val userIndex = parser.getUInt8().toByte()
         val consentCode = parser.getUInt16()
-        sendResponseCodeBytes(UserDataControlPointOpCode.RegisterNewUser, OP_CODE_RESPONSE_VALUE_SUCCESS, byteArrayOf(userIndex))
+        if (consentCode > MAX_CONSENT_CODE) {
+            sendInvalidParameterResponse(UserDataControlPointOpCode.value(opCode))
+        }
+        val userIndex = UserDataManager.getInstance().createUserWithConsentCode(consentCode)
+        sendResponseCodeBytes(UserDataControlPointOpCode.RegisterNewUser,
+            OP_CODE_RESPONSE_VALUE_SUCCESS,
+            byteArrayOf(userIndex.toByte()))
     }
 
 
     private fun deleteUser(bytes: ByteArray) {
         val parser = BluetoothBytesParser(bytes)
         val opCode = parser.getUInt8().toByte()
-        val userIndex = parser.getUInt8().toByte()
-        val consentCode = parser.getUInt16()
-        sendResponseCodeBytes(UserDataControlPointOpCode.DeleteUser, OP_CODE_RESPONSE_VALUE_SUCCESS, byteArrayOf(userIndex))
+        val userIndex = parser.getUInt8()
+        val success = UserDataManager.getInstance().deleteUser(userIndex)
+        if (success) {
+            sendResponseCodeBytes(UserDataControlPointOpCode.DeleteUser, OP_CODE_RESPONSE_VALUE_SUCCESS, byteArrayOf(userIndex.toByte()))
+        } else {
+            //TODO Could also be Operation Failed, User Not Authorized..
+            sendInvalidParameterResponse(UserDataControlPointOpCode.value(opCode))
+        }
     }
 
     private fun requestUserConsent(bytes: ByteArray) {
-        sendResponseCodeBytes(UserDataControlPointOpCode.UserConsent, OP_CODE_RESPONSE_VALUE_SUCCESS)
+        val parser = BluetoothBytesParser(bytes)
+        val opCode = parser.getUInt8().toByte()
+        val userIndex = parser.getUInt8().toByte()
+        val consentCode = parser.getUInt16()
+        val consentSuccess = UserDataManager.getInstance().setUserConsent(userIndex.toInt(), consentCode)
+        if (consentSuccess) {
+            sendResponseCodeBytes(UserDataControlPointOpCode.UserConsent, OP_CODE_RESPONSE_VALUE_SUCCESS)
+        } else {
+            // TODO Could also be Operation Failed, User Not Authorized..
+            sendInvalidParameterResponse(UserDataControlPointOpCode.value(opCode))
+        }
     }
 
-    private fun deleteUserData() {
+    private fun deleteUserData(bytes: ByteArray) {
+        val parser = BluetoothBytesParser(bytes)
+        val opCode = parser.getUInt8().toByte()
+        val userIndex = parser.getUInt8().toByte()
+        val consentCode = parser.getUInt16()
         sendResponseCodeBytes(UserDataControlPointOpCode.DeleteUserData, OP_CODE_RESPONSE_VALUE_SUCCESS)
     }
 
@@ -100,7 +124,7 @@ class UserDataControlPointHandler(val service: UserDataService) {
         sendResponseCodeBytes(requestOpCode, OP_CODE_RESPONSE_VALUE_OPCODE_UNSUPPORTED)
     }
 
-    private fun sendInvalidOperatorResponse(requestOpCode: UserDataControlPointOpCode) {
+    private fun sendInvalidParameterResponse(requestOpCode: UserDataControlPointOpCode) {
         sendResponseCodeBytes(requestOpCode, OP_CODE_RESPONSE_VALUE_INVALID_PARAMETER)
     }
 
@@ -127,6 +151,7 @@ class UserDataControlPointHandler(val service: UserDataService) {
         const val LIST_ALL_USERS = 0x04.toByte()
         const val DELETE_USER = 0x05.toByte()
 
+        const val MAX_CONSENT_CODE = 0x270F
         /*
          * Operator Response Code Values
          */
