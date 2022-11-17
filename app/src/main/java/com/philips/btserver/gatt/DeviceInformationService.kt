@@ -10,6 +10,11 @@ import android.os.Build
 import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
+import com.philips.btserver.userdataservice.UserDataManager
+import com.philips.btserver.userdataservice.UserDataService
+import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.GattStatus
+import com.welie.blessed.ReadResponse
 import java.util.*
 
 internal class DeviceInformationService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -18,6 +23,22 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     private val manufacturerChar = BluetoothGattCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
     private val modelNumberChar = BluetoothGattCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
     private val uniqueDeviceIdentifierChar = BluetoothGattCharacteristic(UDI_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
+
+    var manufacturer: String = Build.MANUFACTURER
+    var modelNumber: String = Build.MODEL
+    var uuid: String = UUID.randomUUID().toString()
+
+    override fun onCharacteristicRead(
+        central: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic
+    ): ReadResponse {
+        return when(characteristic.uuid) {
+            MANUFACTURER_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, manufacturer.toByteArray())
+            MODEL_NUMBER_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, modelNumber.toByteArray())
+            UDI_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, uuid.toByteArray())
+            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+        }
+    }
 
     companion object {
         val DIS_SERVICE_UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
@@ -37,27 +58,6 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         service.addCharacteristic(manufacturerChar)
         service.addCharacteristic(modelNumberChar)
         service.addCharacteristic(uniqueDeviceIdentifierChar)
-        setDefaultValues()
     }
 
-    private fun setDefaultValues() {
-        setManufacturer(Build.MANUFACTURER)
-        setModelNumber(Build.MODEL)
-    }
-
-    fun getManufacturer(): String {
-        return manufacturerChar.getStringValue(0)
-    }
-
-    fun setManufacturer(manufacturerName: String) {
-        manufacturerChar.setValue(manufacturerName)
-    }
-
-    fun getModelNumber(): String {
-        return modelNumberChar.getStringValue(0)
-    }
-
-    fun setModelNumber(modelNum: String) {
-        modelNumberChar.setValue(modelNum)
-    }
 }

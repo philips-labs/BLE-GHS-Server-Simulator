@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
 
     private lateinit var sectionsPagerAdapter: SectionsPagerAdapter
 
-    var allowMultipleClientConnections = false
+    var allowMultipleClientConnections = true
     set(value) {
         field = value
         getBluetoothServer()?.let { if(value) it.startAdvertising() }

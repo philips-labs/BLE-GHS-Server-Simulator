@@ -75,7 +75,7 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
     }
 
     private fun getModelNumber(): String {
-        return deviceInfoService?.getModelNumber() ?: getString(R.string.model_number)
+        return deviceInfoService?.modelNumber ?: getString(R.string.model_number)
     }
 
     private fun changeAdvName() {
@@ -97,7 +97,7 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
     private fun changeModelNumber() {
         doAlertDialog("${getString(R.string.change)} ${getString(R.string.model_number)}", getModelNumber()) { _, _ ->
             val newName = dialogInputView?.text.toString()
-            deviceInfoService?.setModelNumber(newName)
+            deviceInfoService?.let { it.modelNumber = newName }
             dialogUpdate("${getString(R.string.model_number)} is $newName")
         }
     }

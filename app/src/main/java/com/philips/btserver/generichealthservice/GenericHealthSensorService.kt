@@ -85,6 +85,9 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
+    // Since we cannot use the value directly in characteristics or descriptors anymore
+    var observationScheduleByteArray = byteArrayOf()
+
     fun addListener(listener: GenericHealthSensorServiceListener) = listeners.add(listener)
 
     fun removeListener(listener: GenericHealthSensorServiceListener) = listeners.remove(listener)
@@ -199,12 +202,26 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
+
+    /*
+    * onDescriptorRead is a non-abstract method with an empty body to have a default behavior to do nothing
+    * Subclasses do not need to provide an implementation
+    */
+    override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse  {
+        return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
+            ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, observationScheduleByteArray)
+        } else {
+            super.onDescriptorRead(central, descriptor)
+        }
+    }
+
     override fun onDescriptorWrite(
         central: BluetoothCentral,
         descriptor: BluetoothGattDescriptor,
         value: ByteArray
     ): GattStatus {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
+            observationScheduleByteArray = value
             configureObservationScheduleDescriptor(descriptor, central, value)
         } else {
             super.onDescriptorWrite(central, descriptor, value)

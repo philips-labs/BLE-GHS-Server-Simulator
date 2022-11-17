@@ -10,6 +10,7 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
 import com.philips.btserver.gatt.CurrentTimeService
@@ -213,8 +214,8 @@ internal class BluetoothServer(val context: Context) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
             Timber.e("not supporting advertising")
         }
-//        bluetoothAdapter.name = "${Build.MODEL}-GHS-SIM"
-        bluetoothAdapter.name = "GHS-SIM"
+        bluetoothAdapter.name = "GHS-SIM-${Build.MODEL}"
+//        bluetoothAdapter.name = "GHS-SIM-AKN"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         peripheralManager.removeAllServices()
 
@@ -222,12 +223,12 @@ internal class BluetoothServer(val context: Context) {
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
         val time = ElapsedTimeService(peripheralManager)
-        val uds = UserDataService(peripheralManager)
+//        val uds = UserDataService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs
         serviceImplementations[time.service] = time
-        serviceImplementations[uds.service] = uds
+//        serviceImplementations[uds.service] = uds
         setupServices()
         startAdvertising()
     }
