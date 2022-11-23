@@ -29,17 +29,15 @@ abstract class Observation {
     val ghsByteArray: ByteArray
         get() { return ghsByteArray(false) }
 
-    fun ghsByteArray(isBundled: Boolean = false): ByteArray {
+    internal fun ghsByteArray(isBundled: Boolean = false): ByteArray {
         return listOf(
-            byteArrayOf(classByte.value),
-            listOf(
+                byteArrayOf(classByte.value),
                 flagsByteArray(!isBundled),
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
                 if (isBundled) byteArrayOf() else timestamp.asGHSBytes(),
                 patientIdByteArray,
                 supplimentalInfoByteArray,
                 valueByteArray).merge().withLengthPrefix()
-        ).merge()
     }
 
     // Subclasses override to provide the byte array appropriate to their value
@@ -94,7 +92,8 @@ abstract class Observation {
         val typeFlag = if (type == ObservationType.UNKNOWN_TYPE) 0x0 else 0x1
         val supplementalInfoFlag = if (supplimentalInfo.isEmpty()) 0x0 else 0x40
         val timestampFlag = if (includeTS) 0x2 else 0x0
-        return typeFlag or supplementalInfoFlag or timestampFlag
+        val patientIdFlag = if (patientId > 0) 0x20 else 0x0
+        return typeFlag or supplementalInfoFlag or timestampFlag or patientIdFlag
     }
 
     companion object {

@@ -142,11 +142,12 @@ fun ByteArray.asBLEDataSegments(segmentSize: Int, startingSegNumber: Int = 0): P
 }
 
 fun ByteArray.withLengthPrefix(): ByteArray {
-    // Include length as first 2 bytes. Note length DOES NOT include the length bytes
-    val length = this.size
+    // Include length after the class byte, and include the length bytes in length
+    val length = this.size + 2
     return listOf(
+        byteArrayOf(this.first()),
         length.asLittleEndianArray(),
-        this,
+        this.copyOfRange(1, size)
     ).merge()
 }
 

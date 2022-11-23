@@ -180,7 +180,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
                 ObservationEmitter.singleShotEmit()
                 ReadResponse(GattStatus.SUCCESS, byteArrayOf())
             }
-            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+            else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 
@@ -209,7 +209,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     */
     override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse  {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
-            ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, observationScheduleByteArray)
+            ReadResponse(GattStatus.SUCCESS, observationScheduleByteArray)
         } else {
             super.onDescriptorRead(central, descriptor)
         }
@@ -221,7 +221,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ): GattStatus {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
-            observationScheduleByteArray = value
             configureObservationScheduleDescriptor(descriptor, central, value)
         } else {
             super.onDescriptorWrite(central, descriptor, value)
@@ -264,6 +263,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         setObservationScheduleDescriptorValue(descriptor, central, value)
         // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter (also get rid of double notifies and reason for that boolean)
         ObservationEmitter.setObservationSchedule(observationType, updateInterval, measurementPeriod, false)
+        observationScheduleByteArray = value
         return GattStatus.SUCCESS
     }
 

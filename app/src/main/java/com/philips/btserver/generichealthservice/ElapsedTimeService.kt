@@ -49,7 +49,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
         return if (characteristic.uuid == ELASPED_TIME_CHARACTERISTIC_UUID) {
-            notifyClockBytes(notify = false)
             ReadResponse(GattStatus.SUCCESS, currentClockBytes())
         } else { super.onCharacteristicRead(central, characteristic)}
     }

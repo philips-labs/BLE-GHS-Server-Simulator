@@ -36,7 +36,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
             MANUFACTURER_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, manufacturer.toByteArray())
             MODEL_NUMBER_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, modelNumber.toByteArray())
             UDI_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, uuid.toByteArray())
-            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+            else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 

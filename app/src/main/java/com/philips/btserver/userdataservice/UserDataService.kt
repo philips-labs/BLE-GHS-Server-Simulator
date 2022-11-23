@@ -57,7 +57,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     ): ReadResponse {
         return when(characteristic.uuid) {
             USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(UserDataManager.currentUserIndex.toByte()))
-            else -> ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+            else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 
