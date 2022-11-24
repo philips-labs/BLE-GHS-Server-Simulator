@@ -214,7 +214,7 @@ internal class BluetoothServer(val context: Context) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
             Timber.e("not supporting advertising")
         }
-        bluetoothAdapter.name = "GHS-SIM-${Build.MODEL}"
+        bluetoothAdapter.name = "GHS-${Build.MODEL}"
 //        bluetoothAdapter.name = "GHS-SIM-AKN"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         peripheralManager.removeAllServices()
