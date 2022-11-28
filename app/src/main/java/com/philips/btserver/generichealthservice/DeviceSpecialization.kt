@@ -19,3 +19,7 @@ fun DeviceSpecialization.asByteArray(): ByteArray {
 }
 
 fun DeviceSpecialization.versionNumber(): Byte { return 1 }
+
+fun DeviceSpecialization.asAdvertisementDataBytes(): ByteArray {
+    return byteArrayOf((value and 0xff).toByte(), ((value and 0xff00) shr 8).toByte())
+}

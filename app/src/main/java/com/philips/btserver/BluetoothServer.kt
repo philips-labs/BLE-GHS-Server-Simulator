@@ -12,10 +12,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
+import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
-import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.generichealthservice.*
 import com.philips.btserver.generichealthservice.ElapsedTimeService
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.asByteArray
 import com.philips.btserver.userdataservice.UserDataService
 import com.welie.blessed.*
 import timber.log.Timber
@@ -159,6 +162,8 @@ internal class BluetoothServer(val context: Context) {
         val advertiseData = AdvertiseData.Builder()
                 .setIncludeTxPowerLevel(true)
                 .addServiceUuid(ParcelUuid(serviceUUID))
+                .addServiceUuid(ParcelUuid(DeviceInformationService.DIS_SERVICE_UUID))
+                .addServiceUuid(ParcelUuid(UserDataService.USER_DATA_SERVICE_UUID))
                 .addServiceData(ParcelUuid(serviceUUID), getGHSAdvertBytes())
                 .build()
         val scanResponse = AdvertiseData.Builder()
@@ -171,9 +176,22 @@ internal class BluetoothServer(val context: Context) {
         peripheralManager.stopAdvertising()
     }
 
-    // TODO This is fixed for a PulseOx (0x1004) with no security (0x00)...
     private fun getGHSAdvertBytes(): ByteArray {
-        return byteArrayOf(0x04, 0x10, 0x00)
+        // get the first 2 supported specializations
+        val devspecs = DeviceSpecialization.values().take(2) //.asAdvertisementDataBytes()
+        var devspecBytes = byteArrayOf() 
+        for( devspec in devspecs) devspecBytes = devspecBytes + devspec.asAdvertisementDataBytes()
+        Timber.i("Supported device specializations: ${devspecBytes.asFormattedHexString()}")
+
+        // get the first 2 users with new observations
+        val users = ObservationStore.usersWithTemporaryStoredObservations.take(2)
+        var userBytes = byteArrayOf()
+        for( user in users) userBytes = userBytes + user.toByte()
+        Timber.i("Users with new observations: ${userBytes.asFormattedHexString()}")
+
+        val ADdata = byteArrayOf(devspecs.count().toByte()) + devspecBytes + byteArrayOf(users.count().toByte()) + userBytes
+        Timber.i("Advert Data Bytes: ${ADdata.asFormattedHexString()}")
+        return ADdata
     }
 
     private fun setupServices() {
@@ -214,6 +232,20 @@ internal class BluetoothServer(val context: Context) {
             Timber.e("not supporting advertising")
         }
 //        bluetoothAdapter.name = "${Build.MODEL}-GHS-SIM"
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            Timber.i("Bluetooth permission missing....")
+        }
         bluetoothAdapter.name = "GHS-SIM"
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         peripheralManager.removeAllServices()
@@ -222,12 +254,12 @@ internal class BluetoothServer(val context: Context) {
         val cts = CurrentTimeService(peripheralManager)
         val ghs = GenericHealthSensorService(peripheralManager)
         val time = ElapsedTimeService(peripheralManager)
-        val uds = UserDataService(peripheralManager)
+        // val uds = UserDataService(peripheralManager)
         serviceImplementations[dis.service] = dis
         serviceImplementations[cts.service] = cts
         serviceImplementations[ghs.service] = ghs
         serviceImplementations[time.service] = time
-        serviceImplementations[uds.service] = uds
+        // serviceImplementations[uds.service] = uds
         setupServices()
         startAdvertising()
     }

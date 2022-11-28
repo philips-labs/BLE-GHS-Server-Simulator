@@ -13,10 +13,7 @@ import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.merge
-import com.philips.btserver.observations.Observation
-import com.philips.btserver.observations.ObservationEmitter
-import com.philips.btserver.observations.ObservationType
-import com.philips.btserver.observations.UnitCode
+import com.philips.btserver.observations.*
 import com.welie.blessed.*
 import timber.log.Timber
 import java.nio.charset.StandardCharsets
@@ -123,8 +120,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
+            //sendTempStoredObservations()
         }
-//        ObservationEmitter.startEmitter()
     }
 
     /**
