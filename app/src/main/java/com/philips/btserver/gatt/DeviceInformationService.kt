@@ -27,7 +27,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
 
     var manufacturer: String = Build.MANUFACTURER
     var modelNumber: String = Build.MODEL
-    var udiValue: ByteArray = setUDI("UDI Label", "Device Identifier", "GS1", "FDA")
+    var udiValue: ByteArray = setUDI("{01}00844588003288{17}141120{10}7654321D{21}10987654d321", "00844588003288", "2.51", "2.16.840.1.113883.3.24")
 
     override fun onCharacteristicRead(
         central: BluetoothCentral,
@@ -76,15 +76,15 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         }
         if (DeviceIdentifier.length > 0)  {
             flags.or(UDI_Device_Identifier_present)
-            bytes = bytes + DeviceIdentifier.toByteArray(Charsets.UTF_8)
+            bytes = bytes + DeviceIdentifier.toByteArray(Charsets.UTF_8) + 0x0.toByte()
         }
         if (UDI_Issuer.length > 0) {
             flags.or(UDI_Issuer_present)
-            bytes = bytes + UDI_Issuer.toByteArray(Charsets.UTF_8)
+            bytes = bytes + UDI_Issuer.toByteArray(Charsets.UTF_8) + 0x0.toByte()
         }
         if (UDI_Authority.length > 0) {
             flags.or(UDI_Authority_present)
-            bytes = bytes + UDI_Authority.toByteArray(Charsets.UTF_8)
+            bytes = bytes + UDI_Authority.toByteArray(Charsets.UTF_8) + 0x0.toByte()
         }
 
         bytes = byteArrayOf( flags.toByte()) + bytes
