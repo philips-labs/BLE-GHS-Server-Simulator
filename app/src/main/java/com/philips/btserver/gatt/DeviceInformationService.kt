@@ -27,7 +27,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
 
     var manufacturer: String = Build.MANUFACTURER
     var modelNumber: String = Build.MODEL
-    var uuid: String = UUID.randomUUID().toString()
+    var udiValue: ByteArray = setUDI("UDI Label", "Device Identifier", "GS1", "FDA")
 
     override fun onCharacteristicRead(
         central: BluetoothCentral,
@@ -36,7 +36,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         return when(characteristic.uuid) {
             MANUFACTURER_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, manufacturer.toByteArray())
             MODEL_NUMBER_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, modelNumber.toByteArray())
-            UDI_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, uuid.toByteArray())
+            UDI_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, udiValue)
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
@@ -61,7 +61,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         service.addCharacteristic(uniqueDeviceIdentifierChar)
     }
 
-    fun setUDI(UDILabel : String = "", DeviceIdentifier : String = "", UDI_Issuer : String = "", UDI_Authority: String = "" ){
+    private fun  setUDI(UDILabel : String = "", DeviceIdentifier : String = "", UDI_Issuer : String = "", UDI_Authority: String = "" ) : ByteArray {
         var bytes = byteArrayOf()
         var flags = 0x0
         val UDI_Label_present = 0x01
@@ -71,25 +71,24 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
 
 
         if (UDILabel.length > 0) {
-            flags.and( UDI_Label_present)
+            flags.or( UDI_Label_present)
             bytes = UDILabel.toByteArray(Charsets.UTF_8) + 0x0.toByte()
         }
         if (DeviceIdentifier.length > 0)  {
-            flags.and(UDI_Device_Identifier_present)
+            flags.or(UDI_Device_Identifier_present)
             bytes = bytes + DeviceIdentifier.toByteArray(Charsets.UTF_8)
         }
         if (UDI_Issuer.length > 0) {
-            flags.and(UDI_Issuer_present)
+            flags.or(UDI_Issuer_present)
             bytes = bytes + UDI_Issuer.toByteArray(Charsets.UTF_8)
         }
         if (UDI_Authority.length > 0) {
-            flags.and(UDI_Authority_present)
+            flags.or(UDI_Authority_present)
             bytes = bytes + UDI_Authority.toByteArray(Charsets.UTF_8)
         }
 
         bytes = byteArrayOf( flags.toByte()) + bytes
-
-        uniqueDeviceIdentifierChar.setValue(bytes)
+        return bytes
     }
 
 
