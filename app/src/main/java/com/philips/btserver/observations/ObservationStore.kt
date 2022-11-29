@@ -34,10 +34,7 @@ object ObservationStore {
     private val listeners = mutableListOf<ObservationStoreListener>()
     val storedObservations = observations.values.toList()
 
-    val usersWithStoredObservations = userObservations.keys.toList()
-
-    // TODO fix this placeholder
-    val usersWithTemporaryStoredObservations =  byteArrayOf(0x01, 0xFF.toByte()) // userTempObservations.keys
+    val usersWithTemporaryStoredObservations get() = userObservations.filter { it.value.size > 0 }.keys.toList()
 
     fun addListener(listener: ObservationStoreListener) = listeners.add(listener)
     fun removeListener(listener: ObservationStoreListener) = listeners.remove(listener)
@@ -81,6 +78,7 @@ object ObservationStore {
         }
         lastRecordNumber += 1
         broadcastChange()
+        if (observations.size == 1) broadcastUsersChanged()
     }
 
     fun remove(recordNumber: Int) {

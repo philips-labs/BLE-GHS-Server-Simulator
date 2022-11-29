@@ -187,7 +187,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         Timber.i("Supported device specializations: ${devspecBytes.asFormattedHexString()}")
 
         // get the first 2 users with new observations
-        val users = ObservationStore.usersWithTemporaryStoredObservations.take(2)
+        val users = ObservationStore.usersWithTemporaryStoredObservations// .take(2)
         var userBytes = byteArrayOf()
         for( user in users) userBytes = userBytes + user.toByte()
         Timber.i("Users with new observations: ${userBytes.asFormattedHexString()}")
