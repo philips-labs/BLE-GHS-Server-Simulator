@@ -10,6 +10,7 @@ import android.os.Build
 import com.welie.blessed.BluetoothPeripheralManager
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
+import java.nio.charset.Charset
 import java.util.*
 
 internal class DeviceInformationService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -43,6 +44,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     private fun setDefaultValues() {
         setManufacturer(Build.MANUFACTURER)
         setModelNumber(Build.MODEL)
+        setUDI("{01}00844588003288{17}141120{10}7654321D{21}10987654d321", "00844588003288", "2.51", "2.16.840.1.113883.3.24")
     }
 
     fun getManufacturer(): String {
@@ -60,4 +62,37 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     fun setModelNumber(modelNum: String) {
         modelNumberChar.setValue(modelNum)
     }
+
+    fun setUDI(UDILabel : String = "", DeviceIdentifier : String = "", UDI_Issuer : String = "", UDI_Authority: String = "" ){
+        var bytes = byteArrayOf()
+        var flags : Int
+        val UDI_Label_present = 0x01
+        val UDI_Device_Identifier_present = 0x02
+        val UDI_Issuer_present = 0x04
+        val UDI_Authority_present = 0x08
+
+        flags = 0x0
+        if (UDILabel.length > 0) {
+            flags.and( UDI_Label_present)
+            bytes = UDILabel.toByteArray(Charsets.UTF_8) + 0x0.toByte()
+        }
+        if (DeviceIdentifier.length > 0)  {
+            flags.and(UDI_Device_Identifier_present)
+            bytes = bytes + DeviceIdentifier.toByteArray(Charsets.UTF_8)
+        }
+        if (UDI_Issuer.length > 0) {
+            flags.and(UDI_Issuer_present)
+            bytes = bytes + UDI_Issuer.toByteArray(Charsets.UTF_8)
+        }
+        if (UDI_Authority.length > 0) {
+            flags.and(UDI_Authority_present)
+            bytes = bytes + UDI_Authority.toByteArray(Charsets.UTF_8)
+        }
+
+        bytes = byteArrayOf( flags.toByte()) + bytes
+
+        uniqueDeviceIdentifierChar.setValue(bytes)
+    }
+
+
 }
