@@ -123,8 +123,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
+            //sendTempStoredObservations()
         }
-//        ObservationEmitter.startEmitter()
     }
 
     /**

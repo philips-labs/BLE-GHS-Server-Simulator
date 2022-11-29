@@ -36,6 +36,9 @@ object ObservationStore {
 
     val usersWithStoredObservations = userObservations.keys.toList()
 
+    // TODO fix this placeholder
+    val usersWithTemporaryStoredObservations =  byteArrayOf(0x01, 0xFF.toByte()) // userTempObservations.keys
+
     fun addListener(listener: ObservationStoreListener) = listeners.add(listener)
     fun removeListener(listener: ObservationStoreListener) = listeners.remove(listener)
 
