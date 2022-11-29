@@ -14,7 +14,7 @@ import java.nio.ByteOrder
 class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSensorServiceListener {
 
     private val racpCharacteristic get() = service.racpCharacteristic
-    private val storedRecords get() = ObservationStore.storedObservations.toList()
+    private val storedRecords get() = ObservationStore.storedObservations
     private val numberStoredRecords get() = storedRecords.size
 
     init {

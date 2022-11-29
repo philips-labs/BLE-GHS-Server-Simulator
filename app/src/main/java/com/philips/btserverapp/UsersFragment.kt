@@ -19,6 +19,8 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
+    private lateinit var userAdapter: ArrayAdapter<Int>
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         _binding = FragmentUsersBinding.inflate(inflater, container, false)
@@ -27,6 +29,7 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.btnShowUsersData.setOnClickListener { showUsersData() }
         setupCurrentUserSpinner()
     }
 
@@ -35,12 +38,25 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
         updateCurrentUserView()
     }
 
+    private fun showUsersData() {
+        binding.usersLog.clearComposingText()
+        binding.usersLog.setText("Current User: ${UserDataManager.getInstance().currentUserIndex}\n${UserDataManager.getInstance().usersInfo()}")
+    }
+
     private fun setupCurrentUserSpinner() {
-        ArrayAdapter.createFromResource(
-            context!!,
-            R.array.users_array,
-            android.R.layout.simple_spinner_item
+
+//        ArrayAdapter.createFromResource(
+//            // context!!,
+//            // R.array.users_array,
+//            android.R.layout.simple_spinner_item,
+//            UserDataManager.getInstance().usersList
+        ArrayAdapter(
+             context!!,
+            // R.array.users_array,
+            android.R.layout.simple_spinner_item,
+            UserDataManager.getInstance().usersList
         ).also { adapter ->
+            userAdapter = adapter
             // Specify the layout to use when the list of choices appears
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             // Apply the adapter to the spinner
@@ -51,10 +67,18 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
     }
 
     private fun updateCurrentUserView() {
+        updateUserListAdapter()
         val currentUserIndex = UserDataManager.currentUserIndex
         binding.currentUser.setSelection(
             if (isUnknownUser(currentUserIndex)) unknownUserIndex else currentUserIndex - 1
         )
+    }
+
+    private fun updateUserListAdapter() {
+//        binding.currentUser.adapter
+        userAdapter.clear()
+        userAdapter.addAll(UserDataManager.getInstance().usersList)
+        userAdapter.notifyDataSetChanged()
     }
 
     private val unknownUserIndex: Int get() = binding.currentUser.adapter.count - 1

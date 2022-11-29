@@ -7,11 +7,21 @@ import com.philips.btserver.observations.ObservationStore
 
 class UserDataManager {
 
-    private val users = mutableListOf(0x01, 0x02)
-    private val consentCodes = mutableListOf(0x0, 0x0)
+    private val users = mutableListOf<Int>()
+    private val consentCodes = mutableListOf<Int>()
+
+    /* This is the index for the server... each connection also maintains a current user for observation access */
     var currentUserIndex = UNDEFINED_USER_INDEX
 
+    val usersList: List<Int> get() = users + listOf(0xFF)
+
     fun hasUserIndex(index: Int): Boolean { return users.contains(index) || (index == UNDEFINED_USER_INDEX) }
+
+    fun usersInfo(): String {
+        var result = ""
+        users.forEachIndexed {index, user -> result += "User $user\tConsent: ${consentCodes[index]} obs: ${ObservationStore.observationsForUser(user).count()}\n"}
+        return result
+    }
 
     fun createUserWithConsentCode(consentCode: Int): Int {
         val userIndex = (users.maxOrNull() ?: 0) + 1
@@ -21,17 +31,23 @@ class UserDataManager {
     }
 
     fun setCurrentUser(userIndex: Int) {
-        currentUserIndex = userIndex
+        val listIndex = users.indexOf(userIndex)
+        if (listIndex >= 0) {
+            setUserConsent(userIndex, consentCodes[listIndex])
+        }
     }
 
     fun setUserConsent(userIndex: Int, consentCode: Int): Boolean {
+        return if(checkUserConsent(userIndex, consentCode)) {
+            // Suboptimal as redoing users.indexOf(userIndex), but avoiding DRY in code
+            setCurrentUser(users.indexOf(userIndex))
+            true
+        } else false
+    }
+
+    fun checkUserConsent(userIndex: Int, consentCode: Int): Boolean {
         val listIndex = users.indexOf(userIndex)
-        return if (listIndex < 0) false else {
-            if (consentCode == consentCodes[listIndex]) {
-                setCurrentUser(listIndex)
-                true
-            } else false
-        }
+        return if (listIndex < 0) false else consentCode == consentCodes[listIndex]
     }
 
     fun deleteUser(userIndex: Int): Boolean {
@@ -40,6 +56,7 @@ class UserDataManager {
             if (listIndex < 0) {
                 false
             } else {
+                setCurrentUser(UNDEFINED_USER_INDEX)
                 users.removeAt(listIndex)
                 consentCodes.removeAt(listIndex)
                 ObservationStore.clearUserData(userIndex)

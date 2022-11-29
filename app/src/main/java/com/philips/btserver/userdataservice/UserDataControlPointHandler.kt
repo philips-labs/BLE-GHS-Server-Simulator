@@ -2,6 +2,7 @@ package com.philips.btserver.userdataservice
 
 import com.philips.btserver.extensions.merge
 import com.welie.blessed.BluetoothBytesParser
+import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.GattStatus
 
 enum class UserDataControlPointOpCode(val value: Byte) {
@@ -51,7 +52,12 @@ class UserDataControlPointHandler(val service: UserDataService) {
     }
 
     private fun isValidOpCode(opCode: Byte): Boolean {
-        return byteArrayOf(0x01, 0x02, 0x03, 0x20).indexOf(opCode) > -1
+        return byteArrayOf(
+            UserDataControlPointOpCode.RegisterNewUser.value,
+            UserDataControlPointOpCode.UserConsent.value,
+            UserDataControlPointOpCode.DeleteUserData.value,
+            UserDataControlPointOpCode.DeleteUser.value,
+            0x20).indexOf(opCode) > -1
     }
 
     private fun getOpCode(bytes: ByteArray): UserDataControlPointOpCode {
@@ -60,10 +66,10 @@ class UserDataControlPointHandler(val service: UserDataService) {
         else UserDataControlPointOpCode.value(bytes.first())
     }
 
-    fun handleReceivedBytes(bytes: ByteArray) {
+    fun handleReceivedBytes(bluetoothCentral: BluetoothCentral, bytes: ByteArray) {
         when(getOpCode(bytes)) {
             UserDataControlPointOpCode.RegisterNewUser -> registerNewUser(bytes)
-            UserDataControlPointOpCode.UserConsent -> requestUserConsent(bytes)
+            UserDataControlPointOpCode.UserConsent -> requestUserConsent(bluetoothCentral, bytes)
             UserDataControlPointOpCode.DeleteUserData -> deleteUserData(bytes)
             UserDataControlPointOpCode.ListAllUsers -> unsupportedOperation(UserDataControlPointOpCode.ListAllUsers)
             UserDataControlPointOpCode.DeleteUser -> deleteUser(bytes)
@@ -98,13 +104,14 @@ class UserDataControlPointHandler(val service: UserDataService) {
         }
     }
 
-    private fun requestUserConsent(bytes: ByteArray) {
+    private fun requestUserConsent(bluetoothCentral: BluetoothCentral, bytes: ByteArray) {
         val parser = BluetoothBytesParser(bytes)
         val opCode = parser.getUInt8().toByte()
         val userIndex = parser.getUInt8().toByte()
         val consentCode = parser.getUInt16()
-        val consentSuccess = UserDataManager.getInstance().setUserConsent(userIndex.toInt(), consentCode)
+        val consentSuccess = UserDataManager.getInstance().checkUserConsent(userIndex.toInt(), consentCode)
         if (consentSuccess) {
+            service.setUserIndexForCentral(bluetoothCentral, userIndex.toInt())
             sendResponseCodeBytes(UserDataControlPointOpCode.UserConsent, OP_CODE_RESPONSE_VALUE_SUCCESS)
         } else {
             // TODO Could also be Operation Failed, User Not Authorized..

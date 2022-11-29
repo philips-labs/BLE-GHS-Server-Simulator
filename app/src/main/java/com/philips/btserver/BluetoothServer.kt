@@ -17,6 +17,9 @@ import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.ElapsedTimeService
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.ObservationStoreListener
+import com.philips.btserver.observations.asByteArray
 import com.philips.btserver.userdataservice.UserDataService
 import com.welie.blessed.*
 import timber.log.Timber
@@ -33,7 +36,7 @@ interface BluetoothServerAdvertisingListener {
     fun onStopAdvertising()
 }
 
-internal class BluetoothServer(val context: Context) {
+internal class BluetoothServer(val context: Context) : ObservationStoreListener {
 
     var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
@@ -42,6 +45,7 @@ internal class BluetoothServer(val context: Context) {
     // Listeners for central connect/disconnects
     private val connectionListeners = mutableListOf<BluetoothServerConnectionListener>()
 
+    private var advertUserIdByteArray = byteArrayOf()
 
     fun isCentralBonded(central: BluetoothCentral): Boolean {
         return getBondedDevices().map { it.address }.contains(central.address)
@@ -178,9 +182,20 @@ internal class BluetoothServer(val context: Context) {
     }
 
     private fun setupServices() {
-        for (service in serviceImplementations.keys) {
-            peripheralManager.add(service)
+        serviceClasses().forEach {
+            serviceImplementations[it.service] = it
+            peripheralManager.add(it.service)
         }
+    }
+
+    private fun serviceClasses(): List<BaseService> {
+        return listOf(
+            DeviceInformationService(peripheralManager),
+            CurrentTimeService(peripheralManager),
+            GenericHealthSensorService(peripheralManager),
+            UserDataService(peripheralManager),
+            ElapsedTimeService(peripheralManager)
+        )
     }
 
     fun getServiceWithUUID(serviceUUID: UUID): BaseService? {
@@ -219,17 +234,27 @@ internal class BluetoothServer(val context: Context) {
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         peripheralManager.removeAllServices()
 
-        val dis = DeviceInformationService(peripheralManager)
-        val cts = CurrentTimeService(peripheralManager)
-        val ghs = GenericHealthSensorService(peripheralManager)
-        val time = ElapsedTimeService(peripheralManager)
-//        val uds = UserDataService(peripheralManager)
-        serviceImplementations[dis.service] = dis
-        serviceImplementations[cts.service] = cts
-        serviceImplementations[ghs.service] = ghs
-        serviceImplementations[time.service] = time
-//        serviceImplementations[uds.service] = uds
+        ObservationStore.addListener(this)
+
         setupServices()
         startAdvertising()
     }
+
+    override fun observationStoreUserChanged() {
+        startAdvertising()
+    }
+}
+
+/**
+ *
+ * @return the receiver converted into a ByteArray with each byte
+ */
+fun List<Int>.asByteArray(): ByteArray {
+    val result = ByteArray(this.size)
+    var i = 0
+    this.iterator().forEach {
+        result[i] = it.toByte()
+        i++
+    }
+    return result
 }
