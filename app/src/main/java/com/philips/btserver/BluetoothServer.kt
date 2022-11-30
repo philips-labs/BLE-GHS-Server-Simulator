@@ -14,13 +14,11 @@ import android.os.Build
 import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
 import com.philips.btserver.extensions.asFormattedHexString
-import com.philips.btserver.gatt.CurrentTimeService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.*
 import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.observations.ObservationStore
 import com.philips.btserver.observations.ObservationStoreListener
-import com.philips.btserver.observations.asByteArray
 import com.philips.btserver.userdataservice.UserDataService
 import com.welie.blessed.*
 import timber.log.Timber
@@ -207,7 +205,6 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
     private fun serviceClasses(): List<BaseService> {
         return listOf(
             DeviceInformationService(peripheralManager),
-            CurrentTimeService(peripheralManager),
             GenericHealthSensorService(peripheralManager),
             UserDataService(peripheralManager),
             ElapsedTimeService(peripheralManager)

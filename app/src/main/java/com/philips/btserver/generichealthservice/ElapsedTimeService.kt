@@ -72,7 +72,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         if (!writeFlagsValid(writeFlags)) return ERROR_INCORRECT_TIME_FORMAT
         val source = Timesource.value(value[7].toInt())
         if (!isTimesourceValid(source)) return ERROR_TIMESOUCE_QUALITY_TOO_LOW
-        val minimumDateAllowed = 1640995200000 - UTC_TO_UNIX_EPOCH_MILLIS
+//        val minimumDateAllowed = 1640995200000 - UTC_TO_UNIX_EPOCH_MILLIS
         val ticks = value[1].toLong() +
                 value[2].toLong().shl(8) +
                 value[3].toLong().shl(16) +
@@ -135,7 +135,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     init {
         service.addCharacteristic(simpleTimeCharacteristic)
         simpleTimeCharacteristic.addDescriptor(getCccDescriptor())
-        simpleTimeCharacteristic.addDescriptor(getCudDescriptor(SIMPLE_TIME_DESCRIPTION))
+        simpleTimeCharacteristic.addDescriptor(getCudDescriptor(ELAPSED_TIME_DESCRIPTION))
         notifyClockBytes(false)
     }
 
@@ -143,7 +143,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         val ELAPSED_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
         val ELASPED_TIME_CHARACTERISTIC_UUID =
             UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
-        private const val SIMPLE_TIME_DESCRIPTION = "Simple Time Service Characteristic"
+        private const val ELAPSED_TIME_DESCRIPTION = "Elapsed Time Service Characteristic"
 
         private val ERROR_TIMESOUCE_QUALITY_TOO_LOW = GattStatus.fromValue(0x80)
         private val ERROR_INCORRECT_TIME_FORMAT = GattStatus.fromValue(0x81)
