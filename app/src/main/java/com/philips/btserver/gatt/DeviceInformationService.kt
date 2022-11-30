@@ -50,25 +50,28 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         return BluetoothGattCharacteristic(charUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ)
     }
 
-    private fun udiBytes(label : String = "", deviceIdentifier : String = "", issuer : String = "", authority: String = "" ) : ByteArray {
+    private fun udiBytes(label : String? = null, deviceIdentifier : String? = null, issuer : String? = null, authority: String? = null ) : ByteArray {
         var bytes = byteArrayOf()
         var udiFlags = BitMask(0)
 
-        if (label.isNotEmpty()) {
+        label?.let {
             udiFlags = udiFlags.set(UDIFlags.labelPresent)
-            bytes += udiBytesFor(label)
+            bytes += udiBytesFor(it)
         }
-        if (deviceIdentifier.isNotEmpty())  {
+
+        deviceIdentifier?.let {
             udiFlags = udiFlags.set(UDIFlags.deviceIdentifierPresent)
-            bytes += udiBytesFor(deviceIdentifier)
+            bytes += udiBytesFor(it)
         }
-        if (issuer.isNotEmpty()) {
+
+        issuer?.let {
             udiFlags = udiFlags.set(UDIFlags.issuerPresent)
-            bytes += udiBytesFor(issuer)
+            bytes += udiBytesFor(it)
         }
-        if (authority.isNotEmpty()) {
+
+        authority?.let {
             udiFlags = udiFlags.set(UDIFlags.authorityPresent)
-            bytes += udiBytesFor(authority)
+            bytes += udiBytesFor(it)
         }
 
         bytes = byteArrayOf(udiFlags.value.toByte()) + bytes
@@ -80,10 +83,10 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     }
 
     companion object {
-        val DIS_SERVICE_UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
-        val MANUFACTURER_NAME_CHARACTERISTIC_UUID = UUID.fromString("00002A29-0000-1000-8000-00805f9b34fb")
-        val MODEL_NUMBER_CHARACTERISTIC_UUID = UUID.fromString("00002A24-0000-1000-8000-00805f9b34fb")
-        val UDI_CHARACTERISTIC_UUID = UUID.fromString("00007F3A-0000-1000-8000-00805f9b34fb")
+        val DIS_SERVICE_UUID: UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
+        val MANUFACTURER_NAME_CHARACTERISTIC_UUID: UUID = UUID.fromString("00002A29-0000-1000-8000-00805f9b34fb")
+        val MODEL_NUMBER_CHARACTERISTIC_UUID: UUID = UUID.fromString("00002A24-0000-1000-8000-00805f9b34fb")
+        val UDI_CHARACTERISTIC_UUID: UUID = UUID.fromString("00007F3A-0000-1000-8000-00805f9b34fb")
 
         const val UDI_LABEL = "{01}00844588003288{17}141120{10}7654321D{21}10987654d321"
         const val UDI_DEVICE_ID = "00844588003288"
