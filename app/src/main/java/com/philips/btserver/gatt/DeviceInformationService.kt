@@ -30,9 +30,9 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     private val modelNumberChar = createReadCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID)
     private val uniqueDeviceIdentifierChar = createReadCharacteristic(UDI_CHARACTERISTIC_UUID)
 
-    val manufacturer = Build.MANUFACTURER
-    val modelNumber = Build.MODEL
-    val udiValue = udiBytes(UDI_LABEL, UDI_DEVICE_ID, UDI_ISSUER, UDI_AUTHORITY)
+    var manufacturer = Build.MANUFACTURER
+    var modelNumber = Build.MODEL
+    var udiValue = udiBytes(UDI_LABEL, UDI_DEVICE_ID, UDI_ISSUER, UDI_AUTHORITY)
 
     override fun onCharacteristicRead(
         central: BluetoothCentral,

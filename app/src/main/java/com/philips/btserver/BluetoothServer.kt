@@ -39,6 +39,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
 
     var bluetoothAdapter: BluetoothAdapter
     var bluetoothManager: BluetoothManager
+
     private val peripheralManager: BluetoothPeripheralManager
 
     // Listeners for central connect/disconnects
@@ -207,7 +208,8 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
             DeviceInformationService(peripheralManager),
             GenericHealthSensorService(peripheralManager),
             UserDataService(peripheralManager),
-            ElapsedTimeService(peripheralManager)
+            ElapsedTimeService(peripheralManager),
+            ReconnectionConfigurationService(peripheralManager)
         )
     }
 
@@ -262,6 +264,25 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         ObservationStore.addListener(this)
 
         setupServices()
+
+
+        // stuff to add a characteristic to the Generic Attribute Service - parked for now....
+/*
+        val GENERIC_ATTRIBUTE_SERVICE = UUID.fromString("00001801-0000-1000-8000-00805f9b34fb")
+        val LE_GATT_SECURITY_LEVELS_CHARACTERISTIC = UUID.fromString("00002BF5-0000-1000-8000-00805f9b34fb")
+        val securityLevelCharacteristic = BluetoothGattCharacteristic(
+            LE_GATT_SECURITY_LEVELS_CHARACTERISTIC,
+            BluetoothGattCharacteristic.PROPERTY_READ,
+            0
+        )
+        var genericAttributeService : BluetoothGattService
+        var gattServer : BluetoothGattServer
+        val bgsc : BluetoothGattServerCallback // only need to add something for reading the new characteristic
+        gattServer = bluetoothManager.openGattServer(context, bgsc)
+
+        genericAttributeService = gattServer.getService(GENERIC_ATTRIBUTE_SERVICE)
+        genericAttributeService.addCharacteristic(securityLevelCharacteristic)
+*/
         startAdvertising()
     }
 
