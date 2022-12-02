@@ -11,12 +11,16 @@ import java.util.*
 /*
  * Support for Flags in Kotlin (may want to move to a Flags.kt file, and a util package)
  */
-class BitMask(val value: Long)
+class BitMask(val value: Long) {
+    val intValue: Int get() = value.toInt()
+}
 
 interface Flags {
     val bit: Long
 
     fun toBitMask(): BitMask = BitMask(bit)
+
+    val intValue: Int get() { return bit.toInt() }
 }
 
 infix fun Flags.and(other: Long): BitMask = BitMask(bit and other)

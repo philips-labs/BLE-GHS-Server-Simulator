@@ -22,13 +22,13 @@ fun Int.asLittleEndianArray(): ByteArray {
 
 fun Int.asLittleEndianUint32Array(): ByteArray {
     val parser = BluetoothBytesParser()
-    parser.setIntValue(this, BluetoothBytesParser.FORMAT_UINT32)
+    parser.setUInt32(this)
     return parser.value
 }
 
 fun Int.asByteArray(): ByteArray {
     val parser = BluetoothBytesParser()
-    parser.setIntValue(this, BluetoothBytesParser.FORMAT_SINT32)
+    parser.setSInt32(this)
     return parser.value
 }
 

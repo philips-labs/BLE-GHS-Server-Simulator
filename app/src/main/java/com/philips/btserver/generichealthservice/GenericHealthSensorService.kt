@@ -425,8 +425,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
          */
         fun getInstance(): GenericHealthSensorService? {
-            val bleServer = BluetoothServer.getInstance()
-            val ghs = bleServer?.getServiceWithUUID(GHS_SERVICE_UUID)
+            val ghs = BluetoothServer.getInstance()?.getServiceWithUUID(GHS_SERVICE_UUID)
             return ghs?.let { it as GenericHealthSensorService }
         }
     }
