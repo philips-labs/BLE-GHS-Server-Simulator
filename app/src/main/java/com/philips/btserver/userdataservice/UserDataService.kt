@@ -60,11 +60,14 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
         return when(characteristic.uuid) {
-            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(UserDataManager.currentUserIndex.toByte()))
+            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(currentUserIndexForCentral(central)))
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 
+    private fun currentUserIndexForCentral(central: BluetoothCentral): Byte {
+        return (currentUserIndexes[central.address] ?: 0xFF).toByte()
+    }
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
         return when(characteristic.uuid) {
