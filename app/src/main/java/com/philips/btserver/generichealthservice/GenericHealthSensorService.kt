@@ -32,14 +32,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     BaseService(peripheralManager) {
 
     // TODO: This is simple, maybe too simple, but we need some mechanism to indicate RACP cannot be done
-    public var canHandleRACP = true
+    var canHandleRACP = true
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
     internal val listeners = mutableSetOf<GenericHealthSensorServiceListener>()
-
-    private val controlPointHandler = GhsControlPointHandler(this)
-    val racpHandler = GhsRacpHandler(this).startup()
 
     internal val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
@@ -53,15 +50,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
-    private val observationSendHandler = GhsObservationSendHandler(this, observationCharacteristic)
-    private val storedObservationSendHandler = GhsObservationSendHandler(this, storedObservationCharacteristic)
-
     internal val featuresCharacteristic = BluetoothGattCharacteristic(
         GHS_FEATURES_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_INDICATE,
         PERMISSION_READ
     )
-
 
     internal val ghsControlPointCharacteristic = BluetoothGattCharacteristic(
         GHS_CONTROL_POINT_CHARACTERISTIC_UUID,
@@ -81,8 +74,12 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
-    // Since we cannot use the value directly in characteristics or descriptors anymore
-    var observationScheduleByteArray = byteArrayOf()
+    private val controlPointHandler = GhsControlPointHandler(this)
+    private val observationScheduleHandler = GhsObservationScheduleHandler(this)
+    private val racpHandler = GhsRacpHandler(this).startup()
+    private val observationSendHandler = GhsObservationSendHandler(this, observationCharacteristic)
+    private val storedObservationSendHandler =
+        GhsObservationSendHandler(this, storedObservationCharacteristic)
 
     fun addListener(listener: GenericHealthSensorServiceListener) = listeners.add(listener)
 
@@ -109,9 +106,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     var isLiveObservationNotifyEnabled = false
     var isLiveObservationsStarted = false
 
-    fun isSendLiveObservationsEnabled(): Boolean {
-        return isLiveObservationNotifyEnabled && isLiveObservationsStarted
-    }
+    val isSendLiveObservationsEnabled get() = isLiveObservationNotifyEnabled && isLiveObservationsStarted
 
     /**
      * Notification from [central] that [characteristic] has notification enabled. Implies that
@@ -173,17 +168,29 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
-        return when(characteristic.uuid) {
+        return when (characteristic.uuid) {
             OBSERVATION_CHARACTERISTIC_UUID -> {
                 ObservationEmitter.singleShotEmit()
                 ReadResponse(GattStatus.SUCCESS, byteArrayOf())
             }
+            OBSERVATION_SCHEDULE_CHANGED_CHARACTERISTIC_UUID -> ReadResponse(
+                GattStatus.SUCCESS,
+                observationScheduleHandler.observationScheduleByteArray
+            )
+            GHS_FEATURES_CHARACTERISTIC_UUID -> ReadResponse(
+                GattStatus.SUCCESS,
+                featuresCharacteristicBytes
+            )
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 
-    override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
-        return when(characteristic.uuid) {
+    override fun onCharacteristicWrite(
+        central: BluetoothCentral,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray
+    ): GattStatus {
+        return when (characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> writeGattStatusFor(value)
             RACP_CHARACTERISTIC_UUID -> if (racpHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
             else -> GattStatus.WRITE_NOT_PERMITTED
@@ -193,21 +200,27 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     override fun onCharacteristicWriteCompleted(
         bluetoothCentral: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic,
-        value: ByteArray) {
-        when(characteristic.uuid) {
+        value: ByteArray
+    ) {
+        when (characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(value)
             RACP_CHARACTERISTIC_UUID -> racpHandler.handleReceivedBytes(value)
         }
     }
 
-
     /*
     * onDescriptorRead is a non-abstract method with an empty body to have a default behavior to do nothing
     * Subclasses do not need to provide an implementation
     */
-    override fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse  {
+    override fun onDescriptorRead(
+        central: BluetoothCentral,
+        descriptor: BluetoothGattDescriptor
+    ): ReadResponse {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
-            ReadResponse(GattStatus.SUCCESS, observationScheduleByteArray)
+            ReadResponse(
+                GattStatus.SUCCESS,
+                observationScheduleHandler.getObservationDescriptionValue(descriptor)
+            )
         } else {
             super.onDescriptorRead(central, descriptor)
         }
@@ -219,23 +232,14 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ): GattStatus {
         return if (descriptor.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID) {
-            configureObservationScheduleDescriptor(descriptor, central, value)
+            observationScheduleHandler.configureObservationScheduleDescriptor(
+                descriptor,
+                central,
+                value
+            )
         } else {
             super.onDescriptorWrite(central, descriptor, value)
         }
-    }
-
-    fun BluetoothGattDescriptor.observationType(): ObservationType {
-        val type = value.getObservationType()
-        return if (type == null)
-            ObservationType.UNKNOWN_TYPE
-        else type
-    }
-
-    fun ByteArray.getObservationType(): ObservationType? {
-        return if (size > 3)
-            ObservationType.fromValue(BluetoothBytesParser(this).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
-        else null
     }
 
     private fun sendTempStoredObservations() {
@@ -245,46 +249,19 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    private fun configureObservationScheduleDescriptor(descriptor: BluetoothGattDescriptor,
-                                                       central: BluetoothCentral,
-                                                       value: ByteArray): GattStatus {
-        // Validate the Observation Type
-        val parser = BluetoothBytesParser(value)
-        // Check that the observation type matches the descriptors observation type
-        val observationType = ObservationType.fromValue(parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32))
-        descriptor.value.let {
-            val descriptorObsType = ObservationType.fromValue(BluetoothBytesParser(it).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
-            if (observationType != descriptorObsType) return GattStatus.VALUE_OUT_OF_RANGE
-        }
-
-        val measurementPeriod = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
-        if (measurementPeriod < MIN_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
-        if (measurementPeriod > MAX_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
-        val updateInterval = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
-        if (updateInterval < MIN_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
-        if (updateInterval > MAX_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
-
-        Timber.i("Observation schedule descriptor write for type: $observationType measurement period: $measurementPeriod update interval $updateInterval ")
-        setObservationScheduleDescriptorValue(descriptor, central, value)
-        // TODO Make this a broadcast or notify listeners to remove direct reference to ObservationEmitter (also get rid of double notifies and reason for that boolean)
-        ObservationEmitter.setObservationSchedule(observationType, updateInterval, measurementPeriod, false)
-        observationScheduleByteArray = value
-        return GattStatus.SUCCESS
-    }
-
-    private fun setObservationScheduleDescriptorValue(descriptor: BluetoothGattDescriptor, central: BluetoothCentral?, value: ByteArray) {
-        Timber.i("setObservationScheduleDescriptorValue from central: ${central?.address}")
-        descriptor.value = value
-        observationScheduleCharacteristic.value = value
+    internal fun broadcastObservationScheduleValueNotifyToCentral(
+        central: BluetoothCentral?,
+        value: ByteArray
+    ) {
         centralsToNotifyUpdateFromCentral(central).forEach {
             Timber.i("setObservationScheduleDescriptorValue notify central: ${it.address}")
-            peripheralManager.notifyCharacteristicChanged(value, it, observationScheduleCharacteristic)
+            peripheralManager.notifyCharacteristicChanged(
+                value,
+                it,
+                observationScheduleCharacteristic
+            )
         }
         updateDisconnectedBondedCentralsToNotify(observationScheduleCharacteristic)
-    }
-
-    private fun centralsToNotifyUpdateFromCentral(central: BluetoothCentral?): List<BluetoothCentral> {
-        return getConnectedCentrals().filter { connCen -> central?.let { connCen.address != it.address } ?: true  }
     }
 
     private fun writeGattStatusFor(value: ByteArray): GattStatus {
@@ -299,47 +276,44 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         return characteristic == storedObservationCharacteristic
     }
 
+    var featuresCharacteristicBytes = byteArrayOf()
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
-        val bytes = types.featureCharacteristicBytes()
-        Timber.i("Sending feature characteristic bytes: ${bytes.asFormattedHexString()}")
-        setCharacteristicValueAndNotify(bytes, featuresCharacteristic)
+        featuresCharacteristicBytes = types.featureCharacteristicBytes()
+        Timber.i("Sending feature characteristic bytes: ${featuresCharacteristicBytes.asFormattedHexString()}")
+        setCharacteristicValueAndNotify(featuresCharacteristicBytes, featuresCharacteristic)
     }
 
-    internal fun setCharacteristicValueAndNotify(value: ByteArray, characteristic: BluetoothGattCharacteristic) {
+    internal fun setCharacteristicValueAndNotify(
+        value: ByteArray,
+        characteristic: BluetoothGattCharacteristic
+    ) {
         characteristic.value = value
         peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
-    private fun getObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
-        val currentDescriptor = featuresCharacteristic.descriptors
-            .filter { it.uuid == OBSERVATION_SCHEDULE_DESCRIPTOR_UUID }
-            .firstOrNull { it.observationType() == observationType }
-
-        return if (currentDescriptor == null) {
-            createObservationScheduleDescriptor(observationType)
-        } else {
-            currentDescriptor
-        }
+    fun setObservationSchedule(
+        observationType: ObservationType,
+        updateInterval: Float,
+        measurementPeriod: Float
+    ) {
+        observationScheduleHandler.setObservationSchedule(
+            observationType,
+            updateInterval,
+            measurementPeriod
+        )
     }
 
-    fun createObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
-        val newDescriptor = BluetoothGattDescriptor(OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
-            BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
-        featuresCharacteristic.addDescriptor(newDescriptor)
-        return newDescriptor
-    }
-
-    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
-        val scheduleDesc = getObservationScheduleDescriptor(observationType)
-        val parser = BluetoothBytesParser()
-        parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
-        parser.setFloatValue(measurementPeriod, 3)
-        parser.setFloatValue(updateInterval, 3)
-        setObservationScheduleDescriptorValue(scheduleDesc, null, parser.value)
-    }
-
-    fun setValidRangeAndAccuracy(observationType: ObservationType, unitCode: UnitCode, lowerLimit: Float, upperLimit: Float, accuracy: Float) {
-        val validDesc = BluetoothGattDescriptor(VALID_RANGE_AND_ACCURACY_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
+    fun setValidRangeAndAccuracy(
+        observationType: ObservationType,
+        unitCode: UnitCode,
+        lowerLimit: Float,
+        upperLimit: Float,
+        accuracy: Float
+    ) {
+        val validDesc = BluetoothGattDescriptor(
+            VALID_RANGE_AND_ACCURACY_DESCRIPTOR_UUID,
+            BluetoothGattDescriptor.PERMISSION_READ
+        )
         val parser = BluetoothBytesParser()
         parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
         parser.setIntValue(unitCode.value, BluetoothBytesParser.FORMAT_UINT16)
@@ -356,6 +330,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         storedObservationSendHandler.reset()
         controlPointHandler.reset()
         racpHandler.reset()
+        observationScheduleHandler.reset()
     }
 
     /**
@@ -417,11 +392,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val GHS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
         private const val OBSERVATION_SCHEDULE_DESCRIPTION = "Observation Schedule characteristic"
 
-        private const val MIN_MEASUREMENT_PERIOD = 0f
-        private const val MAX_MEASUREMENT_PERIOD = 60f
-        private const val MIN_UPDATE_INVERVAL = 1f
-        private const val MAX_UPDATE_INVERVAL = 60f
-
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
          */
@@ -438,20 +408,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
         initCharacteristic(ghsControlPointCharacteristic, GHS_CONTROL_POINT_DESCRIPTION)
         initCharacteristic(observationScheduleCharacteristic, OBSERVATION_SCHEDULE_DESCRIPTION)
-        initObservationScheduleDescriptors()
-    }
-
-    private fun initObservationScheduleDescriptors() {
-//        ObservationEmitter.allObservationTypes.first {
-        // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
-        listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
-            val descriptor = createObservationScheduleDescriptor(it)
-            val parser = BluetoothBytesParser()
-            parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setFloatValue(1f, 3)
-            parser.setFloatValue(1f, 3)
-            descriptor.value = parser.value
-        }
+        observationScheduleHandler.initObservationScheduleDescriptors()
     }
 
 }
@@ -475,7 +432,7 @@ private fun List<ObservationType>.featureTypeBytesFor(): ByteArray {
 private fun List<ObservationType>.deviceSpecializationBytes(): ByteArray {
     var result = byteArrayOf()
     val specializations = deviceSpecializations()
-    if (!specializations.isEmpty()){
+    if (!specializations.isEmpty()) {
         result += byteArrayOf(specializations.size.toByte())
         specializations.forEach { result += it.asByteArray() }
     }
@@ -498,7 +455,7 @@ private fun List<ObservationType>.deviceSpecializations(): List<DeviceSpecializa
 }
 
 private fun ObservationType.deviceSpecialization(): DeviceSpecialization {
-    return when(this) {
+    return when (this) {
         ObservationType.MDC_TEMP_BODY -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_TEMP
         ObservationType.MDC_PULS_OXIM_SAT_O2 -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_PULS_OXIM
         ObservationType.MDC_PPG_TIME_PD_PP -> DeviceSpecialization.MDC_DEV_SPEC_PROFILE_ECG

@@ -32,6 +32,10 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ObservationStore.addListener(this)
+
+        ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
+        binding.checkboxHRObs.isChecked = true
+
         binding.checkboxTempObs.setOnClickListener { clickTempObs() }
         binding.checkboxHRObs.setOnClickListener { clickHRObs() }
         binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
