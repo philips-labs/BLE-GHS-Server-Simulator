@@ -49,8 +49,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val storedObservationCharacteristic = BluetoothGattCharacteristic(
         STORED_OBSERVATIONS_CHARACTERISTIC_UUID,
-        PROPERTY_READ or PROPERTY_NOTIFY,
-        PERMISSION_READ
+         PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        0
     )
 
     private val observationSendHandler = GhsObservationSendHandler(this, observationCharacteristic)
@@ -126,6 +126,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             //sendTempStoredObservations()
         }
     }
+
 
     /**
      * Notification from [central] that [characteristic] has notification disabled. If the
