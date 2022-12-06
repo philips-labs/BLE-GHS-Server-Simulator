@@ -1,28 +1,28 @@
 package com.philips.btserver.generichealthservice
 
+import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Handler
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.asLittleEndianUint32Array
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
-import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationStore
 import com.welie.blessed.BluetoothBytesParser
 import timber.log.Timber
 import java.nio.ByteOrder
 
-class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSensorServiceListener {
+class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSensorServiceListener {
 
-    private val racpCharacteristic get() = service.racpCharacteristic
-    private val storedRecords get() = ObservationStore.storedObservations
-    private val numberStoredRecords get() = storedRecords.size
+    private val racpCharacteristic: BluetoothGattCharacteristic get() = service.racpCharacteristic
+    private val storedRecords: List<Observation> get() = ObservationStore.storedObservations
+    private val numberStoredRecords: Int get() = storedRecords.size
 
     init {
         // TODO can't do this because this is null as we're initializing... check this out..
         // service.addListener(this)
     }
 
-    fun startup() : GhsRacpHandler {
+    fun startup(): GhsRacpHandler {
         service.addListener(this)
         return this
     }
@@ -37,8 +37,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
     fun handleReceivedBytes(bytes: ByteArray) {
         if (bytes.isEmpty()) return sendInvalidOperator(OP_NULL)
         val opCode = bytes.racpOpCode()
-        if(!service.canHandleRACP) return sendServerBusy(opCode)
-        when(opCode) {
+        if (!service.canHandleRACP) return sendServerBusy(opCode)
+        when (opCode) {
             OP_CODE_ABORT -> abortGetRecords(bytes)
             OP_CODE_COMBINED_REPORT -> reportCombinedStoredRecords(bytes)
             OP_CODE_NUMBER_STORED_RECORDS -> reportNumberStoredRecords(bytes)
@@ -51,7 +51,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
         sendNumberCombinedStoredRecords(observations.size)
     }
 
-    private fun abortGetRecords(bytes: ByteArray)   {
+    private fun abortGetRecords(bytes: ByteArray) {
         if (bytes.size == 2 && bytes[1] == OP_NULL) {
             service.abortSendStoredObservations()
             // TODO Cheap way to make sure the Bluetooth buffers are empty
@@ -93,16 +93,21 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
         } else {
             val operator = bytes.racpOperator()
 
-            when(operator) {
+            when (operator) {
                 OP_ALL_RECORDS -> {
                     ObservationStore.clear()
                     sendSuccessResponse(bytes.racpOpCode())
                 }
-                OP_GREATER_THAN_OR_EQUAL ->  {
+                OP_GREATER_THAN_OR_EQUAL -> {
                     // The delete call will send either a no records found or success code
                     deleteRecordsGreaterOrEqual(bytes)
                 }
-                in listOf(OP_WITHIN_RANGE, OP_FIRST_RECORD, OP_LAST_RECORD, OP_LESS_THAN_OR_EQUAL) -> {
+                in listOf(
+                    OP_WITHIN_RANGE,
+                    OP_FIRST_RECORD,
+                    OP_LAST_RECORD,
+                    OP_LESS_THAN_OR_EQUAL
+                ) -> {
                     sendUnsupportedOperator(bytes.racpOpCode())
                 }
                 else -> {
@@ -118,10 +123,15 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
             sendInvalidOperator(OP_NULL)
             null
         } else {
-            when(bytes.racpOperator()) {
+            when (bytes.racpOperator()) {
                 OP_ALL_RECORDS -> storedRecords
                 OP_GREATER_THAN_OR_EQUAL -> queryRecordsGreaterOrEqual(bytes)
-                in listOf(OP_WITHIN_RANGE, OP_FIRST_RECORD, OP_LAST_RECORD, OP_LESS_THAN_OR_EQUAL) -> {
+                in listOf(
+                    OP_WITHIN_RANGE,
+                    OP_FIRST_RECORD,
+                    OP_LAST_RECORD,
+                    OP_LESS_THAN_OR_EQUAL
+                ) -> {
                     sendUnsupportedOperator(bytes.racpOpCode())
                     null
                 }
@@ -139,10 +149,15 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
             sendInvalidOperator(OP_NULL)
             null
         } else {
-            when(bytes.racpOperator()) {
+            when (bytes.racpOperator()) {
                 OP_ALL_RECORDS -> numberStoredRecords
                 OP_GREATER_THAN_OR_EQUAL -> queryNumberGreaterOrEqual(bytes)
-                in listOf(OP_WITHIN_RANGE, OP_FIRST_RECORD, OP_LAST_RECORD, OP_LESS_THAN_OR_EQUAL) -> {
+                in listOf(
+                    OP_WITHIN_RANGE,
+                    OP_FIRST_RECORD,
+                    OP_LAST_RECORD,
+                    OP_LESS_THAN_OR_EQUAL
+                ) -> {
                     sendUnsupportedOperator(bytes.racpOpCode())
                     null
                 }
@@ -202,7 +217,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
     private fun deleteRecordsGreaterOrEqual(bytes: ByteArray) {
         if (isSupportedFilterType(bytes)) {
             val minValue = getQueryRecordNumber(bytes)
-            val numRecords = ObservationStore.removeObservationsGreaterThanOrEqualRecordNumber(minValue)
+            val numRecords =
+                ObservationStore.removeObservationsGreaterThanOrEqualRecordNumber(minValue)
             if (numRecords == 0)
                 sendResponseCodeBytes(bytes.racpOpCode(), RESPONSE_CODE_NO_RECORDS)
             else sendSuccessResponse(bytes.racpOpCode())
@@ -215,7 +231,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
     }
 
     private fun getQueryRecordNumber(bytes: ByteArray): Int {
-        val parser = BluetoothBytesParser(bytes.copyOfRange(3,7))
+        val parser = BluetoothBytesParser(bytes.copyOfRange(3, 7))
         return parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32, ByteOrder.LITTLE_ENDIAN)
     }
 
@@ -283,7 +299,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService): GenericHealthSens
     }
 
     private fun sendResponseCodeBytes(requestOpCode: Byte, responseCodeValue: Byte) {
-        val response = byteArrayOf(OP_CODE_RESPONSE_CODE, 0X0.toByte(), requestOpCode, responseCodeValue)
+        val response =
+            byteArrayOf(OP_CODE_RESPONSE_CODE, 0X0.toByte(), requestOpCode, responseCodeValue)
         sendBytesAndNotify(response)
     }
 

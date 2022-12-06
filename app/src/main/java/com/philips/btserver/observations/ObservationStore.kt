@@ -15,24 +15,16 @@ object ObservationStore {
     private val userObservations = mutableMapOf<Int, MutableMap<Int, Observation>>()
 
     private val observations: MutableMap<Int, Observation>
-        get() {
-            if (!userObservations.containsKey(currentUserIndex)) {
-                userObservations[currentUserIndex] = mutableMapOf()
-            }
-            return userObservations[currentUserIndex]!!
-        }
+        get() = userObservations.getOrPut(currentUserIndex) { mutableMapOf() }
 
     private val currentUserIndex = UserDataManager.currentUserIndex
     private val userLastRecordNumber = mutableMapOf<Int, Int>()
     private var lastRecordNumber: Int
-        get() {
-            return userLastRecordNumber.getOrPut(UserDataManager.currentUserIndex) { 0 }
-        }
-        set(value) {
-            userLastRecordNumber[UserDataManager.currentUserIndex] = value
-        }
+        get() = userLastRecordNumber.getOrPut(UserDataManager.currentUserIndex) { 0 }
+        set(value) { userLastRecordNumber[UserDataManager.currentUserIndex] = value }
+
     private val listeners = mutableListOf<ObservationStoreListener>()
-    val storedObservations = observations.values.toList()
+    val storedObservations: List<Observation> get() = observations.values.toList()
 
     val usersWithTemporaryStoredObservations get() = userObservations.filter { it.value.size > 0 }.keys.toList()
 
