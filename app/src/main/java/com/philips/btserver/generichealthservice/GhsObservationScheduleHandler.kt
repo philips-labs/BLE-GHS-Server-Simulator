@@ -22,7 +22,7 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
 
 
     internal fun getObservationDescriptionValue(descriptor: BluetoothGattDescriptor): ByteArray {
-        return observationScheduleDescriptorValues[descriptor] ?: byteArrayOf()
+        return observationScheduleDescriptorValues[descriptor] ?: descriptor.value
     }
 
     internal fun setObservationDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
@@ -70,10 +70,9 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
     }
 
     internal fun getObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
-
         return service.featuresCharacteristic.descriptors
             .filter { it.uuid == GenericHealthSensorService.OBSERVATION_SCHEDULE_DESCRIPTOR_UUID }
-            .firstOrNull { it.observationType() == observationType }
+            .firstOrNull { it.observationType().value == observationType.value }
             ?: createObservationScheduleDescriptor(observationType)
     }
 
@@ -81,7 +80,8 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
         val newDescriptor = BluetoothGattDescriptor(
             GenericHealthSensorService.OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
             BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
-        service.featuresCharacteristic.addDescriptor(newDescriptor)
+        val result = service.featuresCharacteristic.addDescriptor(newDescriptor)
+        Timber.i("${if (result) "SUCCESS" else "FAILED"}: Creating Observation Schedule Descriptor for type: $observationType")
         return newDescriptor
     }
 
@@ -89,12 +89,14 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
 //        ObservationEmitter.allObservationTypes.first {
         // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
         listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
-            val descriptor = createObservationScheduleDescriptor(it)
+//            val descriptor = createObservationScheduleDescriptor(it)
             val parser = BluetoothBytesParser()
             parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
-            parser.setFloatValue(1f, 3)
-            parser.setFloatValue(1f, 3)
-            setObservationDescriptorValue(descriptor, parser.value)
+            parser.setFloatValue(2f, 3)
+            parser.setFloatValue(2f, 3)
+            val descriptor = getObservationScheduleDescriptor(it)
+            val bytes = parser.value
+            setObservationDescriptorValue(descriptor, bytes)
         }
     }
 
