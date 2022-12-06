@@ -49,6 +49,7 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
         val measurementPeriod = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
         if (measurementPeriod < MIN_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
         if (measurementPeriod > MAX_MEASUREMENT_PERIOD) return GattStatus.VALUE_OUT_OF_RANGE
+
         val updateInterval = parser.getFloatValue(BluetoothBytesParser.FORMAT_FLOAT)
         if (updateInterval < MIN_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
         if (updateInterval > MAX_UPDATE_INVERVAL) return GattStatus.VALUE_OUT_OF_RANGE
@@ -84,7 +85,6 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
         return newDescriptor
     }
 
-
     internal fun initObservationScheduleDescriptors() {
 //        ObservationEmitter.allObservationTypes.first {
         // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
@@ -106,6 +106,8 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
         parser.setFloatValue(updateInterval, 3)
         setObservationScheduleDescriptorValue(scheduleDesc, null, parser.value)
     }
+
+    fun reset() {}
 
     companion object {
         private const val MIN_MEASUREMENT_PERIOD = 0f

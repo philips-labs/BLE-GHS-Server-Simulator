@@ -65,6 +65,12 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return peripheralManager.getConnectedCentrals().size == 0
     }
 
+    fun centralsToNotifyUpdateFromCentral(central: BluetoothCentral?): List<BluetoothCentral> {
+        return getConnectedCentrals().filter { connCen ->
+            central?.let { connCen.address != it.address } ?: true
+        }
+    }
+
     val minimalMTU: Int
         get() = min((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu }
                 ?: MAX_MIN_MTU), MAX_MIN_MTU)
