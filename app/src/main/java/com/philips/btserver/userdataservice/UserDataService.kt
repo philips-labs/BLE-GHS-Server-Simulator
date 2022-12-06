@@ -93,7 +93,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     fun sendTempStoredObservations(central: BluetoothCentral, userIndex: Int) {
         GenericHealthSensorService.getInstance()?.let { ghsService ->
-            if (ObservationStore.isTemporaryStore && ghsService.isSendLiveObservationsEnabled()) {
+            if (ObservationStore.isTemporaryStore && ghsService.isSendLiveObservationsEnabled) {
                 ObservationStore.forEachUserTempObservation(userIndex) { obs -> ghsService.sendObservation(obs) }
                 ObservationStore.clearObservationsForUser(userIndex)
             }

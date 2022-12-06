@@ -68,10 +68,65 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
         service.broadcastObservationScheduleValueNotifyToCentral(central, value)
     }
 
+    internal fun getObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
+
+        return service.featuresCharacteristic.descriptors
+            .filter { it.uuid == GenericHealthSensorService.OBSERVATION_SCHEDULE_DESCRIPTOR_UUID }
+            .firstOrNull { it.observationType() == observationType }
+            ?: createObservationScheduleDescriptor(observationType)
+    }
+
+    private fun createObservationScheduleDescriptor(observationType: ObservationType): BluetoothGattDescriptor {
+        val newDescriptor = BluetoothGattDescriptor(
+            GenericHealthSensorService.OBSERVATION_SCHEDULE_DESCRIPTOR_UUID,
+            BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
+        service.featuresCharacteristic.addDescriptor(newDescriptor)
+        return newDescriptor
+    }
+
+
+    internal fun initObservationScheduleDescriptors() {
+//        ObservationEmitter.allObservationTypes.first {
+        // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
+        listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
+            val descriptor = createObservationScheduleDescriptor(it)
+            val parser = BluetoothBytesParser()
+            parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
+            parser.setFloatValue(1f, 3)
+            parser.setFloatValue(1f, 3)
+            setObservationDescriptorValue(descriptor, parser.value)
+        }
+    }
+
+    fun setObservationSchedule(observationType: ObservationType, updateInterval: Float, measurementPeriod: Float) {
+        val scheduleDesc = getObservationScheduleDescriptor(observationType)
+        val parser = BluetoothBytesParser()
+        parser.setIntValue(observationType.value, BluetoothBytesParser.FORMAT_UINT32)
+        parser.setFloatValue(measurementPeriod, 3)
+        parser.setFloatValue(updateInterval, 3)
+        setObservationScheduleDescriptorValue(scheduleDesc, null, parser.value)
+    }
+
     companion object {
         private const val MIN_MEASUREMENT_PERIOD = 0f
         private const val MAX_MEASUREMENT_PERIOD = 60f
         private const val MIN_UPDATE_INVERVAL = 1f
         private const val MAX_UPDATE_INVERVAL = 60f
     }
+
+
+    fun BluetoothGattDescriptor.observationType(): ObservationType {
+        val type = getObservationDescriptionValue(this).getObservationType()
+        return if (type == null)
+            ObservationType.UNKNOWN_TYPE
+        else type
+    }
+
+
+    fun ByteArray.getObservationType(): ObservationType? {
+        return if (size > 3)
+            ObservationType.fromValue(BluetoothBytesParser(this).getIntValue(BluetoothBytesParser.FORMAT_UINT32))
+        else null
+    }
+
 }

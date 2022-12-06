@@ -248,7 +248,7 @@ object ObservationEmitter {
             Timber.i("No centrals connected, storing observation")
             observations.forEach { ObservationStore.addObservation(it) }
         } else {
-            if (ghsService?.isSendLiveObservationsEnabled() ?: false) {
+            if (ghsService?.isSendLiveObservationsEnabled ?: false) {
                 observations.forEach { ghsService?.sendObservation(it) }
             } else {
                 Timber.i("Transmit observations is not enabled")
