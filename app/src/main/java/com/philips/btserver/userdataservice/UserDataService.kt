@@ -46,7 +46,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
-        if (!central.isBonded()) central.createBond()
+        // if (!central.isBonded()) central.createBond()
         setUserIndexForCentral(central, UserDataManager.UNDEFINED_USER_INDEX)
     }
 
