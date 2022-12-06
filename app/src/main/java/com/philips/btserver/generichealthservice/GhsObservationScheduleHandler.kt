@@ -89,14 +89,11 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
 //        ObservationEmitter.allObservationTypes.first {
         // FYI: MDC_ECG_HEART_RATE Hex value is 0x00024182
         listOf(ObservationType.MDC_ECG_HEART_RATE).forEach {
-//            val descriptor = createObservationScheduleDescriptor(it)
             val parser = BluetoothBytesParser()
             parser.setIntValue(it.value, BluetoothBytesParser.FORMAT_UINT32)
             parser.setFloatValue(2f, 3)
             parser.setFloatValue(2f, 3)
-            val descriptor = getObservationScheduleDescriptor(it)
-            val bytes = parser.value
-            setObservationDescriptorValue(descriptor, bytes)
+            setObservationDescriptorValue(getObservationScheduleDescriptor(it), parser.value)
         }
     }
 
@@ -113,9 +110,9 @@ class GhsObservationScheduleHandler(val service: GenericHealthSensorService) {
 
     companion object {
         private const val MIN_MEASUREMENT_PERIOD = 0f
-        private const val MAX_MEASUREMENT_PERIOD = 60f
+        private const val MAX_MEASUREMENT_PERIOD = 9999f
         private const val MIN_UPDATE_INVERVAL = 1f
-        private const val MAX_UPDATE_INVERVAL = 60f
+        private const val MAX_UPDATE_INVERVAL = 9999f
     }
 
 
