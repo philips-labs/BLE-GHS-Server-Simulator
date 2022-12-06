@@ -171,6 +171,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         val scanResponse = AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
                 .build()
+        peripheralManager.stopAdvertising()
         peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData)
     }
 
