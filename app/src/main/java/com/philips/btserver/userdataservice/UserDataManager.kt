@@ -5,15 +5,27 @@ import com.philips.btserver.BluetoothServer
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationStore
 
+interface UserDataManagerListener {
+    fun currentUserIndexChanged(userIndex: Int) {}
+    fun createdUser(userIndex: Int) {}
+    fun deletedUser(userIndex: Int) {}
+    fun deletedAllUsers() {}
+}
+
 class UserDataManager {
 
     private val users = mutableListOf<Int>()
     private val consentCodes = mutableListOf<Int>()
 
+    private val listeners = mutableSetOf<UserDataManagerListener>()
+
     /* This is the index for the server... each connection also maintains a current user for observation access */
     var currentUserIndex = UNDEFINED_USER_INDEX
 
     val usersList: List<Int> get() = users + listOf(0xFF)
+
+    fun addListener(listener: UserDataManagerListener) { listeners.add(listener) }
+    fun removeListener(listener: UserDataManagerListener) { listeners.remove(listener) }
 
     fun hasUserIndex(index: Int): Boolean { return users.contains(index) || (index == UNDEFINED_USER_INDEX) }
 
@@ -28,12 +40,14 @@ class UserDataManager {
         val userIndex = (users.maxOrNull() ?: 0) + 1
         users.add(userIndex)
         consentCodes.add(consentCode)
+        listeners.forEach { it.createdUser(userIndex) }
         return userIndex
     }
 
     fun setCurrentUser(userIndex: Int) {
         if (hasUserIndex(userIndex)) {
             currentUserIndex = userIndex
+            listeners.forEach { it.currentUserIndexChanged(userIndex) }
         }
     }
 
@@ -52,6 +66,7 @@ class UserDataManager {
                 users.removeAt(listIndex)
                 consentCodes.removeAt(listIndex)
                 ObservationStore.clearUserData(userIndex)
+                listeners.forEach { it.deletedUser(userIndex) }
                 true
             }
         }
@@ -62,6 +77,7 @@ class UserDataManager {
         users.clear()
         consentCodes.clear()
         ObservationStore.clear()
+        listeners.forEach { it.deletedAllUsers() }
         return true
     }
 

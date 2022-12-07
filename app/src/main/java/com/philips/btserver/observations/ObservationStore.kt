@@ -17,11 +17,14 @@ object ObservationStore {
     private val observations: MutableMap<Int, Observation>
         get() = userObservations.getOrPut(currentUserIndex) { mutableMapOf() }
 
-    private val currentUserIndex get() = UserDataManager.currentUserIndex
+    private val currentUserIndex
+        get() = UserDataManager.currentUserIndex
     private val userLastRecordNumber = mutableMapOf<Int, Int>()
     private var lastRecordNumber: Int
         get() = userLastRecordNumber.getOrPut(UserDataManager.currentUserIndex) { 0 }
-        set(value) { userLastRecordNumber[UserDataManager.currentUserIndex] = value }
+        set(value) {
+            userLastRecordNumber[UserDataManager.currentUserIndex] = value
+        }
 
     private val listeners = mutableListOf<ObservationStoreListener>()
     val storedObservations: List<Observation> get() = observations.values.toList()
