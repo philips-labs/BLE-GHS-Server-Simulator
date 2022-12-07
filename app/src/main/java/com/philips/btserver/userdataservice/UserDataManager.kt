@@ -62,11 +62,13 @@ class UserDataManager {
             if (listIndex < 0) {
                 false
             } else {
-                setCurrentUser(UNDEFINED_USER_INDEX)
                 users.removeAt(listIndex)
                 consentCodes.removeAt(listIndex)
                 ObservationStore.clearUserData(userIndex)
                 listeners.forEach { it.deletedUser(userIndex) }
+                if(currentUserIndex == userIndex) {
+                    setCurrentUser(UNDEFINED_USER_INDEX)
+                }
                 true
             }
         }

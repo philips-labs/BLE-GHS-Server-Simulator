@@ -47,12 +47,12 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener, UserDataMa
 
     private fun showUsersData() {
         binding.usersLog.clearComposingText()
-        log("Current User: ${UserDataManager.getInstance().currentUserIndex}\n${UserDataManager.getInstance().usersInfo()}")
+        log("Current User: ${UserDataManager.getInstance().currentUserIndex}\n${UserDataManager.getInstance().usersInfo()}", true)
     }
 
-    private fun log(message: String) {
+    private fun log(message: String, clearView: Boolean = false) {
         Timber.i(message)
-        binding.usersLog.setText(message)
+        binding.usersLog.setText(if (clearView) message else binding.usersLog.text.toString() + "\n" + message)
     }
 
     private fun setupCurrentUserSpinner() {
@@ -118,17 +118,17 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener, UserDataMa
 
     override fun createdUser(userIndex: Int) {
         log("Create user index $userIndex")
-        updateCurrentUserView()
+        updateUserListAdapter()
     }
 
     override fun deletedUser(userIndex: Int) {
         log("Delete user index $userIndex")
-        updateCurrentUserView()
+        updateUserListAdapter()
     }
 
     override fun deletedAllUsers() {
         log("Delete all users")
-        updateCurrentUserView()
+        updateUserListAdapter()
     }
 
 }
