@@ -26,6 +26,8 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     protected val disconnectedBondedCentrals = mutableSetOf<String>()
     protected val bondedCentralsToNotify = mutableMapOf<BluetoothGattCharacteristic, MutableSet<String>>()
 
+    private var characteristicValues = mutableMapOf<UUID, ByteArray>()
+
     fun getCccDescriptor(): BluetoothGattDescriptor {
         val cccDescriptor = BluetoothGattDescriptor(CCC_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
         cccDescriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
@@ -71,6 +73,26 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         }
     }
 
+    internal fun getCharacteristicValue(characteristic: BluetoothGattCharacteristic): ByteArray? {
+        return characteristicValues[characteristic.uuid]
+    }
+
+    internal fun setCharacteristicValue(
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray
+    ) {
+        characteristicValues[characteristic.uuid] = value
+        characteristic.value = value
+    }
+
+    internal fun setCharacteristicValueAndNotify(
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray
+    ): Boolean {
+        setCharacteristicValue(characteristic, value)
+        return peripheralManager.notifyCharacteristicChanged(value, characteristic)
+    }
+
     val minimalMTU: Int
         get() = min((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu }
                 ?: MAX_MIN_MTU), MAX_MIN_MTU)
@@ -83,7 +105,9 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      */
     open fun onCharacteristicRead(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): ReadResponse  {
         // To be implemented by sub class
-        return ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+        return if (characteristicValues.containsKey(characteristic.uuid))
+         ReadResponse(GattStatus.SUCCESS, characteristicValues[characteristic.uuid])
+        else ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
     }
 
     open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {

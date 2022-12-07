@@ -41,7 +41,8 @@ class UserDataManager {
     fun setUserConsent(userIndex: Int, consentCode: Int): Boolean {
         return if(checkUserConsent(userIndex, consentCode)) {
             // Suboptimal as redoing users.indexOf(userIndex), but avoiding DRY in code
-            setCurrentUser(users.indexOf(userIndex))
+            // setCurrentUser(users.indexOf(userIndex))
+            currentUserIndex = userIndex
             true
         } else false
     }

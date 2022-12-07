@@ -91,9 +91,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
         if (bytes.size < 2) {
             sendInvalidOperator(OP_NULL)
         } else {
-            val operator = bytes.racpOperator()
-
-            when (operator) {
+            when (val operator = bytes.racpOperator()) {
                 OP_ALL_RECORDS -> {
                     ObservationStore.clear()
                     sendSuccessResponse(bytes.racpOpCode())
