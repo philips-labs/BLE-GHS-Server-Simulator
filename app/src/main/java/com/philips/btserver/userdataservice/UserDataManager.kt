@@ -32,19 +32,9 @@ class UserDataManager {
     }
 
     fun setCurrentUser(userIndex: Int) {
-        val listIndex = users.indexOf(userIndex)
-        if (listIndex >= 0) {
-            setUserConsent(userIndex, consentCodes[listIndex])
-        }
-    }
-
-    fun setUserConsent(userIndex: Int, consentCode: Int): Boolean {
-        return if(checkUserConsent(userIndex, consentCode)) {
-            // Suboptimal as redoing users.indexOf(userIndex), but avoiding DRY in code
-            // setCurrentUser(users.indexOf(userIndex))
+        if (hasUserIndex(userIndex)) {
             currentUserIndex = userIndex
-            true
-        } else false
+        }
     }
 
     fun checkUserConsent(userIndex: Int, consentCode: Int): Boolean {
