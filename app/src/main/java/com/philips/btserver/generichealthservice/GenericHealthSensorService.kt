@@ -88,7 +88,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
         resetHandlers()
-        sendTempStoredObservations()
+//        sendTempStoredObservations()
     }
 
     /**
@@ -118,7 +118,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
-            //sendTempStoredObservations()
+            sendTempStoredObservations()
         }
     }
 
@@ -177,10 +177,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
                 GattStatus.SUCCESS,
                 observationScheduleHandler.observationScheduleByteArray
             )
-            GHS_FEATURES_CHARACTERISTIC_UUID -> ReadResponse(
-                GattStatus.SUCCESS,
-                featuresCharacteristicBytes
-            )
+            // Features characteristic bytes are stored via the BaseService
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
@@ -243,7 +240,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     private fun sendTempStoredObservations() {
-        if (ObservationStore.isTemporaryStore) {
+        if (ObservationStore.isTemporaryStore && isSendLiveObservationsEnabled) {
             sendObservations(ObservationStore.storedObservations)
             ObservationStore.clear()
         }
@@ -276,19 +273,10 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         return characteristic == storedObservationCharacteristic
     }
 
-    var featuresCharacteristicBytes = byteArrayOf()
     fun setFeatureCharacteristicTypes(types: List<ObservationType>) {
-        featuresCharacteristicBytes = types.featureCharacteristicBytes()
-        Timber.i("Sending feature characteristic bytes: ${featuresCharacteristicBytes.asFormattedHexString()}")
-        setCharacteristicValueAndNotify(featuresCharacteristicBytes, featuresCharacteristic)
-    }
-
-    internal fun setCharacteristicValueAndNotify(
-        value: ByteArray,
-        characteristic: BluetoothGattCharacteristic
-    ) {
-        characteristic.value = value
-        peripheralManager.notifyCharacteristicChanged(value, characteristic)
+        val bytes = types.featureCharacteristicBytes()
+        Timber.i("Sending feature characteristic bytes: ${bytes.asFormattedHexString()}")
+        setCharacteristicValueAndNotify(featuresCharacteristic, bytes)
     }
 
     fun setObservationSchedule(
@@ -437,13 +425,6 @@ private fun List<ObservationType>.deviceSpecializationBytes(): ByteArray {
         specializations.forEach { result += it.asByteArray() }
     }
     return result
-}
-
-private fun ObservationType.deviceSpecializationBytes(): ByteArray {
-    return when (this) {
-        ObservationType.MDC_PRESS_BLD_NONINV -> byteArrayOf(0x01, 0x07, 0x10, 0x01)
-        else -> byteArrayOf()
-    }
 }
 
 private fun List<ObservationType>.deviceSpecializations(): List<DeviceSpecialization> {

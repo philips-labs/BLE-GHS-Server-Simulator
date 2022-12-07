@@ -30,8 +30,8 @@ data class SampleArrayObservation(
             UnitCode.MDC_DIM_DIMLESS.writeOn(parser)
             parser.setFloatValue(scaleFactor, 2)
             parser.setFloatValue(scaleOffset, 2)
-            parser.setSInt32((value.minOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
-            parser.setSInt32((value.maxOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
+//            parser.setSInt32((value.minOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
+//            parser.setSInt32((value.maxOfOrNull {(it * scaleFactor) + scaleOffset} ?: 0).toInt())
             parser.setFloatValue(samplePeriodSeconds, 2)
 
             parser.setUInt8(samplesPerPeriod.toInt())

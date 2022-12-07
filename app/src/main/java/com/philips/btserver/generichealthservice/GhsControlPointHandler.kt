@@ -44,7 +44,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
             result = byteArrayOf(CONTROL_POINT_ERROR_LIVE_OBSERVATIONS)
         }
 
-        service.setCharacteristicValueAndNotify(result, ghsControlPointCharacteristic)
+        service.setCharacteristicValueAndNotify(ghsControlPointCharacteristic, result)
         service.isLiveObservationsStarted = enableSend
     }
 
@@ -57,7 +57,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         service.isLiveObservationsStarted = false
         Timber.i("Sending ${this.javaClass} stopSendingLiveObservations successful")
         val result = byteArrayOf(CONTROL_POINT_SUCCESS)
-        service.setCharacteristicValueAndNotify(result, ghsControlPointCharacteristic)
+        service.setCharacteristicValueAndNotify(ghsControlPointCharacteristic, result)
     }
 
     companion object {
