@@ -48,7 +48,7 @@ abstract class Observation {
     val patientIdByteArray: ByteArray
         get() {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
-            parser.setUInt16(patientId)
+            parser.setUInt8(patientId)
             return parser.value
         }
 

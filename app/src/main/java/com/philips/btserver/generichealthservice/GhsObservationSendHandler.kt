@@ -27,7 +27,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
             val recordId = ObservationStore.recordIdFor(observation)
             parser.setIntValue(recordId, BluetoothBytesParser.FORMAT_UINT32)
             Timber.i("Send Stored Observation record id: $recordId")
-            listOf<ByteArray>(parser.value, observation.ghsByteArray).merge()
+            parser.value + observation.ghsByteArray
         } else {
             observation.ghsByteArray
         }
@@ -92,7 +92,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
         val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
         Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
-        Timber.i("Raw bytes: [ ${bytes.asFormattedHexString()} ]")
+        Timber.i("Raw ${bytes.size} bytes: [ ${bytes.asFormattedHexString()} ]")
         segments.first.forEach {
             Timber.i("Sending segment bytes: <${it.asFormattedHexString()}>")
             service.sendBytesAndNotify(it, observationCharacteristic)
@@ -125,7 +125,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
         val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
         Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
-        Timber.i("Raw bytes: [ ${bytes.asFormattedHexString()} ]")
+        Timber.i("Raw ${bytes.size} bytes: [ ${bytes.asFormattedHexString()} ]")
         segmentsToSend = segments.first.toMutableList()
         sendNextSegment()
         currentSegmentNumber = segments.second
