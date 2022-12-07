@@ -346,7 +346,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
      * Serialize and merge the [observations] into a byte array transmit the bytes in one or more segments.
      */
     fun sendStoredObservations(observations: Collection<Observation>) {
-        storedObservationSendHandler.sendObservations(observations)
+        storedObservationSendHandler.sendObservations(observations, true)
     }
 
     fun abortSendStoredObservations() {
