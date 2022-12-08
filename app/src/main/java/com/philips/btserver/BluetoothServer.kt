@@ -171,12 +171,12 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         val scanResponse = AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
                 .build()
-        peripheralManager.stopAdvertising()
-        peripheralManager.startAdvertising(advertiseSettings, scanResponse, advertiseData)
+        peripheralManager?.stopAdvertising()
+        peripheralManager?.startAdvertising(advertiseSettings, scanResponse, advertiseData)
     }
 
     fun stopAdvertising() {
-        peripheralManager.stopAdvertising()
+        peripheralManager?.stopAdvertising()
     }
 
     private fun getGHSAdvertBytes(): ByteArray {
