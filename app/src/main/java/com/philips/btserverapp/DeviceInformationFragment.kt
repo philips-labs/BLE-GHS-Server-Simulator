@@ -18,6 +18,7 @@ import android.widget.EditText
 import android.widget.Switch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.philips.btserver.BluetoothServer
 import com.philips.btserver.BluetoothServerAdvertisingListener
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
@@ -66,12 +67,7 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
     }
 
     private fun getAdvName(): String {
-        return try {
-            bluetoothAdapter.name
-        } catch (e: SecurityException) {
-            Timber.i("Security Exception in getting BT adapter name. Check permission logic")
-            "Can't get name"
-        }
+        return BluetoothServer.getInstance()?.getAdvertisingName() ?: "---"
     }
 
     private fun getModelNumber(): String {
@@ -82,8 +78,10 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         doAlertDialog("${getString(R.string.change)} ${getString(R.string.advertisment_name)}", getAdvName()) { _, _ ->
             val newName = dialogInputView?.text.toString()
             try {
-                bluetoothAdapter.name = newName
-                dialogUpdate("${getString(R.string.advertisment_name)} is $newName")
+                BluetoothServer.getInstance()?.let {
+                    it.setAdvertisingName(newName)
+                    dialogUpdate("${getString(R.string.advertisment_name)} is $newName")
+                }
             } catch (e: SecurityException) {
                 Timber.i("Security Exception in setting BT adapter name. Check permission logic")
             }

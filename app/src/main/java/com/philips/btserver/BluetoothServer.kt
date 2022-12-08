@@ -236,6 +236,26 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         }
     }
 
+    fun getAdvertisingName(): String {
+        return try {
+            bluetoothAdapter.name
+        } catch (e: SecurityException) {
+            Timber.i("Security Exception in getting BT adapter name. Check permission logic")
+            "Can't get name"
+        }
+    }
+
+    fun setAdvertisingName(advName: String) {
+        try {
+            bluetoothAdapter.name = advName
+            // TODO: cycle advertising to see if this updates all the ad fields, lengths... see if this is needed
+            stopAdvertising()
+            startAdvertising()
+        } catch (e: SecurityException) {
+            Timber.i("Security Exception in setting BT adapter name. Check permission logic")
+        }
+    }
+
     init {
 
         // Plant a tree
@@ -258,7 +278,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
         }
-        bluetoothAdapter.name = "GHS-${Build.MODEL}"
+        setAdvertisingName("GHS-${Build.MODEL}")
         peripheralManager = BluetoothPeripheralManager(context, bluetoothManager, peripheralManagerCallback)
         peripheralManager.removeAllServices()
 
