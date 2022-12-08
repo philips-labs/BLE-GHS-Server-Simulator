@@ -10,9 +10,10 @@ import android.widget.ArrayAdapter
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentUsersBinding
 import com.philips.btserver.userdataservice.UserDataManager
+import com.philips.btserver.userdataservice.UserDataManagerListener
 import timber.log.Timber
 
-class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
+class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener, UserDataManagerListener {
 
     private var _binding: FragmentUsersBinding? = null
 
@@ -23,6 +24,7 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
+        UserDataManager.getInstance().addListener(this)
         _binding = FragmentUsersBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -38,9 +40,19 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
         updateCurrentUserView()
     }
 
+    override fun onDestroyView() {
+        UserDataManager.getInstance().removeListener(this)
+        super.onDestroyView()
+    }
+
     private fun showUsersData() {
         binding.usersLog.clearComposingText()
-        binding.usersLog.setText("Current User: ${UserDataManager.getInstance().currentUserIndex}\n${UserDataManager.getInstance().usersInfo()}")
+        log("Current User: ${UserDataManager.getInstance().currentUserIndex}\n${UserDataManager.getInstance().usersInfo()}", true)
+    }
+
+    private fun log(message: String, clearView: Boolean = false) {
+        Timber.i(message)
+        binding.usersLog.setText(if (clearView) message else binding.usersLog.text.toString() + "\n" + message)
     }
 
     private fun setupCurrentUserSpinner() {
@@ -97,5 +109,26 @@ class UsersFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     // AdapterView Interface callback
     override fun onNothingSelected(parent: AdapterView<*>) {}
+
+    // UserDataManagerListener methods
+    override fun currentUserIndexChanged(userIndex: Int) {
+        log("Current user index changed to $userIndex")
+        updateCurrentUserView()
+    }
+
+    override fun createdUser(userIndex: Int) {
+        log("Create user index $userIndex")
+        updateUserListAdapter()
+    }
+
+    override fun deletedUser(userIndex: Int) {
+        log("Delete user index $userIndex")
+        updateUserListAdapter()
+    }
+
+    override fun deletedAllUsers() {
+        log("Delete all users")
+        updateUserListAdapter()
+    }
 
 }
