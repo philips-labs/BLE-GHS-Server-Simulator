@@ -132,9 +132,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
     }
 
     private fun sendNextObservation() {
-        if (observationsToSend.isNotEmpty()) {
-            sendBytesInSegmentsUnqueued(observationsToSend.removeFirst().ghsByteArray)
-        }
+        observationsToSend.removeFirstOrNull()?.let { sendBytesInSegmentsUnqueued(it.ghsByteArray) }
     }
 
     private fun sendNextSegment() {
@@ -154,6 +152,9 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
      * @param status the status of the operation
      */
     fun onSegmentSent(value: ByteArray, status: GattStatus) {
+        if (status != GattStatus.SUCCESS) {
+            Timber.i("ERROR: Sending observation segment: ${value.asFormattedHexString()}")
+        }
         sendNextSegment()
     }
 }

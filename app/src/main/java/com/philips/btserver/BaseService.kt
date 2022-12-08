@@ -5,6 +5,8 @@
 package com.philips.btserver
 
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.generichealthservice.isBonded
@@ -18,6 +20,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
+
 
 abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : BluetoothServerConnectionListener {
     val peripheralManager: BluetoothPeripheralManager = Objects.requireNonNull(peripheralManager)
@@ -130,6 +133,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
+        descriptor.value = value
         return GattStatus.SUCCESS
     }
 
