@@ -14,6 +14,8 @@ import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.*
+import com.philips.btserver.userdataservice.UserDataManager
+import com.philips.btserver.userdataservice.UserDataService
 import com.welie.blessed.*
 import timber.log.Timber
 import java.util.*
@@ -118,7 +120,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
-            sendTempStoredObservations()
+            sendTempStoredObservations(central)
         }
     }
 
@@ -239,10 +241,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    private fun sendTempStoredObservations() {
+    private fun sendTempStoredObservations(central: BluetoothCentral) {
         if (ObservationStore.isTemporaryStore && isSendLiveObservationsEnabled) {
-            sendObservations(ObservationStore.storedObservations)
-            ObservationStore.clear()
+            val userIndex = UserDataService.getInstance()?.getCurrentUserIndexForCentral(central)?.toInt() ?: UserDataManager.UNDEFINED_USER_INDEX
+            sendObservations(ObservationStore.observationsForUser(userIndex))
+            ObservationStore.clearObservationsForUser(userIndex)
         }
     }
 

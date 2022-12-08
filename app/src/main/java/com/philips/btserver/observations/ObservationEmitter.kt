@@ -74,7 +74,7 @@ object ObservationEmitter {
 
     fun addObservationType(type: ObservationType) {
         observationTypes.add(type)
-        resetStoredObservations()
+//        resetStoredObservations()
         setFeatureCharacteristicTypes()
         setObservationSchedule(type, 1f, 1f)
         ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())

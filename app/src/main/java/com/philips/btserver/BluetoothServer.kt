@@ -172,7 +172,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
                 .setIncludeDeviceName(true)
                 .build()
         peripheralManager?.stopAdvertising()
-        peripheralManager?.startAdvertising(advertiseSettings, scanResponse, advertiseData)
+        peripheralManager?.startAdvertising(advertiseSettings, advertiseData, scanResponse)
     }
 
     fun stopAdvertising() {

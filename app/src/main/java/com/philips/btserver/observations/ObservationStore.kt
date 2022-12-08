@@ -10,7 +10,7 @@ interface ObservationStoreListener {
 }
 
 object ObservationStore {
-    var isTemporaryStore = false
+    var isTemporaryStore = true
 
     private val userObservations = mutableMapOf<Int, MutableMap<Int, Observation>>()
 
