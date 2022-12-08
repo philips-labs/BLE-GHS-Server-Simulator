@@ -70,7 +70,7 @@ class UserDataControlPointHandler(val service: UserDataService) {
         when(getOpCode(bytes)) {
             UserDataControlPointOpCode.RegisterNewUser -> registerNewUser(bytes)
             UserDataControlPointOpCode.UserConsent -> requestUserConsent(bluetoothCentral, bytes)
-            UserDataControlPointOpCode.DeleteUserData -> deleteUserData(bytes)
+            UserDataControlPointOpCode.DeleteUserData -> deleteUserData(bluetoothCentral, bytes)
             UserDataControlPointOpCode.ListAllUsers -> unsupportedOperation(UserDataControlPointOpCode.ListAllUsers)
             UserDataControlPointOpCode.DeleteUser -> deleteUser(bytes)
             else -> return
@@ -119,11 +119,12 @@ class UserDataControlPointHandler(val service: UserDataService) {
         }
     }
 
-    private fun deleteUserData(bytes: ByteArray) {
+    private fun deleteUserData(bluetoothCentral: BluetoothCentral, bytes: ByteArray) {
         val parser = BluetoothBytesParser(bytes)
         val opCode = parser.getUInt8().toByte()
-        val userIndex = parser.getUInt8().toByte()
-        val consentCode = parser.getUInt16()
+        val userIndex = service.getCurrentUserIndexForCentral(bluetoothCentral)//parser.getUInt8().toByte()
+        val success = UserDataManager.getInstance().deleteUser(userIndex.toInt())
+        service.setUserIndexForCentral(bluetoothCentral,UserDataManager.UNDEFINED_USER_INDEX)
         sendResponseCodeBytes(UserDataControlPointOpCode.DeleteUserData, OP_CODE_RESPONSE_VALUE_SUCCESS)
     }
 
