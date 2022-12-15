@@ -17,8 +17,10 @@ object ObservationStore {
     private val observations: MutableMap<Int, Observation>
         get() = userObservations.getOrPut(currentUserIndex) { mutableMapOf() }
 
-    private val currentUserIndex
+    private var currentUserIndex
         get() = UserDataManager.currentUserIndex
+        set(value) = UserDataManager.getInstance().setCurrentUser(value)
+
     private val userLastRecordNumber = mutableMapOf<Int, Int>()
     private var lastRecordNumber: Int
         get() = userLastRecordNumber.getOrPut(UserDataManager.currentUserIndex) { 0 }
@@ -99,20 +101,36 @@ object ObservationStore {
 
     fun recordIdFor(observation: Observation): Int = observations.indexOfValue(observation)
 
-    fun numberOfObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int): Int =
-        observations.count { it.key >= recordNumber }
-
-    fun observationsGreaterThanOrEqualRecordNumber(recordNumber: Int): List<Observation> =
-        observations.filter { it.key >= recordNumber }.map { it.value }
-
-    fun removeObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int): Int {
-        var numberRemoved = 0
-        synchronized(userObservations) {
-            val obsToDelete = observationRecordNumbersInRange(Range(0, recordNumber))
-            numberRemoved = obsToDelete.size
-            removeAll(obsToDelete)
+    fun numberOfObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): Int {
+        return synchronized(userObservations) {
+            val savedUserIndex = currentUserIndex
+            currentUserIndex = userIndex
+            val result = observations.count { it.key >= recordNumber }
+            currentUserIndex = savedUserIndex
+            result
         }
-        return numberRemoved
+
+    }
+
+    fun observationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): List<Observation>{
+        return synchronized(userObservations) {
+            val savedUserIndex = currentUserIndex
+            currentUserIndex = userIndex
+            val result = observations.filter { it.key >= recordNumber }.map { it.value }
+            currentUserIndex = savedUserIndex
+            result
+        }
+    }
+
+    fun removeObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): Int {
+        return synchronized(userObservations) {
+            val savedUserIndex = currentUserIndex
+            currentUserIndex = userIndex
+            val obsToDelete = observationRecordNumbersInRange(Range(0, recordNumber))
+            removeAll(obsToDelete)
+            currentUserIndex = savedUserIndex
+            obsToDelete.size
+        }
     }
 
     fun observationRecordNumbersInRange(range: Range<Int>): List<Int> =

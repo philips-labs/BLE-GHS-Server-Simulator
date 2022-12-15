@@ -203,7 +203,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         when (characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(value)
-            RACP_CHARACTERISTIC_UUID -> racpHandler.handleReceivedBytes(value)
+            RACP_CHARACTERISTIC_UUID -> racpHandler.handleReceivedBytes(value, bluetoothCentral)
         }
     }
 

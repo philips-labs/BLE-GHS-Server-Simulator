@@ -134,3 +134,5 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     }
 
 }
+
+fun BluetoothCentral.currentUserIndex(): Int = UserDataService.getInstance()?.getCurrentUserIndexForCentral(this)?.toInt() ?: UserDataManager.UNDEFINED_USER_INDEX
