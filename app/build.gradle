@@ -1,7 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'org.jetbrains.kotlin.android'
     id 'jacoco'
+    id 'kotlin-kapt'
 }
 
 jacoco {
@@ -42,6 +44,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        dataBinding true
     }
 
     buildTypes {
@@ -83,6 +86,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.databinding:databinding-runtime:4.2.2'
     testImplementation 'junit:junit:4.13.2'
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')

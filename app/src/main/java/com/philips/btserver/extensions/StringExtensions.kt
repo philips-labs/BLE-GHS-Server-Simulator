@@ -32,6 +32,10 @@ fun String.convertHexStringtoByteArray(): ByteArray {
     return result
 }
 
+fun String.last(numChars: Int): String {
+    return if (this.length < numChars) this else this.drop(this.length - numChars)
+}
+
 /**
  * Return the float receiver as a string display with numOfDec after the decimal (rounded)
  * (e.g. 35.72 with numOfDec = 1 will be 35.7, 35.78 with numOfDec = 2 will be 35.80)

@@ -1,10 +1,11 @@
 <resources>
     <string name="app_name">GHS Peripheral Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
-    <string name="tab_text_ble_info">Device Info</string>
-    <string name="tab_text_observations">Observations</string>
-    <string name="tab_text_date">Date encoding</string>
+    <string name="tab_text_ble_info">DIS</string>
+    <string name="tab_text_observations">Obs</string>
+    <string name="tab_text_date">Date</string>
     <string name="tab_text_users">Users</string>
+    <string name="tab_text_log">Log</string>
     <string name="tab_text_experimental">Experimental</string>
     <string name="tab_text_settings">Settings</string>
     <string name="advertisment_name">Device name</string>
@@ -33,6 +34,8 @@
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
     <string name="choiceBundleObs">Bundle selected observations</string>
     <string name="allow_multiclient_connect">Allow Multiple Connections</string>
+
+    <string name="clear_log">Clear log</string>
 
     <string name="typeCodeTitle">Type Codes:</string>
     <string name="choiceShortTypeCodes">2-byte obs types (Partition 2, 32k types)</string>

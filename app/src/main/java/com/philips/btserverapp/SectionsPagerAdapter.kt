@@ -17,7 +17,8 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
         R.string.tab_text_observations,
         R.string.tab_text_date,
         R.string.tab_text_ble_info,
-        R.string.tab_text_users
+        R.string.tab_text_users,
+        R.string.tab_text_log
     )
 
     override fun getItem(position: Int): Fragment {
@@ -26,6 +27,7 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager)
             1 -> DateFragment()
             2 -> DeviceInformationFragment()
             3 -> UsersFragment()
+            4 -> AppLogFragment()
             else -> error(R.string.invalid_section_number)
         }
     }

@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.ParcelUuid
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.gatt.DeviceInformationService
@@ -20,6 +21,7 @@ import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.observations.ObservationStore
 import com.philips.btserver.observations.ObservationStoreListener
 import com.philips.btserver.userdataservice.UserDataService
+import com.philips.btserverapp.AppLogTree
 import com.welie.blessed.*
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -35,6 +37,7 @@ interface BluetoothServerAdvertisingListener {
     fun onStopAdvertising()
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 internal class BluetoothServer(val context: Context) : ObservationStoreListener {
 
     var bluetoothAdapter: BluetoothAdapter
@@ -260,6 +263,7 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
 
         // Plant a tree
         Timber.plant(DebugTree())
+        Timber.plant(AppLogTree())
         bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
