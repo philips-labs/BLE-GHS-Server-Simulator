@@ -13,9 +13,19 @@
         android:orientation="vertical"
         android:paddingTop="32dp">
 
+        <TextView
+            android:id="@+id/lblObservationType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="12sp"
+            android:text="@string/lbl_observation_types" />
+
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="150dp">
+            android:layout_height="150dp"
+            android:layout_marginBottom="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,6 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceTempObs" />
 
             <CheckBox
@@ -34,6 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceHRObs" />
 
             <CheckBox
@@ -41,6 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceSPO2Obs" />
 
             <CheckBox
@@ -48,6 +61,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceBPObs" />
 
             <CheckBox
@@ -55,6 +69,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choicePPGObs" />
 
             <CheckBox
@@ -62,6 +77,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceDiscreteObs" />
 
             <CheckBox
@@ -69,6 +85,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceStringObs" />
 
             <CheckBox
@@ -76,6 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceTLVObs" />
 
             <CheckBox
@@ -83,6 +101,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceCompoundDiscreteObs" />
 
             <CheckBox
@@ -90,6 +109,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceCompoundStateEventObs" />
 
             <CheckBox
@@ -97,8 +117,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:textSize="12sp"
                 android:text="@string/choiceBundleObs" />
-
 
         </LinearLayout>
         </ScrollView>

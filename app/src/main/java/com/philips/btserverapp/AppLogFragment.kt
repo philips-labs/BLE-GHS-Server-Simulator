@@ -10,6 +10,8 @@ import android.widget.TextView
 import androidx.databinding.Observable
 import com.philips.btserver.R
 import com.philips.btserver.BR
+import com.philips.btserver.databinding.FragmentAppLogBinding
+import com.philips.btserver.databinding.FragmentUsersBinding
 
 /**
  * A simple [Fragment] subclass.
@@ -17,6 +19,10 @@ import com.philips.btserver.BR
  * create an instance of this fragment.
  */
 class AppLogFragment : Fragment() {
+
+    private var _binding: FragmentAppLogBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     val logCallback = object : Observable.OnPropertyChangedCallback() {
         override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
@@ -26,18 +32,25 @@ class AppLogFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Make the observation log scrollable
-        logTextView?.setMovementMethod(ScrollingMovementMethod())
-        updateLogView()
 
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_app_log, container, false)
+        inflater.inflate(R.layout.fragment_app_log, container, false)
+        _binding = FragmentAppLogBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.clearLogButton.setOnClickListener { AppLog.clear() }
+        // Make the observation log scrollable
+        logTextView?.setMovementMethod(ScrollingMovementMethod())
+        updateLogView()
     }
 
     override fun onResume() {
@@ -56,9 +69,5 @@ class AppLogFragment : Fragment() {
 
     private val logTextView : TextView? get()  {
         return activity?.findViewById(R.id.appLog)
-    }
-
-    fun clearAppLog(view: View) {
-        AppLog.clear()
     }
 }

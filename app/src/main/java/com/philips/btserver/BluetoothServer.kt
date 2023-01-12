@@ -263,7 +263,6 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
 
         // Plant a tree
         Timber.plant(DebugTree())
-        Timber.plant(AppLogTree())
         bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {

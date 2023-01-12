@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">GHS Peripheral Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
-    <string name="tab_text_ble_info">DIS</string>
+    <string name="lbl_observation_types">Observation type to send</string>
+    <string name="tab_text_ble_info">Device</string>
     <string name="tab_text_observations">Obs</string>
     <string name="tab_text_date">Date</string>
     <string name="tab_text_users">Users</string>

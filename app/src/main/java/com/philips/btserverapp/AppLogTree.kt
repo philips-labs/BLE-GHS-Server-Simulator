@@ -12,19 +12,18 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.O)
 class AppLogTree: Timber.DebugTree() {
     private val LOG_TAG: String = AppLogTree::class.java.getSimpleName()
-    private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")
+    private val dateFormatter = DateTimeFormatter.ofPattern("hh:mm:ss")
 
      override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         try {
-            val displayString =  "<p style=\"background:lightgray;\"><strong " +
-                    "style=\"background:lightblue;\">&nbsp&nbsp" +
+            val displayString =  "<font color=#ff0000>" +
                     LocalDateTime.now().format(dateFormatter) +
-                    " :&nbsp&nbsp</strong><strong>&nbsp&nbsp" +
+                    " :  </font><strong>  " +
                     tag +
-                    "</strong> - " +
+                    "</strong> - <br/>" +
                     message +
-                    "</p>"
-            val html = Html.fromHtml(displayString, Html.FROM_HTML_MODE_COMPACT)
+                    "<br/>"
+            val html = Html.fromHtml(displayString, Html.FROM_HTML_MODE_LEGACY)
             AppLog.log(html)
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Error while logging into file : $e")

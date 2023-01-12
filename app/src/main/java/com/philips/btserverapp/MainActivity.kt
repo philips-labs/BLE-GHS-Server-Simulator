@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ import com.philips.btserver.BluetoothServer
 import com.philips.btserver.BluetoothServerConnectionListener
 import com.philips.btserver.R
 import com.welie.blessed.BluetoothCentral
+import timber.log.Timber
 import java.util.*
 
 class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         getBluetoothServer()?.let { if(value) it.startAdvertising() }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -41,6 +44,8 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         viewPager.adapter = sectionsPagerAdapter
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
+
+        Timber.plant(AppLogTree())
 
         if (!isBluetoothEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
