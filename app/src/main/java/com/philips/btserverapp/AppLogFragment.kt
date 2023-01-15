@@ -47,7 +47,10 @@ class AppLogFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.clearLogButton.setOnClickListener { AppLog.clear() }
+        binding.clearLogButton.setOnClickListener {
+            AppLog.clear()
+            updateLogView()
+        }
         // Make the observation log scrollable
         logTextView?.setMovementMethod(ScrollingMovementMethod())
         updateLogView()

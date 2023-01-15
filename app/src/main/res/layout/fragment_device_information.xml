@@ -9,13 +9,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:paddingTop="32dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal">
 
             <TextView
@@ -40,7 +39,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal">
 
             <TextView
@@ -70,13 +69,14 @@
             android:fontFamily="sans-serif-medium"
             android:text="@string/startAdvertising"
             android:textAllCaps="false"
+            android:layout_marginBottom="16dp"
             android:textColor="@android:color/white" />
 
         <android.widget.Switch
             android:id="@+id/toggleMultiClientConnect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/allow_multiclient_connect"
             android:textSize="16sp"/>
 
