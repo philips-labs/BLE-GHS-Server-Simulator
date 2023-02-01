@@ -112,14 +112,14 @@ abstract class Observation {
 }
 
 enum class ObservationClass(val value: Byte) {
-    SimpleNumeric(0x0),
-    SimpleDiscreet(0x01),
-    String(0x02),
-    RealTimeSampleArray(0x03),
-    Compound(0x04),
+    SimpleNumeric(0x01),
+    SimpleDiscreet(0x02),
+    String(0x03),
+    RealTimeSampleArray(0x04),
     CompoundDiscreteEvent(0x05),
     CompoundState(0x06),
-    TLVEncoded(0x07),
+    Compound(0x07),
+    TLVEncoded(0x08),
     ObservationBundle(0xFF.toByte()),
     Unknown(0xF0.toByte());
 
