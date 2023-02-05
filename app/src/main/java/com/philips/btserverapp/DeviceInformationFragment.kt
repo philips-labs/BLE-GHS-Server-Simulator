@@ -7,6 +7,7 @@ package com.philips.btserverapp
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
 import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,14 +18,17 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Switch
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.BluetoothServerAdvertisingListener
-import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDeviceInformationBinding
+import com.philips.btserver.gatt.DeviceInformationService
+import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import timber.log.Timber
 
+@RequiresApi(Build.VERSION_CODES.O)
 class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -37,6 +41,8 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
 
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
+
+    private val ghsServiceHandler get() = GenericHealthSensorService.getInstance()!!
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -58,12 +64,40 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         binding.btnAdvName.setOnClickListener { changeAdvName() }
         binding.toggleMultiClientConnect.setOnClickListener {
             Timber.i("${if ((it as Switch).isChecked) "Allowing" else "Disallowing"} multiple connections")
-            (activity as MainActivity).allowMultipleClientConnections = (it as Switch).isChecked
+            (activity as MainActivity).allowMultipleClientConnections = it.isChecked
+        }
+        binding.toggleLiveObsIndicate.setOnClickListener {
+            val turnOnIndicate = (it as Switch).isChecked
+            val isNotifyOn = ghsServiceHandler.observationCharacteristicNotify
+            if (!turnOnIndicate and !isNotifyOn){
+                alertView("Invalid Properties", "Cannot turn off both indicate and notify. Turn on Notifications first")
+                it.isChecked = !it.isChecked
+            } else {
+               ghsServiceHandler.observationCharacteristicIndicate = turnOnIndicate
+                val message = "Observation Characteristic\", \"Set indications ${if (turnOnIndicate) "on" else "off "}."
+                alertView("Properties changed", "$message. Unpair this server from clients that have bonded")
+                Timber.i(message)
+            }
+        }
+        binding.toggleLiveObsNotify.setOnClickListener {
+            val turnOnNotify = (it as Switch).isChecked
+            val isIndicateOn = ghsServiceHandler.observationCharacteristicIndicate
+            if (!turnOnNotify and !isIndicateOn){
+                alertView("Invalid Properties", "Cannot turn off both indicate and notify. Turn on Indications first")
+                it.isChecked = !it.isChecked
+            } else {
+                ghsServiceHandler.observationCharacteristicNotify = turnOnNotify
+                val message = "Observation Characteristic\", \"Set Notifications ${if (turnOnNotify) "on" else "off "}."
+                alertView("Properties changed","$message. Unpair this server from clients that have bonded")
+                Timber.i(message)
+            }
         }
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)
         binding.toggleMultiClientConnect.isChecked = (activity as MainActivity).allowMultipleClientConnections
+        binding.toggleLiveObsIndicate.isChecked = ghsServiceHandler.observationCharacteristicIndicate
+        binding.toggleLiveObsNotify.isChecked = ghsServiceHandler.observationCharacteristicNotify
     }
 
     private fun getAdvName(): String {
@@ -87,10 +121,6 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
             }
         }
     }
-
-//    fun toggleMultiClientConnect(view: View) {
-//        (activity as MainActivity).allowMultipleClientConnections = (view as Switch).isChecked
-//    }
 
     private fun changeModelNumber() {
         doAlertDialog("${getString(R.string.change)} ${getString(R.string.model_number)}", getModelNumber()) { _, _ ->
@@ -126,4 +156,16 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
         TODO("Not yet implemented")
     }
 
+}
+
+fun Fragment.alertView(title: String, message: String) {
+    val dialog = AlertDialog.Builder(context)
+    dialog.setTitle(title)
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setMessage(message)
+        //     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        //      public void onClick(DialogInterface dialoginterface, int i) {
+        //          dialoginterface.cancel();
+        //          }})
+        .setPositiveButton("Ok") { dialoginterface, i -> }.show()
 }

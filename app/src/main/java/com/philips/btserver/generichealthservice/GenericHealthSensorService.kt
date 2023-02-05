@@ -9,6 +9,10 @@ import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
+import android.os.Build
+import android.preference.PreferenceManager
+import androidx.annotation.RequiresApi
+import androidx.databinding.library.baseAdapters.BR
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asFormattedHexString
@@ -30,11 +34,29 @@ interface GenericHealthSensorServiceListener {
  * the generic health sensor service. The GHS service proposed includes
  * an observation characteristic and a control point characteristic.
  */
+@RequiresApi(Build.VERSION_CODES.O)
 class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) :
     BaseService(peripheralManager) {
 
     // TODO: This is simple, maybe too simple, but we need some mechanism to indicate RACP cannot be done
     var canHandleRACP = true
+
+    var observationCharacteristicIndicate: Boolean = true
+        set(value) {
+            field = value
+            restartGattService()
+        }
+
+    var observationCharacteristicNotify: Boolean = false
+        set(value) {
+            field = value
+            restartGattService()
+        }
+
+    internal val observationCharacteristicProperties: Int get() {
+        return (if (observationCharacteristicIndicate) PROPERTY_INDICATE else 0) or
+                (if (observationCharacteristicNotify) PROPERTY_NOTIFY else 0)
+    }
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
@@ -42,7 +64,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
-        PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        observationCharacteristicProperties,
         0
     )
 
@@ -354,6 +376,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     fun abortSendStoredObservations() {
         storedObservationSendHandler.abortSendStoredObservations()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun restartGattService() {
+        BluetoothServer.getInstance()?.restartGattService(service)
     }
 
     companion object {
