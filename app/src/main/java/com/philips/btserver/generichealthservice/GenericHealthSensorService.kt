@@ -98,6 +98,15 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
+    internal val securityLevelsCharacteristic = BluetoothGattCharacteristic(
+        LE_GATT_SECURITY_LEVELS_UUID,
+        PROPERTY_READ,
+        PERMISSION_READ
+    )
+
+    // to do: make this match the required security level(s)
+    private val  securtyLevelsByteArray = byteArrayOf(0x1,0x2)
+
     private val controlPointHandler = GhsControlPointHandler(this)
     private val observationScheduleHandler = GhsObservationScheduleHandler(this)
     private val racpHandler = GhsRacpHandler(this).startup()
@@ -200,6 +209,10 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             OBSERVATION_SCHEDULE_CHANGED_CHARACTERISTIC_UUID -> ReadResponse(
                 GattStatus.SUCCESS,
                 observationScheduleHandler.observationScheduleByteArray
+            )
+            LE_GATT_SECURITY_LEVELS_UUID -> ReadResponse(
+                GattStatus.SUCCESS,
+                securtyLevelsByteArray
             )
             // Features characteristic bytes are stored via the BaseService
             else -> super.onCharacteristicRead(central, characteristic)
@@ -401,6 +414,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             UUID.fromString("00007f35-0000-1000-8000-00805f9b34fb")
         val VALID_RANGE_AND_ACCURACY_DESCRIPTOR_UUID =
             UUID.fromString("00007f34-0000-1000-8000-00805f9b34fb")
+        val LE_GATT_SECURITY_LEVELS_UUID =
+            UUID.fromString("00002BF5-0000-1000-8000-00805f9b34fb")
 
         private const val OBSERVATION_DESCRIPTION = "Live observation characteristic"
         private const val STORED_OBSERVATIONS_DESCRIPTION = "Stored observation characteristic"
@@ -409,6 +424,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         private const val RACP_DESCRIPTION = "RACP Characteristic."
         private const val GHS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
         private const val OBSERVATION_SCHEDULE_DESCRIPTION = "Observation Schedule characteristic"
+        private const val LE_GATT_SECURITY_LEVELS_DESCRIPTION = "LE GATT Security Levels characteristic"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a GenericHealthSensorService return it (otherwise null)
@@ -426,6 +442,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         initCharacteristic(racpCharacteristic, RACP_DESCRIPTION)
         initCharacteristic(ghsControlPointCharacteristic, GHS_CONTROL_POINT_DESCRIPTION)
         initCharacteristic(observationScheduleCharacteristic, OBSERVATION_SCHEDULE_DESCRIPTION)
+        initCharacteristic(securityLevelsCharacteristic, LE_GATT_SECURITY_LEVELS_DESCRIPTION)
         observationScheduleHandler.initObservationScheduleDescriptors()
     }
 
