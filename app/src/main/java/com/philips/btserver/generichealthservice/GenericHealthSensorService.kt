@@ -45,12 +45,14 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         set(value) {
             field = value
             restartGattService()
+            notifyCharacteristicChanged(byteArrayOf(), serviceChangedCharacteristic)
         }
 
-    var observationCharacteristicNotify: Boolean = false
+    var observationCharacteristicNotify: Boolean = true
         set(value) {
             field = value
             restartGattService()
+            notifyCharacteristicChanged(byteArrayOf(), serviceChangedCharacteristic)
         }
 
     internal val observationCharacteristicProperties: Int get() {
@@ -70,7 +72,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     internal val storedObservationCharacteristic = BluetoothGattCharacteristic(
         STORED_OBSERVATIONS_CHARACTERISTIC_UUID,
-         PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        observationCharacteristicProperties,
         0
     )
 
@@ -102,6 +104,12 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         LE_GATT_SECURITY_LEVELS_UUID,
         PROPERTY_READ,
         PERMISSION_READ
+    )
+
+    internal val serviceChangedCharacteristic = BluetoothGattCharacteristic(
+        SERVICE_CHANGED_UUID,
+        PROPERTY_INDICATE,
+        0
     )
 
     // to do: make this match the required security level(s)
@@ -416,6 +424,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             UUID.fromString("00007f34-0000-1000-8000-00805f9b34fb")
         val LE_GATT_SECURITY_LEVELS_UUID =
             UUID.fromString("00002BF5-0000-1000-8000-00805f9b34fb")
+        val SERVICE_CHANGED_UUID =
+            UUID.fromString("00002A05-0000-1000-8000-00805f9b34fb")
 
         private const val OBSERVATION_DESCRIPTION = "Live observation characteristic"
         private const val STORED_OBSERVATIONS_DESCRIPTION = "Stored observation characteristic"
