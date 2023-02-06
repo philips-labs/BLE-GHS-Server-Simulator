@@ -73,11 +73,12 @@ object ObservationEmitter {
      */
 
     fun addObservationType(type: ObservationType) {
-        observationTypes.add(type)
+        if (observationTypes.add(type)) {
 //        resetStoredObservations()
-        setFeatureCharacteristicTypes()
-        setObservationSchedule(type, 1f, 1f)
-        ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
+            setFeatureCharacteristicTypes()
+            setObservationSchedule(type, 1f, 1f)
+            ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
+        }
     }
 
     fun removeObservationType(type: ObservationType) {
