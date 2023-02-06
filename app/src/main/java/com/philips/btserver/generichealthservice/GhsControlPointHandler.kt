@@ -18,7 +18,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
     fun writeGattStatusFor(value: ByteArray): GattStatus {
         return if (isWriteValid(value))
                 if (service.isLiveObservationNotifyEnabled) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
-            else GattStatus.ILLEGAL_PARAMETER
+            else GattStatus.INTERNAL_ERROR
     }
 
     fun handleReceivedBytes(bytes: ByteArray) {
