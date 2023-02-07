@@ -39,6 +39,12 @@ fun Any.asByteArray(): ByteArray {
     return byteArrayOf()
 }
 
+fun Int.asByteArray(): ByteArray {
+    val parser = BluetoothBytesParser()
+    parser.sInt32 = this
+    return parser.value
+}
+
 fun Float.asByteArray(): ByteArray {
     val parser = BluetoothBytesParser()
     parser.setFloatValue(this, 4)

@@ -8,6 +8,7 @@ import com.philips.btserver.BluetoothServer
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.isBonded
 import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.asByteArray
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.BluetoothPeripheralManager
 import com.welie.blessed.GattStatus
@@ -19,21 +20,22 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     override val service = BluetoothGattService(USER_DATA_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
 
     private val currentUserIndexes = mutableMapOf<String, Int>()
+
     /*
      * The Database Change Increment characteristic is used to represent a count of the changes made
      * to a set of related characteristic(s) as defined by the containing service. It can be used to
      * determine the need to synchronize this set between a Server and a Client. Value is a uint32
      */
     internal val dbChangeIncrementCharacteristic = BluetoothGattCharacteristic(
-        USER_DATABASE_CHANGE_INCREMENT,
-        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
-        0
+        USER_DATABASE_CHANGE_INCREMENT_UUID,
+        PROPERTY_READ or PROPERTY_INDICATE,
+        PERMISSION_READ
     )
 
     internal val indexCharacteristic = BluetoothGattCharacteristic(
         USER_INDEX_CHARACTERISTIC_UUID,
         PROPERTY_READ,
-        PERMISSION_READ
+        PERMISSION_READ_ENCRYPTED
     )
 
     internal val controlPointCharacteristic = BluetoothGattCharacteristic(
@@ -46,7 +48,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
-        if (!central.isBonded()) central.createBond()
+//        if (!central.isBonded()) central.createBond()
         setUserIndexForCentral(central, UserDataManager.UNDEFINED_USER_INDEX)
     }
 
@@ -61,6 +63,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     ): ReadResponse {
         return when(characteristic.uuid) {
             USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(getCurrentUserIndexForCentral(central)))
+            USER_DATABASE_CHANGE_INCREMENT_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentUserDatabaseForCentral(central).asByteArray())
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
@@ -81,9 +84,12 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         }
     }
 
-
     fun getCurrentUserIndexForCentral(central: BluetoothCentral): Byte {
         return (currentUserIndexes[central.address] ?: 0xFF).toByte()
+    }
+
+    fun getCurrentUserDatabaseForCentral(central: BluetoothCentral): Int {
+        return 0
     }
 
     fun setUserIndexForCentral(central: BluetoothCentral, userIndex: Int) {
@@ -103,7 +109,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     companion object {
         val USER_DATA_SERVICE_UUID = UUID.fromString("0000181C-0000-1000-8000-00805f9b34fb")
-        val USER_DATABASE_CHANGE_INCREMENT = UUID.fromString("00002a99-0000-1000-8000-00805f9b34fb")
+        val USER_DATABASE_CHANGE_INCREMENT_UUID = UUID.fromString("00002a99-0000-1000-8000-00805f9b34fb")
         val USER_INDEX_CHARACTERISTIC_UUID = UUID.fromString("00002a9a-0000-1000-8000-00805f9b34fb")
         val UDS_CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002a9f-0000-1000-8000-00805f9b34fb")
 
@@ -117,6 +123,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
         private const val USER_INDEX_DESCRIPTION = "User index characteristic"
         private const val UDS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
+        private const val UDS_DATABASE_INCREMENT_DESCRIPTION = "User DB Increment characteristic"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a UserDataService return it (otherwise null)
@@ -131,6 +138,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     init {
         initCharacteristic(indexCharacteristic, USER_INDEX_DESCRIPTION)
         initCharacteristic(controlPointCharacteristic, UDS_CONTROL_POINT_DESCRIPTION)
+        initCharacteristic(dbChangeIncrementCharacteristic, UDS_DATABASE_INCREMENT_DESCRIPTION)
     }
 
 }
