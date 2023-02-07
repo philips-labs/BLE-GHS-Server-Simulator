@@ -48,6 +48,16 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return peripheralManager.notifyCharacteristicChanged(value, characteristic)
     }
 
+
+    protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic, centrals: List<BluetoothCentral>): Boolean {
+        updateDisconnectedBondedCentralsToNotify(characteristic)
+        var success = true
+        centrals.forEach {
+            if (!peripheralManager.notifyCharacteristicChanged(value, it, characteristic )) success = false
+        }
+        return success
+    }
+
     protected fun notifyCharacteristicChanged(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
         updateDisconnectedBondedCentralsToNotify(characteristic)
         return peripheralManager.notifyCharacteristicChanged(value, central, characteristic )
@@ -223,6 +233,13 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      */
     fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic) {
         notifyCharacteristicChanged(bytes, characteristic)
+    }
+
+    /**
+     * Send ByteArray bytes and do a BLE notification over the characteristic.
+     */
+    fun sendBytesAndNotify(bytes: ByteArray, characteristic: BluetoothGattCharacteristic, centrals: List<BluetoothCentral>) {
+        notifyCharacteristicChanged(bytes, characteristic, centrals)
     }
 
     companion object {
