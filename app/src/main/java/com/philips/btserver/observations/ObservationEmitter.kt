@@ -284,7 +284,7 @@ fun ObservationType.randomSampleArray(): ByteArray {
     val sampleSeconds = 5
     val buffer = ByteArray(samplesPerSecond * sampleSeconds)
     buffer.fillWith { i -> (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 200).toInt().toByte() }
-    return buffer
+    return buffer.copyOf(0xFF)
 }
 
 fun ObservationType.numericPrecision(): Int {
