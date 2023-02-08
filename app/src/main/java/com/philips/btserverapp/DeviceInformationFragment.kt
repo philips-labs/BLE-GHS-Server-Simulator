@@ -92,6 +92,10 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
                 Timber.i(message)
             }
         }
+        binding.toggleServerBusy.setOnClickListener {
+            ghsServiceHandler.serverBusy = (it as Switch).isChecked
+        }
+
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)

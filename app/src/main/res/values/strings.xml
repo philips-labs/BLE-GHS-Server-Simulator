@@ -37,6 +37,7 @@
     <string name="allow_multiclient_connect">Allow Multiple Connections</string>
     <string name="liveObsIndicate">Indicate Live Obs Characteristic</string>
     <string name="liveObsNotify">Notify Live Obs Characteristic</string>
+    <string name="serverBusy">Respond server busy to RACP</string>
 
     <string name="clear_log">Clear log</string>
 

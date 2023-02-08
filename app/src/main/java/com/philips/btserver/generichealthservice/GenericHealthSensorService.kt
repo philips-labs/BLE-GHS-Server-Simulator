@@ -41,6 +41,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     // TODO: This is simple, maybe too simple, but we need some mechanism to indicate RACP cannot be done
     var canHandleRACP = true
 
+    var serverBusy = false
+
     var observationCharacteristicIndicate: Boolean = true
         set(value) {
             field = value
