@@ -47,14 +47,14 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         set(value) {
             field = value
             restartGattService()
-            notifyCharacteristicChanged(byteArrayOf(), serviceChangedCharacteristic)
+            notifyCharacteristicChanged(serviceChangedHandleRangeBytes, serviceChangedCharacteristic)
         }
 
     var observationCharacteristicNotify: Boolean = true
         set(value) {
             field = value
             restartGattService()
-            notifyCharacteristicChanged(byteArrayOf(), serviceChangedCharacteristic)
+            notifyCharacteristicChanged(serviceChangedHandleRangeBytes, serviceChangedCharacteristic)
         }
 
     internal val observationCharacteristicProperties: Int get() {
@@ -63,6 +63,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
+
+    private val serviceChangedHandleRangeBytes = byteArrayOf(0x7f, 0x42, 0x7f, 0x43)
 
     internal val listeners = mutableSetOf<GenericHealthSensorServiceListener>()
 
