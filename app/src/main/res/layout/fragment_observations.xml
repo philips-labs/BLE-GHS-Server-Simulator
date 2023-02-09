@@ -19,109 +19,109 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:fontFamily="sans-serif-medium"
-            android:textSize="12sp"
-            android:text="@string/lbl_observation_types" />
+            android:text="@string/lbl_observation_types"
+            android:textSize="12sp" />
 
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:layout_weight="1">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <CheckBox
-                android:id="@+id/checkboxTempObs"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceTempObs" />
+                android:orientation="vertical">
 
-            <CheckBox
-                android:id="@+id/checkboxHRObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceHRObs" />
+                <CheckBox
+                    android:id="@+id/checkboxTempObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceTempObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxSPO2Obs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceSPO2Obs" />
+                <CheckBox
+                    android:id="@+id/checkboxHRObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceHRObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxBPObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceBPObs" />
+                <CheckBox
+                    android:id="@+id/checkboxSPO2Obs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceSPO2Obs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxPPGObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choicePPGObs" />
+                <CheckBox
+                    android:id="@+id/checkboxBPObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceBPObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxDiscreteObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceDiscreteObs" />
+                <CheckBox
+                    android:id="@+id/checkboxPPGObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choicePPGObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxStringObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceStringObs" />
+                <CheckBox
+                    android:id="@+id/checkboxDiscreteObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceDiscreteObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxTLVObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceTLVObs" />
+                <CheckBox
+                    android:id="@+id/checkboxStringObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceStringObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxCompoundDiscreteObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceCompoundDiscreteObs" />
+                <CheckBox
+                    android:id="@+id/checkboxTLVObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceTLVObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxCompoundStateEventObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceCompoundStateEventObs" />
+                <CheckBox
+                    android:id="@+id/checkboxCompoundDiscreteObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceCompoundDiscreteObs"
+                    android:textSize="12sp" />
 
-            <CheckBox
-                android:id="@+id/checkboxBundleObs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textSize="12sp"
-                android:text="@string/choiceBundleObs" />
+                <CheckBox
+                    android:id="@+id/checkboxCompoundStateEventObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceCompoundStateEventObs"
+                    android:textSize="12sp" />
 
-        </LinearLayout>
+                <CheckBox
+                    android:id="@+id/checkboxBundleObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/choiceBundleObs"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
         </ScrollView>
 
         <View
@@ -140,11 +140,11 @@
                 android:id="@+id/lblObservationStoreCount"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
-                android:textSize="12sp"
-                android:text="@string/obs_store_count" />
+                android:text="@string/obs_store_count"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/txtObservationStoreCount"
@@ -152,8 +152,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="sans-serif-medium"
-                android:textSize="12sp"
-                android:text="@string/unknown" />
+                android:text="@string/unknown"
+                android:textSize="12sp" />
             <!-- SPACER VIEW FOR RIGHT ALIGNED CLEAR BUTTON -->
             <View
                 android:layout_width="0dp"
@@ -164,11 +164,11 @@
                 android:id="@+id/btnClearObsStore"
                 android:layout_width="96dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginRight="32dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/clear"
                 android:textAllCaps="false"
-                android:layout_marginRight="32dp"
-                android:layout_gravity="right"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>
@@ -179,48 +179,60 @@
             android:layout_marginBottom="8dp"
             android:background="@color/separatorColor" />
 
-        <Button
-            android:id="@+id/btnStartStopEmitter"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="32dp"
+            android:layout_height="0dp"
             android:layout_marginBottom="8dp"
-            android:height="40dp"
-            android:text="@string/startEmitter"
-            android:textAllCaps="false" />
+            android:layout_weight="1">
 
-        <Button
-            android:id="@+id/btnSingleShotEmit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/singleShotEmit"
-            android:textAllCaps="false" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btnAddStored"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/addStoredObs"
-            android:textAllCaps="false" />
+                <Button
+                    android:id="@+id/btnStartStopEmitter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:height="40dp"
+                    android:text="@string/startEmitter"
+                    android:textAllCaps="false" />
 
-        <Button
-            android:id="@+id/btnTriggerObservationSchedule"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/triggerObservationSchedule"
-            android:textAllCaps="false" />
+                <Button
+                    android:id="@+id/btnSingleShotEmit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/singleShotEmit"
+                    android:textAllCaps="false" />
 
+                <Button
+                    android:id="@+id/btnAddStored"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/addStoredObs"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btnTriggerObservationSchedule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/triggerObservationSchedule"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 
 </FrameLayout>
