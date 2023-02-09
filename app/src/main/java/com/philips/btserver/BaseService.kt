@@ -97,7 +97,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     val minimalMTU: Int
-        get() = min((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu }
+        get() = maxOf((peripheralManager.connectedCentrals.minOfOrNull { it.currentMtu }
                 ?: MAX_MIN_MTU), MAX_MIN_MTU)
 
     abstract val service: BluetoothGattService
