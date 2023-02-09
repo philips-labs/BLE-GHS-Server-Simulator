@@ -3,6 +3,7 @@ package com.philips.btserver.observations
 import android.content.res.Resources
 import android.util.Range
 import com.philips.btserver.userdataservice.UserDataManager
+import timber.log.Timber
 
 interface ObservationStoreListener {
     fun observationStoreChanged() {}
@@ -19,7 +20,7 @@ object ObservationStore {
 
     private var currentUserIndex
         get() = UserDataManager.currentUserIndex
-        set(value) = UserDataManager.getInstance().setCurrentUser(value)
+        set(value) = UserDataManager.getInstance().setCurrentUser(value.asUserIndex())
 
     private val userLastRecordNumber = mutableMapOf<Int, Int>()
     private var lastRecordNumber: Int
@@ -36,13 +37,15 @@ object ObservationStore {
     fun addListener(listener: ObservationStoreListener) = listeners.add(listener)
     fun removeListener(listener: ObservationStoreListener) = listeners.remove(listener)
 
+    private fun Int.asUserIndex(): Int { return this.toUByte().toInt() }
+
     fun observationsForUser(userIndex: Int): List<Observation> {
-        return userObservations.get(userIndex)?.values?.toList() ?: emptyList()
+        return userObservations.get(userIndex.asUserIndex())?.values?.toList() ?: emptyList()
     }
 
     fun forEachUserTempObservation(userIndex: Int, block: (obs: Observation) -> Unit) {
         synchronized(userObservations) {
-            observationsForUser(userIndex).forEach { block(it) }
+            observationsForUser(userIndex.asUserIndex()).forEach { block(it) }
         }
     }
 
@@ -57,14 +60,14 @@ object ObservationStore {
     }
 
     fun clearUserData(userIndex: Int) {
-        clearObservationsForUser(userIndex)
-        userLastRecordNumber.remove(userIndex)
+        clearObservationsForUser(userIndex.asUserIndex())
+        userLastRecordNumber.remove(userIndex.asUserIndex())
         broadcastUsersChanged()
         broadcastChange()
     }
 
     fun clearObservationsForUser(userIndex: Int) {
-        synchronized(userObservations) { userObservations.remove(userIndex) }
+        synchronized(userObservations) { userObservations.remove(userIndex.asUserIndex()) }
     }
 
     val numberOfStoredObservations get() = observations.size
@@ -76,6 +79,7 @@ object ObservationStore {
         lastRecordNumber += 1
         broadcastChange()
         if (observations.size == 1) broadcastUsersChanged()
+        Timber.i("Observations stored are: $observations")
     }
 
     fun remove(recordNumber: Int) {
@@ -104,7 +108,7 @@ object ObservationStore {
     fun numberOfObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): Int {
         return synchronized(userObservations) {
             val savedUserIndex = currentUserIndex
-            currentUserIndex = userIndex
+            currentUserIndex = userIndex.asUserIndex()
             val result = observations.count { it.key >= recordNumber }
             currentUserIndex = savedUserIndex
             result
@@ -115,7 +119,7 @@ object ObservationStore {
     fun observationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): List<Observation>{
         return synchronized(userObservations) {
             val savedUserIndex = currentUserIndex
-            currentUserIndex = userIndex
+            currentUserIndex = userIndex.asUserIndex()
             val result = observations.filter { it.key >= recordNumber }.map { it.value }
             currentUserIndex = savedUserIndex
             result
@@ -125,7 +129,7 @@ object ObservationStore {
     fun removeObservationsGreaterThanOrEqualRecordNumber(recordNumber: Int, userIndex: Int = currentUserIndex): Int {
         return synchronized(userObservations) {
             val savedUserIndex = currentUserIndex
-            currentUserIndex = userIndex
+            currentUserIndex = userIndex.asUserIndex()
             val obsToDelete = observationRecordNumbersInRange(Range(0, recordNumber))
             removeAll(obsToDelete)
             currentUserIndex = savedUserIndex
