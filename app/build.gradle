@@ -34,10 +34,10 @@ android {
 
     defaultConfig {
         applicationId "com.philips.btserver"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 33
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 6
+        versionName "1.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

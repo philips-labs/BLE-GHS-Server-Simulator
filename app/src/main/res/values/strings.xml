@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">GHS Peripheral Simulator</string>
     <string name="title_activity_main2">GHS Simulator</string>
-    <string name="lbl_observation_types">Observation type to send</string>
+    <string name="lbl_observation_types">Observation type(s) to send</string>
     <string name="tab_text_ble_info">Device</string>
     <string name="tab_text_observations">Obs</string>
     <string name="tab_text_date">Date</string>
@@ -35,6 +35,9 @@
     <string name="choiceMergeObs">Merge observations into ACOM Object</string>
     <string name="choiceBundleObs">Bundle selected observations</string>
     <string name="allow_multiclient_connect">Allow Multiple Connections</string>
+    <string name="liveObsIndicate">Indicate Live Obs Characteristic</string>
+    <string name="liveObsNotify">Notify Live Obs Characteristic</string>
+    <string name="serverBusy">Respond server busy to RACP</string>
 
     <string name="clear_log">Clear log</string>
 

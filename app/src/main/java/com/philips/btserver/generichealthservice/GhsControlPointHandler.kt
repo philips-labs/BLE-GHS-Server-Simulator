@@ -18,7 +18,8 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
     fun writeGattStatusFor(value: ByteArray): GattStatus {
         return if (isWriteValid(value))
                 if (service.isLiveObservationNotifyEnabled) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
-            else GattStatus.ILLEGAL_PARAMETER
+            else GattStatus.fromValue(COMMAND_NOT_SUPPORTED)
+        // GattStatus.INTERNAL_ERROR is 0x81 which is COMMAND_NOT_SUPPORTED
     }
 
     fun handleReceivedBytes(bytes: ByteArray) {
@@ -69,5 +70,6 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         private const val CONTROL_POINT_SUCCESS = 0x80.toByte()
         private const val CONTROL_POINT_SERVER_BUSY = 0x81.toByte()
         private const val CONTROL_POINT_ERROR_LIVE_OBSERVATIONS = 0x82.toByte()
+        const val COMMAND_NOT_SUPPORTED = 0x81
     }
 }

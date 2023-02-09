@@ -182,6 +182,13 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         peripheralManager?.stopAdvertising()
     }
 
+    fun restartGattService(service: BluetoothGattService) {
+        stopAdvertising()
+        peripheralManager.remove(service)
+        peripheralManager.add(service)
+        startAdvertising()
+    }
+
     private fun getGHSAdvertBytes(): ByteArray {
         // get the first 2 supported specializations
         val devspecs = DeviceSpecialization.values().take(2) //.asAdvertisementDataBytes()
@@ -210,11 +217,17 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
     private fun serviceClasses(): List<BaseService> {
         return listOf(
             DeviceInformationService(peripheralManager),
-            GenericHealthSensorService(peripheralManager),
+            createGHSService(),
             UserDataService(peripheralManager),
             ElapsedTimeService(peripheralManager),
             ReconnectionConfigurationService(peripheralManager)
         )
+    }
+
+    private fun createGHSService(): GenericHealthSensorService {
+        val service = GenericHealthSensorService(peripheralManager)
+//        service.observationCharacteristicIndicate = true
+        return service
     }
 
     fun getServiceWithUUID(serviceUUID: UUID): BaseService? {

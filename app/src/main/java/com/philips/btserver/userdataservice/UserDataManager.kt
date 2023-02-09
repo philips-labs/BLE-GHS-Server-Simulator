@@ -4,6 +4,7 @@ import android.content.Context
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationStore
+import timber.log.Timber
 
 interface UserDataManagerListener {
     fun currentUserIndexChanged(userIndex: Int) {}
@@ -16,6 +17,7 @@ class UserDataManager {
 
     private val users = mutableListOf<Int>()
     private val consentCodes = mutableListOf<Int>()
+    private val userData = mutableMapOf<Int, UserData>()
 
     private val listeners = mutableSetOf<UserDataManagerListener>()
 
@@ -40,6 +42,7 @@ class UserDataManager {
         val userIndex = (users.maxOrNull() ?: 0) + 1
         users.add(userIndex)
         consentCodes.add(consentCode)
+        userData.put(userIndex, UserData(userIndex))
         listeners.forEach { it.createdUser(userIndex) }
         return userIndex
     }
@@ -64,6 +67,7 @@ class UserDataManager {
             } else {
                 users.removeAt(listIndex)
                 consentCodes.removeAt(listIndex)
+                userData.remove(userIndex)
                 ObservationStore.clearUserData(userIndex)
                 listeners.forEach { it.deletedUser(userIndex) }
                 if(currentUserIndex == userIndex) {
@@ -78,9 +82,15 @@ class UserDataManager {
         setCurrentUser(UNDEFINED_USER_INDEX)
         users.clear()
         consentCodes.clear()
+        userData.clear()
         ObservationStore.clear()
         listeners.forEach { it.deletedAllUsers() }
         return true
+    }
+
+    init {
+        Timber.i("Creating user: ${createUserWithConsentCode(1234)}")
+        Timber.i("Creating user: ${createUserWithConsentCode(1234)}")
     }
 
     companion object {

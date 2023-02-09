@@ -49,7 +49,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
     fun handleReceivedBytes(bytes: ByteArray, central: BluetoothCentral) {
         if (bytes.isEmpty()) return sendInvalidOperator(OP_NULL)
         val opCode = bytes.racpOpCode()
-        if (!service.canHandleRACP) return sendServerBusy(opCode)
+        if (!service.canHandleRACP or service.serverBusy) return sendServerBusy(opCode)
         when (opCode) {
             OP_CODE_ABORT -> abortGetRecords(bytes)
             OP_CODE_COMBINED_REPORT -> reportCombinedStoredRecords(bytes, central)

@@ -80,6 +80,30 @@
             android:text="@string/allow_multiclient_connect"
             android:textSize="16sp"/>
 
+        <android.widget.Switch
+            android:id="@+id/toggleLiveObsIndicate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/liveObsIndicate"
+            android:textSize="16sp"/>
+
+        <android.widget.Switch
+            android:id="@+id/toggleLiveObsNotify"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/liveObsNotify"
+            android:textSize="16sp"/>
+
+        <android.widget.Switch
+            android:id="@+id/toggleServerBusy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/serverBusy"
+            android:textSize="16sp"/>
+
     </LinearLayout>
 
 </FrameLayout>

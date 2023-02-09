@@ -9,6 +9,10 @@ import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
+import android.os.Build
+import android.preference.PreferenceManager
+import androidx.annotation.RequiresApi
+import androidx.databinding.library.baseAdapters.BR
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.asFormattedHexString
@@ -30,25 +34,49 @@ interface GenericHealthSensorServiceListener {
  * the generic health sensor service. The GHS service proposed includes
  * an observation characteristic and a control point characteristic.
  */
+@RequiresApi(Build.VERSION_CODES.O)
 class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) :
     BaseService(peripheralManager) {
 
     // TODO: This is simple, maybe too simple, but we need some mechanism to indicate RACP cannot be done
     var canHandleRACP = true
 
+    var serverBusy = false
+
+    var observationCharacteristicIndicate: Boolean = true
+        set(value) {
+            field = value
+            restartGattService()
+            notifyCharacteristicChanged(serviceChangedHandleRangeBytes, serviceChangedCharacteristic)
+        }
+
+    var observationCharacteristicNotify: Boolean = true
+        set(value) {
+            field = value
+            restartGattService()
+            notifyCharacteristicChanged(serviceChangedHandleRangeBytes, serviceChangedCharacteristic)
+        }
+
+    internal val observationCharacteristicProperties: Int get() {
+        return (if (observationCharacteristicIndicate) PROPERTY_INDICATE else 0) or
+                (if (observationCharacteristicNotify) PROPERTY_NOTIFY else 0)
+    }
+
     override val service = BluetoothGattService(GHS_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
+
+    private val serviceChangedHandleRangeBytes = byteArrayOf(0x7f, 0x42, 0x7f, 0x43)
 
     internal val listeners = mutableSetOf<GenericHealthSensorServiceListener>()
 
     internal val observationCharacteristic = BluetoothGattCharacteristic(
         OBSERVATION_CHARACTERISTIC_UUID,
-        PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        observationCharacteristicProperties,
         0
     )
 
     internal val storedObservationCharacteristic = BluetoothGattCharacteristic(
         STORED_OBSERVATIONS_CHARACTERISTIC_UUID,
-         PROPERTY_NOTIFY or PROPERTY_INDICATE,
+        observationCharacteristicProperties,
         0
     )
 
@@ -80,6 +108,12 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         LE_GATT_SECURITY_LEVELS_UUID,
         PROPERTY_READ,
         PERMISSION_READ
+    )
+
+    internal val serviceChangedCharacteristic = BluetoothGattCharacteristic(
+        SERVICE_CHANGED_UUID,
+        PROPERTY_INDICATE,
+        0
     )
 
     // to do: make this match the required security level(s)
@@ -203,6 +237,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ): GattStatus {
         return when (characteristic.uuid) {
+            // TODO WRONG! THIS IS RACP logic in writeGattStatusFor
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> writeGattStatusFor(value)
             RACP_CHARACTERISTIC_UUID -> if (racpHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
             else -> GattStatus.WRITE_NOT_PERMITTED
@@ -369,6 +404,11 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         storedObservationSendHandler.abortSendStoredObservations()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun restartGattService() {
+        BluetoothServer.getInstance()?.restartGattService(service)
+    }
+
     companion object {
         val GHS_SERVICE_UUID = UUID.fromString("00007f44-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_CHARACTERISTIC_UUID =
@@ -389,6 +429,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             UUID.fromString("00007f34-0000-1000-8000-00805f9b34fb")
         val LE_GATT_SECURITY_LEVELS_UUID =
             UUID.fromString("00002BF5-0000-1000-8000-00805f9b34fb")
+        val SERVICE_CHANGED_UUID =
+            UUID.fromString("00002A05-0000-1000-8000-00805f9b34fb")
 
         private const val OBSERVATION_DESCRIPTION = "Live observation characteristic"
         private const val STORED_OBSERVATIONS_DESCRIPTION = "Stored observation characteristic"

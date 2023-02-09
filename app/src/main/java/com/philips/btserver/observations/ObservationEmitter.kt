@@ -73,11 +73,12 @@ object ObservationEmitter {
      */
 
     fun addObservationType(type: ObservationType) {
-        observationTypes.add(type)
+        if (observationTypes.add(type)) {
 //        resetStoredObservations()
-        setFeatureCharacteristicTypes()
-        setObservationSchedule(type, 1f, 1f)
-        ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
+            setFeatureCharacteristicTypes()
+            setObservationSchedule(type, 1f, 1f)
+            ghsService?.setValidRangeAndAccuracy(type, type.unitCode(), type.lowerLimit(), type.upperLimit(), type.accuracy())
+        }
     }
 
     fun removeObservationType(type: ObservationType) {
@@ -283,7 +284,7 @@ fun ObservationType.randomSampleArray(): ByteArray {
     val sampleSeconds = 5
     val buffer = ByteArray(samplesPerSecond * sampleSeconds)
     buffer.fillWith { i -> (Math.sin(numberOfCycles * (2 * Math.PI) * i / samplesPerSecond) * 200).toInt().toByte() }
-    return buffer
+    return buffer.copyOf(0xFF)
 }
 
 fun ObservationType.numericPrecision(): Int {

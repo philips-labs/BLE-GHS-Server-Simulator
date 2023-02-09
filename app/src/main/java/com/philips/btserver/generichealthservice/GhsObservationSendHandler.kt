@@ -6,6 +6,7 @@ import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.userdataservice.currentUserIndex
 import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.GattStatus
@@ -21,6 +22,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
     /**
      * Serialize an [observation] into a byte array transmit the bytes in one or more segments.
      */
+    // TODO CHECK FOR VALID CENTRALS TO SEND TO
     fun sendObservation(observation: Observation, isStored: Boolean = false) {
         val bytes = if (isStored) {
             val parser = BluetoothBytesParser()
@@ -31,7 +33,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         } else {
             observation.ghsByteArray
         }
-        sendBytesInSegments(bytes)
+        sendBytesInSegments(bytes, centralsForObservation(observation))
     }
 
     /**
@@ -88,34 +90,36 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
      * Private ByteArray extension to break up the receiver into segments that fit in the MTU and
      * send each segment in sequence over BLE
      */
-    private fun sendBytesInSegments(bytes: ByteArray) {
-        // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
-        val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
-        Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
-        Timber.i("Raw ${bytes.size} bytes: [ ${bytes.asFormattedHexString()} ]")
-        segments.first.forEach {
-            Timber.i("Sending segment bytes: <${it.asFormattedHexString()}>")
-            service.sendBytesAndNotify(it, observationCharacteristic)
+    private fun sendBytesInSegments(bytes: ByteArray, centrals: List<BluetoothCentral>) {
+        if (centrals.isNotEmpty()) {
+            // asBLEDataSegments returns Pair<List<ByteArray>, Int> with the segments and next segment number
+            val segments = bytes.asBLEDataSegments(segmentSize, currentSegmentNumber)
+            Timber.i("Sending ${bytes.size} bytes in ${segments.first.size} segments")
+            Timber.i("Raw ${bytes.size} bytes: [ ${bytes.asFormattedHexString()} ]")
+            segments.first.forEach {
+                Timber.i("Sending segment bytes: <${it.asFormattedHexString()}>")
+                service.sendBytesAndNotify(it, observationCharacteristic, centrals)
+            }
+            currentSegmentNumber = segments.second
         }
-        currentSegmentNumber = segments.second
     }
 
     var observationsToSend = mutableListOf<Observation>()
     var segmentsToSend = mutableListOf<ByteArray>()
 
-    fun sendObservationsUnqueued(observations: Collection<Observation>) {
-        if (!sendingObservations) {
-            sendingObservations = true
-            observationsToSend.addAll(observations)
-            Executors.newSingleThreadExecutor().execute {
-                sendNextObservation()
-                observations.forEach {
-                    sendBytesInSegmentsUnqueued(it.ghsByteArray)
-                }
-                sendingObservations = false
-            }
-        }
-    }
+//    fun sendObservationsUnqueued(observations: Collection<Observation>) {
+//        if (!sendingObservations) {
+//            sendingObservations = true
+//            observationsToSend.addAll(observations)
+//            Executors.newSingleThreadExecutor().execute {
+//                sendNextObservation()
+//                observations.forEach {
+//                    sendBytesInSegmentsUnqueued(it.ghsByteArray)
+//                }
+//                sendingObservations = false
+//            }
+//        }
+//    }
 
     /**
      * Private ByteArray extension to break up the receiver into segments that fit in the MTU and
@@ -143,6 +147,16 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
         } else {
             sendNextObservation()
         }
+    }
+
+    private fun centralsForObservation(observation: Observation): List<BluetoothCentral> {
+        return if(observation.patientId == 0xFF)
+            service.getConnectedCentrals().toList()
+        else
+            service.getConnectedCentrals().filter {
+                val centralUser = it.currentUserIndex()
+                (centralUser == 0xff) || (centralUser == observation.patientId)
+            }
     }
 
     /**
