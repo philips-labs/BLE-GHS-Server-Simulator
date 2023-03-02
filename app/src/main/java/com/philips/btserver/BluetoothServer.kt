@@ -244,11 +244,11 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
         }
 
         @Synchronized
-        fun getInstance(context: Context): BluetoothServer? {
+        fun getInstance(context: Context): BluetoothServer {
             if (instance == null) {
                 instance = BluetoothServer(context.applicationContext)
             }
-            return instance
+            return instance as BluetoothServer
         }
     }
 

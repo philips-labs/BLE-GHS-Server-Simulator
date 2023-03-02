@@ -26,6 +26,8 @@ class UserDataManager {
 
     val usersList: List<Int> get() = users + listOf(0xFF)
 
+    val currentUserData get() = userDataForIndex(currentUserIndex)
+
     fun addListener(listener: UserDataManagerListener) { listeners.add(listener) }
     fun removeListener(listener: UserDataManagerListener) { listeners.remove(listener) }
 
@@ -42,7 +44,7 @@ class UserDataManager {
         val userIndex = (users.maxOrNull() ?: 0) + 1
         users.add(userIndex)
         consentCodes.add(consentCode)
-        userData.put(userIndex, UserData(userIndex))
+        userData[userIndex] = UserData(userIndex)
         listeners.forEach { it.createdUser(userIndex) }
         return userIndex
     }
@@ -52,6 +54,10 @@ class UserDataManager {
             currentUserIndex = userIndex
             listeners.forEach { it.currentUserIndexChanged(userIndex) }
         }
+    }
+
+    fun userDataForIndex(userIndex: Int): UserData? {
+        return userData[userIndex]
     }
 
     fun checkUserConsent(userIndex: Int, consentCode: Int): Boolean {

@@ -5,14 +5,12 @@ import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.isBonded
 import com.philips.btserver.observations.ObservationStore
 import com.philips.btserver.observations.asByteArray
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.GattStatus
-import com.welie.blessed.ReadResponse
+import com.welie.blessed.*
 import java.util.*
 
 class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -28,8 +26,14 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
      */
     internal val dbChangeIncrementCharacteristic = BluetoothGattCharacteristic(
         USER_DATABASE_CHANGE_INCREMENT_UUID,
-        PROPERTY_READ or PROPERTY_INDICATE,
-        PERMISSION_READ
+        PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
+        PERMISSION_READ or PERMISSION_WRITE
+    )
+
+    internal val registeredUserCharacteristic = BluetoothGattCharacteristic(
+        REGISTERED_USER_CHARACTERISTIC_UUID,
+        PROPERTY_INDICATE,
+        0
     )
 
     internal val indexCharacteristic = BluetoothGattCharacteristic(
@@ -40,11 +44,25 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     internal val controlPointCharacteristic = BluetoothGattCharacteristic(
         UDS_CONTROL_POINT_CHARACTERISTIC_UUID,
-        BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_INDICATE,
+        PROPERTY_WRITE or PROPERTY_INDICATE,
         PERMISSION_WRITE_ENCRYPTED
     )
 
+    internal val firstNameCharacteristic = BluetoothGattCharacteristic(
+        UDS_FIRST_NAME_CHARACTERISTIC_UUID,
+        PROPERTY_READ or PROPERTY_WRITE,
+        PERMISSION_READ or PERMISSION_WRITE
+    )
+
+    internal val lastNameCharacteristic = BluetoothGattCharacteristic(
+        UDS_LAST_NAME_CHARACTERISTIC_UUID,
+        PROPERTY_READ or PROPERTY_WRITE,
+        PERMISSION_READ or PERMISSION_WRITE
+    )
+
     private val controlPointHandler = UserDataControlPointHandler(this)
+
+    internal val registeredUsersSendHandler = RegisteredUsersSendHandler(this, registeredUserCharacteristic)
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
@@ -62,8 +80,10 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
         return when(characteristic.uuid) {
-            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(getCurrentUserIndexForCentral(central)))
-            USER_DATABASE_CHANGE_INCREMENT_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentUserDatabaseForCentral(central).asByteArray())
+            USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(getCurrentUserIndexForCentral(central).toByte()))
+            USER_DATABASE_CHANGE_INCREMENT_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentUserDatabaseIncrementForCentral(central).asByteArray())
+            UDS_FIRST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentFirstNameForCentral(central).asByteArray())
+            UDS_LAST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentLastNameForCentral(central).asByteArray())
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
@@ -71,31 +91,76 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
         return when(characteristic.uuid) {
             UDS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.writeGattStatusFor(value)
+            UDS_FIRST_NAME_CHARACTERISTIC_UUID,
+            UDS_LAST_NAME_CHARACTERISTIC_UUID -> GattStatus.SUCCESS
             else -> GattStatus.WRITE_NOT_PERMITTED
         }
     }
 
     override fun onCharacteristicWriteCompleted(
-        bluetoothCentral: BluetoothCentral,
+        central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray) {
         when(characteristic.uuid) {
-            UDS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(bluetoothCentral, value)
+            UDS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(central, value)
+            UDS_FIRST_NAME_CHARACTERISTIC_UUID -> setCurrentFirstNameForCentral(central, value)
+            UDS_LAST_NAME_CHARACTERISTIC_UUID -> setCurrentLastNameForCentral(central, value)
+            USER_DATABASE_CHANGE_INCREMENT_UUID -> setCurrentUserDatabaseIncrementForCentral(central, value)
         }
     }
 
-    fun getCurrentUserIndexForCentral(central: BluetoothCentral): Byte {
-        return (currentUserIndexes[central.address] ?: 0xFF).toByte()
+    fun getCurrentUserIndexForCentral(central: BluetoothCentral): UByte {
+        return getCurrentUserIndexForCentralAddress(central.address)
     }
 
-    fun getCurrentUserDatabaseForCentral(central: BluetoothCentral): Int {
-        return 0
+    fun getCurrentUserIndexForCentralAddress(address: String): UByte {
+        return (currentUserIndexes[address] ?: 0xFF).toUByte()
     }
 
     fun setUserIndexForCentral(central: BluetoothCentral, userIndex: Int) {
         currentUserIndexes.put(central.address, userIndex)
         sendTempStoredObservations(central, userIndex)
         // TODO Send any pending temp stored observations
+    }
+
+    fun userDataForCentral(central: BluetoothCentral): UserData? {
+        return UserDataManager.getInstance().userDataForIndex(getCurrentUserIndexForCentral(central).toInt())
+    }
+
+    fun getCurrentFirstNameForCentral(central: BluetoothCentral): String {
+        return userDataForCentral(central)?.firstName ?: ""
+    }
+
+    fun setCurrentFirstNameForCentral(central: BluetoothCentral, firstName: ByteArray) {
+        userDataForCentral(central)?.let { it.firstName = String(firstName)}
+    }
+
+    fun getCurrentLastNameForCentral(central: BluetoothCentral): String {
+        return userDataForCentral(central)?.firstName ?: ""
+    }
+
+    fun setCurrentLastNameForCentral(central: BluetoothCentral, firstName: ByteArray) {
+        userDataForCentral(central)?.let { it.lastName = String(firstName)}
+    }
+
+    fun getCurrentUserDatabaseIncrementForCentral(central: BluetoothCentral): Int {
+        return userDataForCentral(central)?.version ?: 0
+    }
+
+    fun setCurrentUserDatabaseIncrementForCentral(central: BluetoothCentral, value: ByteArray) {
+        if (value.size != 4) return
+        userDataForCentral(central)?.let {
+            it.version = BluetoothBytesParser(value).uInt32
+            updateCentralsDatabaseIncrement(value, central)
+        }
+    }
+
+    private fun updateCentralsDatabaseIncrement(value: ByteArray, central: BluetoothCentral) {
+        val userIndex = getCurrentUserIndexForCentral(central).toInt()
+        notifyCharacteristicChangedFilterCentrals(
+            value,
+            {  it.address != central.address && (getCurrentUserIndexForCentral(it).toInt() == userIndex) },
+            dbChangeIncrementCharacteristic)
     }
 
     fun sendTempStoredObservations(central: BluetoothCentral, userIndex: Int) {
@@ -124,6 +189,8 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         private const val USER_INDEX_DESCRIPTION = "User index characteristic"
         private const val UDS_CONTROL_POINT_DESCRIPTION = "Control Point characteristic"
         private const val UDS_DATABASE_INCREMENT_DESCRIPTION = "User DB Increment characteristic"
+        private const val UDS_FIRST_NAME_DESCRIPTION = "First Name"
+        private const val UDS_LAST_NAME_DESCRIPTION = "Last Name"
 
         /**
          * If the [BluetoothServer] singleton has an instance of a UserDataService return it (otherwise null)
@@ -139,8 +206,10 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         initCharacteristic(indexCharacteristic, USER_INDEX_DESCRIPTION)
         initCharacteristic(controlPointCharacteristic, UDS_CONTROL_POINT_DESCRIPTION)
         initCharacteristic(dbChangeIncrementCharacteristic, UDS_DATABASE_INCREMENT_DESCRIPTION)
+        initCharacteristic(firstNameCharacteristic, UDS_FIRST_NAME_DESCRIPTION)
+        initCharacteristic(firstNameCharacteristic, UDS_LAST_NAME_DESCRIPTION)
     }
 
 }
 
-fun BluetoothCentral.currentUserIndex(): Int = UserDataService.getInstance()?.getCurrentUserIndexForCentral(this)?.toInt() ?: UserDataManager.UNDEFINED_USER_INDEX
+fun BluetoothCentral.currentUserIndex(): Int = UserDataService.getInstance()?.getCurrentUserIndexForCentral(this)?.toUByte()?.toInt() ?: UserDataManager.UNDEFINED_USER_INDEX

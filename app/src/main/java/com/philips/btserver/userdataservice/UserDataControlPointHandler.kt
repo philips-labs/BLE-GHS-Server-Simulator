@@ -1,6 +1,7 @@
 package com.philips.btserver.userdataservice
 
 import com.philips.btserver.extensions.merge
+import com.philips.btserver.generichealthservice.GhsRacpHandler
 import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.GattStatus
@@ -71,10 +72,27 @@ class UserDataControlPointHandler(val service: UserDataService) {
             UserDataControlPointOpCode.RegisterNewUser -> registerNewUser(bytes)
             UserDataControlPointOpCode.UserConsent -> requestUserConsent(bluetoothCentral, bytes)
             UserDataControlPointOpCode.DeleteUserData -> deleteUserData(bluetoothCentral, bytes)
-            UserDataControlPointOpCode.ListAllUsers -> unsupportedOperation(UserDataControlPointOpCode.ListAllUsers)
+            UserDataControlPointOpCode.ListAllUsers -> listAllUsers()
             UserDataControlPointOpCode.DeleteUser -> deleteUser(bytes)
             else -> return
         }
+    }
+
+    private val registeredUsersSendHandler get() = service.registeredUsersSendHandler
+
+    private fun listAllUsers() {
+        if (registeredUsersSendHandler.isSendingUsers) {
+            sendServerBusy(UserDataControlPointOpCode.ListAllUsers)
+        } else {
+            registeredUsersSendHandler.sendAllUsers()
+            sendResponseCodeBytes(UserDataControlPointOpCode.ListAllUsers,
+                OP_CODE_RESPONSE_VALUE_SUCCESS,
+                byteArrayOf())
+        }
+    }
+
+    private fun sendServerBusy(requestOpCode: UserDataControlPointOpCode) {
+        sendResponseCodeBytes(requestOpCode, RESPONSE_CODE_SERVER_BUSY)
     }
 
     private fun registerNewUser(bytes: ByteArray) {
@@ -170,6 +188,8 @@ class UserDataControlPointHandler(val service: UserDataService) {
         private const val OP_CODE_RESPONSE_VALUE_INVALID_PARAMETER = 0x03.toByte()
         private const val OP_CODE_RESPONSE_VALUE_OPERATION_FAILED = 0x04.toByte()
         private const val OP_CODE_RESPONSE_VALUE_NOT_AUTHORIZED = 0x05.toByte()
+
+        private const val RESPONSE_CODE_SERVER_BUSY = 0x0A.toByte()
 
     }
 

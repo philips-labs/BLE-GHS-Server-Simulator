@@ -64,11 +64,20 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     protected fun notifyCharacteristicChangedSkipCentral(value: ByteArray, central: BluetoothCentral, characteristic: BluetoothGattCharacteristic): Boolean {
+        val success = notifyCharacteristicChangedFilterCentrals(
+            value,
+            { connCen -> central.let { connCen.address != it.address } },
+            characteristic)
+        updateDisconnectedBondedCentralsToNotify(characteristic)
+        return success
+    }
+
+
+    protected fun notifyCharacteristicChangedFilterCentrals(value: ByteArray, filter: (testCentral: BluetoothCentral) -> Boolean, characteristic: BluetoothGattCharacteristic): Boolean {
         var success = true
-        getConnectedCentrals().filter { connCen -> central.let { connCen.address != it.address } }.forEach {
+        getConnectedCentrals().filter(filter).forEach {
             if (!peripheralManager.notifyCharacteristicChanged(value, it, characteristic)) success = false
         }
-        updateDisconnectedBondedCentralsToNotify(characteristic)
         return success
     }
 
