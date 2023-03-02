@@ -7,6 +7,8 @@ package com.philips.btserverapp
 import android.Manifest
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -32,7 +34,7 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
     var allowMultipleClientConnections = true
     set(value) {
         field = value
-        getBluetoothServer()?.let { if(value) it.startAdvertising() }
+        bluetoothServer.let { if(value) it.startAdvertising() }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -57,19 +59,23 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
 
     override fun onStart() {
         super.onStart()
-        getBluetoothServer()?.startAdvertising()
+        bluetoothServer.startAdvertising()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        getBluetoothServer()?.stopAdvertising()
+        bluetoothServer.stopAdvertising()
     }
 
-    private val isBluetoothEnabled: Boolean
-        get() {
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter() ?: return false
-            return bluetoothAdapter.isEnabled
-        }
+    private val bluetoothManager get() = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+
+    private val isBluetoothEnabled get() = bluetoothManager.adapter?.isEnabled ?: false
+
+//    private val isBluetoothEnabled: Boolean
+//        get() {
+//            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter() ?: return false
+//            return bluetoothAdapter.isEnabled
+//        }
 
     private val requiredPermissions: Array<String>
         get() {
@@ -158,12 +164,10 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
         }
     }
 
-    private fun getBluetoothServer(): BluetoothServer? {
-        return BluetoothServer.getInstance(applicationContext)
-    }
+    private val bluetoothServer get() = BluetoothServer.getInstance(applicationContext)
 
     private fun initBluetoothHandler() {
-        getBluetoothServer()?.addConnectionListener(this)
+        bluetoothServer.addConnectionListener(this)
         sectionsPagerAdapter.updatePages()
     }
 
@@ -175,12 +179,12 @@ class MainActivity : AppCompatActivity(), BluetoothServerConnectionListener {
     override fun onCentralConnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
         titleView.text = "${getString(R.string.app_name)} ${getString(R.string.central_connected)}"
-        if(!allowMultipleClientConnections) getBluetoothServer()?.stopAdvertising()
+        if(!allowMultipleClientConnections) bluetoothServer.stopAdvertising()
     }
 
     override fun onCentralDisconnected(central: BluetoothCentral) {
         val titleView: TextView = findViewById(R.id.title)
-        if (getBluetoothServer()?.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
-        if(!allowMultipleClientConnections) getBluetoothServer()?.startAdvertising()
+        if (bluetoothServer.numberOfCentralsConnected() == 0) titleView.text = getString(R.string.app_name)
+        if(!allowMultipleClientConnections) bluetoothServer.startAdvertising()
     }
 }
