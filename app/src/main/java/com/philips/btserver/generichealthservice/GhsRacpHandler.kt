@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Handler
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.asLittleEndianUint32Array
+import com.philips.btserver.extensions.isIndicateEnabled
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationStore
@@ -12,6 +13,7 @@ import com.philips.btserver.userdataservice.UserDataService
 import com.philips.btserver.userdataservice.currentUserIndex
 import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.GattStatus
 import timber.log.Timber
 import java.nio.ByteOrder
 
@@ -41,8 +43,8 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
 
     fun reset() {}
 
-    fun isWriteValid(bytes: ByteArray): Boolean {
-        return true
+    fun writeGattStatusFor(bytes: ByteArray): GattStatus {
+        return if (service.racpCharacteristic.isIndicateEnabled()) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
     }
 
 
