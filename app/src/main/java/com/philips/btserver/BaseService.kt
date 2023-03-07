@@ -86,7 +86,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     fun noCentralsConnected(): Boolean {
-        return peripheralManager.getConnectedCentrals().size == 0
+        return peripheralManager.getConnectedCentrals().isEmpty()
     }
 
     fun centralsToNotifyUpdateFromCentral(central: BluetoothCentral?): List<BluetoothCentral> {
@@ -133,6 +133,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        characteristicValues[characteristic.uuid] = value
         return GattStatus.SUCCESS
     }
 
