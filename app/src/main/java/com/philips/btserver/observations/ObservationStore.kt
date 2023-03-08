@@ -70,6 +70,32 @@ object ObservationStore {
         synchronized(userObservations) { userObservations.remove(userIndex.asUserIndex()) }
     }
 
+    fun deleteFirstObservationForUser(userIndex: Int): Boolean {
+        synchronized(userObservations) {
+            return handleDeleteResult(userObservations[userIndex.asUserIndex()]?.let
+            { recs ->
+                recs.keys.minOrNull()?.let { recs.remove(it) != null } ?: false
+            } ?: false)
+        }
+    }
+
+    fun deleteLastObservationForUser(userIndex: Int): Boolean {
+        synchronized(userObservations) {
+            return handleDeleteResult( userObservations[userIndex.asUserIndex()]?.let
+            { recs ->
+                recs.keys.maxOrNull()?.let { recs.remove(it) != null } ?: false
+            } ?: false)
+        }
+    }
+
+    private fun handleDeleteResult(result: Boolean): Boolean {
+        if (result) {
+            checkUserObservationsEmpty()
+            broadcastChange()
+        }
+        return result
+    }
+
     val numberOfStoredObservations get() = observations.size
 
     fun addObservation(observation: Observation) {

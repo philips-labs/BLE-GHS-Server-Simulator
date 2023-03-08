@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
+import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
 import com.philips.btserver.generichealthservice.isBonded
@@ -84,13 +85,14 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         return when(characteristic.uuid) {
             USER_INDEX_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, byteArrayOf(getCurrentUserIndexForCentral(central).toByte()))
             UDS_DATABASE_CHANGE_INCREMENT_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentUserDatabaseIncrementForCentral(central).asByteArray())
-            UDS_FIRST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentFirstNameForCentral(central).asByteArray())
-            UDS_LAST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentLastNameForCentral(central).asByteArray())
+            UDS_FIRST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentFirstNameForCentral(central))
+            UDS_LAST_NAME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, getCurrentLastNameForCentral(central))
             else -> super.onCharacteristicRead(central, characteristic)
         }
     }
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        Timber.i("UDS received bytes ${value.asFormattedHexString()} from central $central for char $characteristic")
         return when(characteristic.uuid) {
             UDS_DATABASE_CHANGE_INCREMENT_CHARACTERISTIC_UUID -> writeDbChangeIncrementGattStatusFor(central)
             UDS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.writeGattStatusFor(value)
@@ -129,16 +131,17 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
     fun setUserIndexForCentral(central: BluetoothCentral, userIndex: Int) {
         currentUserIndexes.put(central.address, userIndex)
         sendTempStoredObservations(central, userIndex)
-        // TODO Send any pending temp stored observations
     }
 
     fun userDataForCentral(central: BluetoothCentral): UserData? {
         return UserDataManager.getInstance().userDataForIndex(getCurrentUserIndexForCentral(central).toInt())
     }
 
-    fun getCurrentFirstNameForCentral(central: BluetoothCentral): String {
-        val userData = userDataForCentral(central)
-        return userData?.firstName ?: ""
+    private var tempUserData: UserData? = null
+
+    fun getCurrentFirstNameForCentral(central: BluetoothCentral): ByteArray {
+        tempUserData = userDataForCentral(central)
+        return convertToByteArray(tempUserData?.firstName ?: "")
     }
 
     fun setCurrentFirstNameForCentral(central: BluetoothCentral, firstName: ByteArray) {
@@ -148,9 +151,9 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
         Timber.i("Setting first name $firstNameStr for user index ${userData?.userIndex}")
     }
 
-    fun getCurrentLastNameForCentral(central: BluetoothCentral): String {
+    fun getCurrentLastNameForCentral(central: BluetoothCentral): ByteArray {
         val userData = userDataForCentral(central)
-        return userData?.firstName ?: ""
+        return convertToByteArray(userData?.lastName ?: "")
     }
 
     fun setCurrentLastNameForCentral(central: BluetoothCentral, lastName: ByteArray) {
