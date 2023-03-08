@@ -139,6 +139,14 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     private var tempUserData: UserData? = null
 
+
+    // TODO The Kotlin compiler is having an issue finding String.asByteArray() and resolves to Any.asByteArray()
+    protected override fun convertToByteArray(string: String): ByteArray {
+        val parser = BluetoothBytesParser()
+        parser.setString(string)
+        return parser.value
+    }
+
     fun getCurrentFirstNameForCentral(central: BluetoothCentral): ByteArray {
         tempUserData = userDataForCentral(central)
         return convertToByteArray(tempUserData?.firstName ?: "")

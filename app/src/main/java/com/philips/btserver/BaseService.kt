@@ -43,6 +43,30 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return cudDescriptor
     }
 
+    // TODO The Kotlin compiler is having an issue finding String.asByteArray() and resolves to Any.asByteArray()
+    protected open fun convertToByteArray(string: String): ByteArray {
+        val parser = BluetoothBytesParser()
+        parser.setString(string)
+        return parser.value
+    }
+    protected val cccdValues = mutableMapOf<BluetoothGattCharacteristic, MutableList<Pair<BluetoothGattDescriptor, ByteArray>>>()
+
+    fun setDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
+        val charDescriptors = descriptorValues.getOrPut(descriptor.characteristic) { mutableListOf() }
+        charDescriptors.removeIf { it.first.uuid.equals(descriptor.uuid) }
+        charDescriptors.add(Pair(descriptor, value))
+    }
+
+    fun getDescriptorValue(descriptor: BluetoothGattDescriptor): ByteArray {
+        return descriptorValues[descriptor.characteristic]?.let { pairList ->
+            pairList.firstOrNull { it.first.uuid.equals(descriptor.uuid) }?.second ?: byteArrayOf()
+        } ?: byteArrayOf()
+    }
+
+    fun isIndicateEnabled(characteristic: BluetoothGattCharacteristic): Boolean {
+        return getDescriptorValue(characteristic.getDescriptor(CCC_DESCRIPTOR_UUID)).equals(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) ?: false
+    }
+    }
     protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
         updateDisconnectedBondedCentralsToNotify(characteristic)
         return peripheralManager.notifyCharacteristicChanged(value, characteristic)
