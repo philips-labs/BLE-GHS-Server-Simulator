@@ -153,6 +153,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
 
     val isSendLiveObservationsEnabled get() = isLiveObservationNotifyEnabled && isLiveObservationsStarted
 
+    var isRacpNotifyEnabled = mutableMapOf<String, Boolean>()
+
     /**
      * Notification from [central] that [characteristic] has notification enabled. Implies that
      * there is a connection so start emitting observations.
@@ -164,6 +166,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
             sendTempStoredObservations(central)
+        } else if (characteristic.uuid == RACP_CHARACTERISTIC_UUID) {
+            isRacpNotifyEnabled.put(central.address, true)
         }
     }
 
@@ -183,6 +187,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             ObservationEmitter.stopEmitter()
             isLiveObservationNotifyEnabled = false
+        } else if (characteristic.uuid == RACP_CHARACTERISTIC_UUID) {
+            isRacpNotifyEnabled.put(central.address, false)
         }
         // TODO: What if real-time observations have been enabled?
     }
@@ -238,7 +244,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ): GattStatus {
         return when (characteristic.uuid) {
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> writeGattStatusFor(value)
-            RACP_CHARACTERISTIC_UUID -> racpHandler.writeGattStatusFor(value)
+            RACP_CHARACTERISTIC_UUID -> racpHandler.writeGattStatusFor(central, value)
             else -> GattStatus.WRITE_NOT_PERMITTED
         }
     }
@@ -317,6 +323,10 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         } else {
             GattStatus.PROCEDURE_IN_PROGRESS
         }
+    }
+
+    internal fun isRacpNotfiyEnabled(central: BluetoothCentral): Boolean {
+        return isRacpNotifyEnabled.getOrDefault(central.address, false)
     }
 
     internal fun isStoredObservationCharacteristic(characteristic: BluetoothGattCharacteristic): Boolean {
