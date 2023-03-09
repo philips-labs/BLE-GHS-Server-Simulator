@@ -10,10 +10,7 @@ import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import com.philips.btserver.generichealthservice.isBonded
-import com.welie.blessed.BluetoothCentral
-import com.welie.blessed.BluetoothPeripheralManager
-import com.welie.blessed.GattStatus
-import com.welie.blessed.ReadResponse
+import com.welie.blessed.*
 import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -41,6 +38,31 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         val cudDescriptor = BluetoothGattDescriptor(CUD_DESCRIPTOR_UUID, BluetoothGattDescriptor.PERMISSION_READ)
         cudDescriptor.value = defaultValue.toByteArray(StandardCharsets.UTF_8)
         return cudDescriptor
+    }
+
+    // TODO The Kotlin compiler is having an issue finding String.asByteArray() and resolves to Any.asByteArray()
+    protected open fun convertToByteArray(string: String): ByteArray {
+        val parser = BluetoothBytesParser()
+        parser.setString(string)
+        return parser.value
+    }
+
+    protected val cccdValues = mutableMapOf<BluetoothGattCharacteristic, MutableList<Pair<BluetoothGattDescriptor, ByteArray>>>()
+
+    fun setDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
+        val charDescriptors = cccdValues.getOrPut(descriptor.characteristic) { mutableListOf() }
+        charDescriptors.removeIf { it.first.uuid.equals(descriptor.uuid) }
+        charDescriptors.add(Pair(descriptor, value))
+    }
+
+    fun getDescriptorValue(descriptor: BluetoothGattDescriptor): ByteArray {
+        return cccdValues[descriptor.characteristic]?.let { pairList ->
+            pairList.firstOrNull { it.first.uuid.equals(descriptor.uuid) }?.second ?: byteArrayOf()
+        } ?: byteArrayOf()
+    }
+
+    fun isIndicateEnabled(characteristic: BluetoothGattCharacteristic): Boolean {
+        return getDescriptorValue(characteristic.getDescriptor(CCC_DESCRIPTOR_UUID)).equals(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) ?: false
     }
 
     protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
@@ -86,7 +108,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     fun noCentralsConnected(): Boolean {
-        return peripheralManager.getConnectedCentrals().size == 0
+        return peripheralManager.getConnectedCentrals().isEmpty()
     }
 
     fun centralsToNotifyUpdateFromCentral(central: BluetoothCentral?): List<BluetoothCentral> {
@@ -133,6 +155,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
     }
 
     open fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
+        characteristicValues[characteristic.uuid] = value
         return GattStatus.SUCCESS
     }
 

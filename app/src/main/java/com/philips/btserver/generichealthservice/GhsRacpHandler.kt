@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Handler
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.asLittleEndianUint32Array
+import com.philips.btserver.extensions.isIndicateEnabled
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.Observation
 import com.philips.btserver.observations.ObservationStore
@@ -12,6 +13,7 @@ import com.philips.btserver.userdataservice.UserDataService
 import com.philips.btserver.userdataservice.currentUserIndex
 import com.welie.blessed.BluetoothBytesParser
 import com.welie.blessed.BluetoothCentral
+import com.welie.blessed.GattStatus
 import timber.log.Timber
 import java.nio.ByteOrder
 
@@ -41,13 +43,14 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
 
     fun reset() {}
 
-    fun isWriteValid(bytes: ByteArray): Boolean {
-        return true
+    fun writeGattStatusFor(bytes: ByteArray): GattStatus {
+        return if (service.isIndicateEnabled(racpCharacteristic)) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
     }
 
 
     fun handleReceivedBytes(bytes: ByteArray, central: BluetoothCentral) {
         if (bytes.isEmpty()) return sendInvalidOperator(OP_NULL)
+        Timber.i("GHS RACP received bytes ${bytes.asFormattedHexString()} from central $central")
         val opCode = bytes.racpOpCode()
         if (!service.canHandleRACP or service.serverBusy) return sendServerBusy(opCode)
         when (opCode) {
@@ -107,22 +110,19 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
         } else {
             when (val operator = bytes.racpOperator()) {
                 OP_ALL_RECORDS -> {
-                    val userIndex = UserDataService.getInstance()?.getCurrentUserIndexForCentral(central)
-                    if (userIndex == null) {
-                        ObservationStore.clear()
-                    } else {
-                        ObservationStore.clearObservationsForUser(userIndex.toInt())
-                    }
+                    clearObservationsFor(central)
                     sendSuccessResponse(bytes.racpOpCode())
                 }
                 OP_GREATER_THAN_OR_EQUAL -> {
                     // The delete call will send either a no records found or success code
                     deleteRecordsGreaterOrEqual(bytes, central)
                 }
+                OP_FIRST_RECORD,
+                OP_LAST_RECORD -> {
+                    deleteFirstLastRecordFor(central, operator)
+                }
                 in listOf(
                     OP_WITHIN_RANGE,
-                    OP_FIRST_RECORD,
-                    OP_LAST_RECORD,
                     OP_LESS_THAN_OR_EQUAL
                 ) -> {
                     sendUnsupportedOperator(bytes.racpOpCode())
@@ -131,6 +131,33 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
                     sendInvalidOperator(operator)
                 }
             }
+        }
+    }
+
+
+    private fun deleteFirstLastRecordFor(central: BluetoothCentral, operator: Byte) {
+        val userIndex = UserDataService.getInstance()?.getCurrentUserIndexForCentral(central)
+        if (userIndex == null) {
+            sendNoRecordsFound(OP_CODE_DELETE_STORED_RECORDS)
+        } else {
+            val result = if (operator == OP_FIRST_RECORD)
+                ObservationStore.deleteFirstObservationForUser(userIndex.toInt())
+            else
+                ObservationStore.deleteLastObservationForUser(userIndex.toInt())
+
+            if (result)
+                sendSuccessResponse(OP_CODE_DELETE_STORED_RECORDS)
+            else
+                sendNoRecordsFound(OP_CODE_DELETE_STORED_RECORDS)
+        }
+    }
+
+    private fun clearObservationsFor(central: BluetoothCentral) {
+        val userIndex = UserDataService.getInstance()?.getCurrentUserIndexForCentral(central)
+        if (userIndex == null) {
+            ObservationStore.clear()
+        } else {
+            ObservationStore.clearObservationsForUser(userIndex.toInt())
         }
     }
 

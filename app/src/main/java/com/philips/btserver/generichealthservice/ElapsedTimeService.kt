@@ -134,8 +134,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     init {
         service.addCharacteristic(simpleTimeCharacteristic)
-        simpleTimeCharacteristic.addDescriptor(getCccDescriptor())
-        simpleTimeCharacteristic.addDescriptor(getCudDescriptor(ELAPSED_TIME_DESCRIPTION))
+        initCharacteristic(simpleTimeCharacteristic, ELAPSED_TIME_DESCRIPTION)
         notifyClockBytes(false)
     }
 

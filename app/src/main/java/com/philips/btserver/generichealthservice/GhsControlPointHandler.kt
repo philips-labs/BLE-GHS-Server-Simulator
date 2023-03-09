@@ -1,5 +1,6 @@
 package com.philips.btserver.generichealthservice
 
+import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.isIndicateEnabled
 import com.philips.btserver.extensions.isNotifyEnabled
 import com.philips.btserver.observations.ObservationEmitter
@@ -24,6 +25,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
     fun handleReceivedBytes(bytes: ByteArray) {
         if (bytes.isEmpty()) return
+        Timber.i("GHS Control Point received bytes ${bytes.asFormattedHexString()}")
         when(bytes[0]) {
             START_SEND_LIVE_OBSERVATIONS -> startSendingLiveObservations()
             STOP_SEND_LIVE_OBSERVATIONS -> stopSendingLiveObservations()

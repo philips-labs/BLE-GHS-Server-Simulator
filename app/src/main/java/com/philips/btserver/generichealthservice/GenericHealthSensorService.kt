@@ -95,7 +95,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     internal val racpCharacteristic = BluetoothGattCharacteristic(
         RACP_CHARACTERISTIC_UUID,
         PROPERTY_WRITE or PROPERTY_INDICATE,
-        PERMISSION_WRITE
+        PERMISSION_WRITE or PERMISSION_WRITE_ENCRYPTED
     )
 
     internal val observationScheduleCharacteristic = BluetoothGattCharacteristic(
@@ -237,9 +237,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ): GattStatus {
         return when (characteristic.uuid) {
-            // TODO WRONG! THIS IS RACP logic in writeGattStatusFor
             GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> writeGattStatusFor(value)
-            RACP_CHARACTERISTIC_UUID -> if (racpHandler.isWriteValid(value)) GattStatus.SUCCESS else GattStatus.ILLEGAL_PARAMETER
+            RACP_CHARACTERISTIC_UUID -> racpHandler.writeGattStatusFor(value)
             else -> GattStatus.WRITE_NOT_PERMITTED
         }
     }

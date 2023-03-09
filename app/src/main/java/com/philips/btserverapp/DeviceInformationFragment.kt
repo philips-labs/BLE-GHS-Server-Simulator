@@ -6,11 +6,9 @@ package com.philips.btserverapp
 
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
+import android.content.Context.BATTERY_SERVICE
 import android.content.DialogInterface
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
@@ -110,6 +108,11 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
 
     private fun getModelNumber(): String {
         return deviceInfoService?.modelNumber ?: getString(R.string.model_number)
+    }
+
+    fun getBatteryPercentage(): Int {
+        val bm = context?.getSystemService(BATTERY_SERVICE) as BatteryManager
+        return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
     }
 
     private fun changeAdvName() {

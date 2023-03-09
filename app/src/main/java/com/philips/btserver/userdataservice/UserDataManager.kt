@@ -35,7 +35,12 @@ class UserDataManager {
 
     fun usersInfo(): String {
         var result = ""
-        users.forEachIndexed {index, user -> result += "User $user\tConsent: ${consentCodes[index]} obs: ${ObservationStore.observationsForUser(user).count()}\n"}
+        users.forEachIndexed {index, user ->
+            val userData = userDataForIndex(index)
+            result += "User $user\t Consent: ${consentCodes[index]} obs: ${ObservationStore.observationsForUser(user).count()}\n"
+            result += "First name: ${userData?.firstName} Last Name: ${userData?.lastName}\n"
+
+        }
         result += "Unknown User (255) obs: ${ObservationStore.observationsForUser(255).count()}\n"
         return result
     }
