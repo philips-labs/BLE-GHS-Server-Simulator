@@ -325,8 +325,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    internal fun isRacpNotfiyEnabled(central: BluetoothCentral): Boolean {
-        return isRacpNotifyEnabled.getOrDefault(central.address, false)
+    internal fun isRacpIndicateEnabled(central: BluetoothCentral): Boolean {
+        return peripheralManager.getCentralsWantingIndications(racpCharacteristic).contains(central)
     }
 
     internal fun isStoredObservationCharacteristic(characteristic: BluetoothGattCharacteristic): Boolean {

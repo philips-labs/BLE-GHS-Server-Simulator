@@ -44,8 +44,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
     fun reset() {}
 
     fun writeGattStatusFor(central: BluetoothCentral, bytes: ByteArray): GattStatus {
-        return GattStatus.SUCCESS
-//        return if (service.isRacpNotfiyEnabled(central)) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
+        return if (service.isRacpIndicateEnabled(central)) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
 //        return if (service.racpCharacteristic.isIndicateEnabled()) GattStatus.SUCCESS else GattStatus.CCCD_CFG_ERROR
     }
 
