@@ -95,7 +95,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     internal val racpCharacteristic = BluetoothGattCharacteristic(
         RACP_CHARACTERISTIC_UUID,
         PROPERTY_WRITE or PROPERTY_INDICATE,
-        PERMISSION_WRITE or PERMISSION_WRITE_ENCRYPTED
+        PERMISSION_WRITE
     )
 
     internal val observationScheduleCharacteristic = BluetoothGattCharacteristic(
