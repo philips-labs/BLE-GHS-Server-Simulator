@@ -47,24 +47,6 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
         return parser.value
     }
 
-    protected val cccdValues = mutableMapOf<BluetoothGattCharacteristic, MutableList<Pair<BluetoothGattDescriptor, ByteArray>>>()
-
-    fun setDescriptorValue(descriptor: BluetoothGattDescriptor, value: ByteArray) {
-        val charDescriptors = cccdValues.getOrPut(descriptor.characteristic) { mutableListOf() }
-        charDescriptors.removeIf { it.first.uuid.equals(descriptor.uuid) }
-        charDescriptors.add(Pair(descriptor, value))
-    }
-
-    fun getDescriptorValue(descriptor: BluetoothGattDescriptor): ByteArray {
-        return cccdValues[descriptor.characteristic]?.let { pairList ->
-            pairList.firstOrNull { it.first.uuid.equals(descriptor.uuid) }?.second ?: byteArrayOf()
-        } ?: byteArrayOf()
-    }
-
-    fun isIndicateEnabled(characteristic: BluetoothGattCharacteristic): Boolean {
-        return getDescriptorValue(characteristic.getDescriptor(CCC_DESCRIPTOR_UUID)).equals(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) ?: false
-    }
-
     protected fun notifyCharacteristicChanged(value: ByteArray, characteristic: BluetoothGattCharacteristic): Boolean {
         updateDisconnectedBondedCentralsToNotify(characteristic)
         return peripheralManager.notifyCharacteristicChanged(value, characteristic)
@@ -171,7 +153,7 @@ abstract class BaseService(peripheralManager: BluetoothPeripheralManager) : Blue
      */
     open fun onDescriptorRead(central: BluetoothCentral, descriptor: BluetoothGattDescriptor): ReadResponse  {
         // To be implemented by sub class
-        return ReadResponse(GattStatus.REQUEST_NOT_SUPPORTED, byteArrayOf())
+        return ReadResponse(GattStatus.SUCCESS, byteArrayOf())
     }
 
     open fun onDescriptorWrite(central: BluetoothCentral, descriptor: BluetoothGattDescriptor, value: ByteArray): GattStatus {
