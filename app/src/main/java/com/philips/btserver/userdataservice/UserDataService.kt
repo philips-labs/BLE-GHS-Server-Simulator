@@ -62,7 +62,7 @@ class UserDataService(peripheralManager: BluetoothPeripheralManager) : BaseServi
 
     private val controlPointHandler = UserDataControlPointHandler(this)
 
-    internal val registeredUsersSendHandler = RegisteredUsersSendHandler(this, registeredUserCharacteristic)
+    internal val registeredUsersSendHandler = RegisteredUsersSendHandler(this) //Erik - removed extra argument after pull - 2023-03-06
 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)

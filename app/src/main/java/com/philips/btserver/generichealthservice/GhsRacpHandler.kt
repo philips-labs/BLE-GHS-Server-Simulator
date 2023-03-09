@@ -298,6 +298,7 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
     }
 
     private fun sendNoRecordsFound(requestOpCode: Byte) {
+        // To do: check with Abdul why we are sending two responses here....
         sendResponseCodeBytes(requestOpCode, RESPONSE_CODE_NO_RECORDS)
         sendResponseCodeBytes(OP_CODE_RESPONSE_NUMBER_STORED_RECORDS, 0x00)
     }

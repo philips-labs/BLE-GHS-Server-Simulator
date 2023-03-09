@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentObservationsBinding
+import com.philips.btserver.generichealthservice.ReconnectionConfigurationService
 import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationStore
 import com.philips.btserver.observations.ObservationStoreListener
@@ -51,6 +52,7 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
         binding.btnAddStored.setOnClickListener { ObservationEmitter.addStoredObservation() }
+        binding.btnReadyForDisconnect.setOnClickListener { ReconnectionConfigurationService.getInstance().readyForDisconnect() }
         binding.btnTriggerObservationSchedule.setOnClickListener {
             ObservationEmitter.setObservationSchedule(
                 ObservationType.MDC_ECG_HEART_RATE,
