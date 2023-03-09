@@ -133,7 +133,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     private fun clockCapabilitiesBytes(): ByteArray { return byteArrayOf(0) }
 
     init {
-        service.addCharacteristic(simpleTimeCharacteristic)
         initCharacteristic(simpleTimeCharacteristic, ELAPSED_TIME_DESCRIPTION)
         notifyClockBytes(false)
     }
