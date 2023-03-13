@@ -1,11 +1,16 @@
 package com.philips.btserver.util
 
-import android.os.SystemClock
 import com.philips.btserver.extensions.*
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.observations.ObservationStoreListener
 import com.welie.blessed.BluetoothBytesParser
 import timber.log.Timber
-import java.nio.ByteOrder
 import java.util.*
+
+
+interface TimeCounterListener {
+    fun onTimeCounterChanged()
+}
 
 object TimeCounter {
 
@@ -16,10 +21,17 @@ object TimeCounter {
     private val currentEpoch2kMillis
         get() = epoch2kMillis + System.currentTimeMillis() - counterStartTimeMillis
 
+    private val listeners = mutableListOf<TimeCounterListener>()
+
+    fun addListener(listener: TimeCounterListener) = listeners.add(listener)
+    fun removeListener(listener: TimeCounterListener) = listeners.remove(listener)
+    private fun broadcastChange() = listeners.forEach { it.onTimeCounterChanged() }
+
     fun setToCurrentSystemTime() {
         epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
         counterStartTimeMillis = System.currentTimeMillis()
         tzDstOffsetMillis = TimeZone.getDefault().getOffset(counterStartTimeMillis).toLong()
+        broadcastChange()
     }
 
     fun setTimeCounterWithETSBytes(clockBytes: ByteArray) {
@@ -41,6 +53,8 @@ object TimeCounter {
         tzDstOffsetMillis = offsetMillis.toLong()
         epoch2kMillis = milliScaledValue
         counterStartTimeMillis = System.currentTimeMillis()
+
+        broadcastChange()
     }
 
     fun asGHSBytes(): ByteArray {

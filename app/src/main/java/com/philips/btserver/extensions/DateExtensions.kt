@@ -207,7 +207,7 @@ fun Date.epoch2000mills(): Long {
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
     Timber.i("Timestamp Flags: ${timestampFlags.asTimestampFlagsString()}")
     return listOf(
-        byteArrayOf(timestampFlags.value.toByte()),
+        byteArrayOf(BitMask(timestampFlags.value).value.toByte()),
         timestampFlags.getElaspedTimeByteArray(this),
         byteArrayOf(Timesource.currentSource.value.toByte(), timestampFlags.dstOffsetValue().toByte())
     ).merge()

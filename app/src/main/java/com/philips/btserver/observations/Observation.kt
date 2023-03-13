@@ -29,12 +29,14 @@ abstract class Observation {
     val ghsByteArray: ByteArray
         get() { return ghsByteArray(false) }
 
+    var isCurrentTimeline = true
+
     internal fun ghsByteArray(isBundled: Boolean = false): ByteArray {
         return listOf(
                 byteArrayOf(classByte.value),
                 flagsByteArray(!isBundled),
                 if (type == ObservationType.UNKNOWN_TYPE) byteArrayOf() else type.asGHSByteArray(),
-                if (isBundled) byteArrayOf() else timestamp.asGHSBytes(),
+                if (isBundled) byteArrayOf() else timestampByteArray,
                 patientIdByteArray,
                 supplimentalInfoByteArray,
                 valueByteArray).merge().withLengthPrefix()
@@ -50,6 +52,16 @@ abstract class Observation {
             val parser = BluetoothBytesParser(ByteOrder.LITTLE_ENDIAN)
             parser.setUInt8(patientId)
             return parser.value
+        }
+
+    private val timestampByteArray: ByteArray
+        get() {
+            val flagsBitmask = BitMask(TimestampFlags.currentFlags.value)
+            if (isCurrentTimeline)
+                flagsBitmask.set(TimestampFlags.isCurrentTimeline)
+            else
+                flagsBitmask.unset(TimestampFlags.isCurrentTimeline)
+            return timestamp.asGHSBytes(flagsBitmask)
         }
 
     private fun flagsByteArray(includeTS: Boolean): ByteArray {

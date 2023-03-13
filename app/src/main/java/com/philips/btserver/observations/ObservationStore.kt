@@ -3,6 +3,8 @@ package com.philips.btserver.observations
 import android.content.res.Resources
 import android.util.Range
 import com.philips.btserver.userdataservice.UserDataManager
+import com.philips.btserver.util.TimeCounter
+import com.philips.btserver.util.TimeCounterListener
 import timber.log.Timber
 
 interface ObservationStoreListener {
@@ -10,7 +12,7 @@ interface ObservationStoreListener {
     fun observationStoreUserChanged() {}
 }
 
-object ObservationStore {
+object ObservationStore: TimeCounterListener {
     var isTemporaryStore = false
 
     private val userObservations = mutableMapOf<Int, MutableMap<Int, Observation>>()
@@ -178,6 +180,16 @@ object ObservationStore {
     private fun broadcastChange() = listeners.forEach { it.observationStoreChanged() }
     private fun broadcastUsersChanged() = listeners.forEach { it.observationStoreUserChanged() }
 
+    /*
+     * TimeCounterListener method
+     */
+    override fun onTimeCounterChanged() {
+        userObservations.values.forEach { it.values.forEach { it.isCurrentTimeline = false } }
+    }
+
+    init {
+        TimeCounter.addListener(this)
+    }
 }
 
 fun MutableMap<Int, Observation>.indexOfValue(observation: Observation): Int {

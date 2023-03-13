@@ -1,11 +1,9 @@
 package com.philips.btserver.generichealthservice
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
-import android.os.SystemClock
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
@@ -13,7 +11,6 @@ import com.philips.btserver.util.TickCounter
 import com.philips.btserver.util.TimeCounter
 import com.welie.blessed.*
 import timber.log.Timber
-import java.sql.Time
 import java.util.*
 
 internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
@@ -55,7 +52,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
         Timber.i("onCharacteristicWrite with Bytes: ${value.asFormattedHexString()}")
-        return writeSTSBytes(value)
+        return writeETSBytes(value)
     }
 
     override fun onCharacteristicWriteCompleted(
@@ -67,7 +64,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         Timber.i("onCharacteristicWriteCompleted")
     }
 
-    private fun writeSTSBytes(value: ByteArray) : GattStatus {
+    private fun writeETSBytes(value: ByteArray) : GattStatus {
         val writeFlags = value.first().asBitmask()
         if (!writeFlagsValid(writeFlags)) return ERROR_INCORRECT_TIME_FORMAT
         val source = Timesource.value(value[7].toInt())
