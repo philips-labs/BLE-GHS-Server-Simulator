@@ -15,6 +15,7 @@ import android.os.ParcelUuid
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.philips.btserver.extensions.asFormattedHexString
+import com.philips.btserver.gatt.BatteryService
 import com.philips.btserver.gatt.DeviceInformationService
 import com.philips.btserver.generichealthservice.*
 import com.philips.btserver.generichealthservice.ElapsedTimeService
@@ -220,7 +221,8 @@ internal class BluetoothServer(val context: Context) : ObservationStoreListener 
             createGHSService(),
             UserDataService(peripheralManager),
             ElapsedTimeService(peripheralManager),
-            ReconnectionConfigurationService(peripheralManager)
+            ReconnectionConfigurationService(peripheralManager),
+            BatteryService(peripheralManager)
         )
     }
 
