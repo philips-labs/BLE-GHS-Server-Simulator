@@ -67,15 +67,16 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
     }
 
     private fun abortGetRecords(bytes: ByteArray) {
-        if (bytes.size == 2 && bytes[1] == OP_NULL) {
+        Timber.i("Aborting RACP")
+//        if (bytes.size == 2 && bytes[1] == OP_NULL) {
             service.abortSendStoredObservations()
             // TODO Cheap way to make sure the Bluetooth buffers are empty
             Handler().postDelayed({
                 sendSuccessResponse(bytes.racpOpCode())
-            }, 1500)
-        } else {
-            sendInvalidOperatorResponse(bytes.racpOpCode())
-        }
+            }, 500)
+//        } else {
+//            sendInvalidOperatorResponse(bytes.racpOpCode())
+//        }
     }
 
     private fun reportCombinedStoredRecords(bytes: ByteArray, central: BluetoothCentral) {
@@ -281,7 +282,9 @@ class GhsRacpHandler(val service: GenericHealthSensorService) : GenericHealthSen
 
     private fun getQueryRecordNumber(bytes: ByteArray): Int {
         val parser = BluetoothBytesParser(bytes.copyOfRange(3, 7))
-        return parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32, ByteOrder.LITTLE_ENDIAN)
+        val recordNumber = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32, ByteOrder.LITTLE_ENDIAN)
+        Timber.i("RACP Query Record Number is $recordNumber")
+        return recordNumber
     }
 
     private fun isValidFilterType(bytes: ByteArray): Boolean {

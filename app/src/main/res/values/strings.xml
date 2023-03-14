@@ -38,6 +38,7 @@
     <string name="liveObsIndicate">Indicate Live Obs Characteristic</string>
     <string name="liveObsNotify">Notify Live Obs Characteristic</string>
     <string name="serverBusy">Respond server busy to RACP</string>
+    <string name="storedObservationDelay">Delay between stored obs send</string>
 
     <string name="clear_log">Clear log</string>
 
@@ -71,8 +72,8 @@
     <string name="clockSettable">Clock can be set</string>
     <string name="clockManagesDST">Clock manages DST changes</string>
     <string name="clockManagesTZ">Clock manages time zone changes</string>
-    <string name="clockReset">Reset clock (time fault)</string>
-    <string name="clockUpdate">Trigger clock notify</string>
+    <string name="clockReset">Reset clock to system</string>
+    <string name="clockUpdate">Add 1 hr to clock</string>
 
     <string name="currentUser">Current user:</string>
 

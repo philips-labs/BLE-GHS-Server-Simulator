@@ -7,13 +7,14 @@ import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import com.philips.btserver.BaseService
 import com.philips.btserver.BluetoothServer
 import com.philips.btserver.extensions.*
-import com.philips.btserver.util.TickCounter
-import com.philips.btserver.util.TimeCounter
+import com.philips.btserver.observations.ObservationStore
+import com.philips.btserver.util.*
 import com.welie.blessed.*
 import timber.log.Timber
 import java.util.*
+import kotlin.experimental.and
 
-internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager) {
+internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager), TimeCounterListener, TimeSourceListener {
 
     override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
@@ -84,6 +85,9 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         if (!writeFlagsValid(writeFlags)) return ERROR_INCORRECT_TIME_FORMAT
         val source = Timesource.value(value[7].toInt())
         if (!isTimesourceValid(source)) return ERROR_TIMESOUCE_QUALITY_TOO_LOW
+        TimeSource.setTimeSourceWithETSBytes(value)
+        return GattStatus.SUCCESS
+/*
 //        val minimumDateAllowed = 1640995200000 - UTC_TO_UNIX_EPOCH_MILLIS
         val ticks = value[1].toLong() +
                 value[2].toLong().shl(8) +
@@ -103,6 +107,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         }
 
         return GattStatus.SUCCESS
+ */
     }
 
     private fun isTimesourceValid(source: Timesource): Boolean {
@@ -123,7 +128,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
      */
     fun notifyClockBytes(notify: Boolean = true) {
         val bytes = currentClockBytes()
-        Timber.i("Sending ETS Bytes: ${bytes.asFormattedHexString()}")
+        Timber.i("Sending ETS ${if (TimestampFlags.currentFlags.isTickCounter()) "tick" else "clock"} bytes: ${bytes.asFormattedHexString()}")
         if (notify) {
             notifyCharacteristicChanged(bytes, simpleTimeCharacteristic)
             // Mark any disconnected bonded centrals as needing to be notified on connection.
@@ -132,17 +137,38 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     fun currentClockBytes(): ByteArray {
-        return if (TimestampFlags.currentFlags.isTickCounter()) TickCounter.asGHSBytes() else TimeCounter.asGHSBytes()
+        return TimeSource.asGHSBytes()
+//        return if (TimestampFlags.currentFlags.isTickCounter()) TickCounter.asGHSBytes() else TimeCounter.asGHSBytes()
     }
 
     // Always wants the clock to be set
     private fun clockStatusBytes(): ByteArray { return byteArrayOf(0x1) }
 
-    private fun clockCapabilitiesBytes(): ByteArray { return byteArrayOf(0) }
+    // TODO Make the tests for capabilities a bit more flexible and accurate to server config
+    private fun clockCapabilitiesBytes(): ByteArray {
+        val tz = if(TimestampFlags.currentFlags.hasFlag(TimestampFlags.isTZPresent) && !TimestampFlags.currentFlags.isTickCounter()) 2 else 0
+        val dst = if(TimestampFlags.currentFlags.isTickCounter()) 0 else 1
+        return byteArrayOf(tz.toByte() and dst.toByte())
+    }
+
+
+    /*
+     * TimeCounterListener methods
+     */
+    override fun onTimeCounterChanged() {
+        Timber.i("ETS onTimeCounterChanged: do not send Notify on characteristic ")
+//        notifyClockBytes()
+    }
+    override fun onTimeSourceChanged() {
+        Timber.i("ETS onTimeSourceChanged: send Notify on characteristic ")
+        notifyClockBytes()
+    }
 
     init {
         initCharacteristic(simpleTimeCharacteristic, ELAPSED_TIME_DESCRIPTION)
         notifyClockBytes(false)
+        TimeCounter.addListener(this)
+        TimeSource.addListener(this)
     }
 
     companion object {

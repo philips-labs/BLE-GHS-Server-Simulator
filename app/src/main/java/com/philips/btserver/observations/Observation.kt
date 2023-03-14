@@ -7,6 +7,7 @@ package com.philips.btserver.observations
 import com.philips.btserver.extensions.*
 import com.philips.btserver.userdataservice.UserDataManager
 import com.welie.blessed.BluetoothBytesParser
+import timber.log.Timber
 import java.util.*
 import java.nio.ByteOrder
 
@@ -56,11 +57,9 @@ abstract class Observation {
 
     private val timestampByteArray: ByteArray
         get() {
-            val flagsBitmask = BitMask(TimestampFlags.currentFlags.value)
-            if (isCurrentTimeline)
-                flagsBitmask.set(TimestampFlags.isCurrentTimeline)
-            else
-                flagsBitmask.unset(TimestampFlags.isCurrentTimeline)
+            var flagsBitmask = BitMask(TimestampFlags.currentFlags.value)
+            flagsBitmask = if (isCurrentTimeline) flagsBitmask.set(TimestampFlags.isCurrentTimeline)
+                else flagsBitmask.unset(TimestampFlags.isCurrentTimeline)
             return timestamp.asGHSBytes(flagsBitmask)
         }
 

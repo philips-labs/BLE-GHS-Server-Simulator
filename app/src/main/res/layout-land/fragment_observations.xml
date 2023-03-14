@@ -197,7 +197,17 @@
             android:orientation="vertical"
             android:paddingTop="8dp">
 
-        <Button
+            <CheckBox
+                android:id="@+id/checkboxObsTempStore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginBottom="8dp"
+                android:text="Temp Store Observations"
+                android:textSize="12sp" />
+
+            <Button
             android:id="@+id/btnStartStopEmitter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

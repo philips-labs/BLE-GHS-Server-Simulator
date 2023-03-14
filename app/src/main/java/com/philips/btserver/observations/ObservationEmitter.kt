@@ -8,8 +8,12 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
+import com.philips.btserver.extensions.asFormattedHexString
+import com.philips.btserver.extensions.asGHSBytes
 import com.philips.btserver.generichealthservice.DeviceSpecialization
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
+import com.philips.btserver.util.TimeCounter
+import com.philips.btserver.util.TimeSource
 import timber.log.Timber
 import java.util.*
 
@@ -101,7 +105,7 @@ object ObservationEmitter {
     }
 
     fun singleShotEmit() {
-        sendObservations(true)
+        sendObservations(true, false)
     }
 
 
@@ -126,10 +130,12 @@ object ObservationEmitter {
      */
 
     private fun generateObservationsToSend() {
+        val date = TimeSource.currentDate
+        Timber.i("generateObservationsToSend for Date $date - date ghs bytes ${date.asGHSBytes().asFormattedHexString()}")
         observations.clear()
-        val obsList = observationTypes.mapNotNull { randomObservationOfType(it, Date()) }
+        val obsList = observationTypes.mapNotNull { randomObservationOfType(it, date) }
         if (bundleObservations) {
-            observations.add(BundledObservation(1, obsList, Date()))
+            observations.add(BundledObservation(1, obsList, date))
         } else {
             observations.addAll(obsList)
         }

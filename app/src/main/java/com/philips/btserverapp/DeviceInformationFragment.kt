@@ -94,6 +94,10 @@ class DeviceInformationFragment : Fragment(), BluetoothServerAdvertisingListener
             ghsServiceHandler.serverBusy = (it as Switch).isChecked
         }
 
+        binding.toggleStoredObservationDelay.setOnClickListener {
+            ghsServiceHandler.delayBetweenObservationSends = (it as Switch).isChecked
+        }
+
         binding.lblAdvName.text = getAdvName()
         binding.lblModelNumber.text = getModelNumber()
         binding.btnToggleAdvertising.text = getString(R.string.startAdvertising)

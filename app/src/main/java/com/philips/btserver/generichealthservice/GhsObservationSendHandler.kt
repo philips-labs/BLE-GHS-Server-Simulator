@@ -15,6 +15,8 @@ import java.util.*
 import java.util.concurrent.Executors
 
 class GhsObservationSendHandler(val service: GenericHealthSensorService, val observationCharacteristic: BluetoothGattCharacteristic) {
+    var delayBetweenObservationSends = false
+
     private var currentSegmentNumber: Int = 0
     private val segmentSize get() = service.minimalMTU - 5
     private var sendingObservations = false
@@ -59,6 +61,7 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
                 return false
             }
             sendObservation(it, isStored)
+            if (delayBetweenObservationSends) { Thread.sleep(1000) }
         }
         return true
     }
@@ -78,8 +81,8 @@ class GhsObservationSendHandler(val service: GenericHealthSensorService, val obs
     }
 
     fun abortSendStoredObservations() {
-        sendingObservations = false
         observationsToSend.clear()
+        sendingObservations = false
     }
 
     private fun isStoredObservationHandler(): Boolean {

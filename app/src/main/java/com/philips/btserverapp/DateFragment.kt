@@ -15,6 +15,8 @@ import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
 import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.util.TickCounter
+import com.philips.btserver.util.TimeCounter
+import com.philips.btserver.util.TimeSource
 
 class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
@@ -56,20 +58,20 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     private fun updateChoiceBoxes() {
         updateTimeViews()
-        if (!TimestampFlags.currentFlags.isTimestampSent()) startTickCounterDisplay()
+        if (!TimestampFlags.currentFlags.isTimestamp()) startTickCounterDisplay() else startTimeCounterDisplay()
         binding.choiceClockMilliseconds.isChecked = isFlagSet(TimestampFlags.isMilliseconds)
         updateTimeOptionViews()
     }
 
     private fun updateTimeViews() {
-        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestampSent()
+        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestamp()
         binding.textClockGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.GONE
         binding.tickCounterGroup.visibility = if (timeChoicesEnabled) View.GONE else View.VISIBLE
         binding.dateSyncGroup.visibility = if (timeChoicesEnabled) View.VISIBLE else View.INVISIBLE
     }
 
     private fun updateTimeOptionViews() {
-        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestampSent()
+        val timeChoicesEnabled = TimestampFlags.currentFlags.isTimestamp()
         binding.choiceClockUTCTime.setEnabled(timeChoicesEnabled)
         binding.choiceClockUTCTime.isChecked = timeChoicesEnabled && isFlagSet(TimestampFlags.isUTC)
         binding.choiceClockIncludesTZ.setEnabled(timeChoicesEnabled)
@@ -77,11 +79,8 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     }
 
     private fun setupButtons() {
-        binding.btnUpdateClock.setOnClickListener { updateClock() }
-    }
-
-    private fun updateClock() {
-        ElapsedTimeService.getInstance()?.notifyClockBytes()
+        binding.btnUpdateClock.setOnClickListener {TimeSource.adjustTimeSourceMillis(3600000) }
+        binding.btnResetClock.setOnClickListener { TimeSource.setToCurrentSystemTime() }
     }
 
     private fun setupTimeSourceSpinner() {
@@ -126,8 +125,20 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         Handler(Looper.getMainLooper()).post(object : Runnable {
             override fun run() {
                 TimestampFlags.currentFlags = timestampFlags
-                binding.tickCounter.text = TickCounter.currentTickCounter().toString()
+//                binding.tickCounter.text = TickCounter.currentTickCounter().toString()
+                binding.tickCounter.text = TimeSource.currentTickCounter.toString()
                 if (binding.choiceClockTickCounter.isChecked) {
+                    Handler(Looper.getMainLooper()).postDelayed(this, 1000)
+                }
+            }
+        })
+    }
+
+    private fun startTimeCounterDisplay() {
+        Handler(Looper.getMainLooper()).post(object : Runnable {
+            override fun run() {
+                binding.timerClock?.text = TimeSource.currentDate.toString()
+                if (!binding.choiceClockTickCounter.isChecked) {
                     Handler(Looper.getMainLooper()).postDelayed(this, 1000)
                 }
             }

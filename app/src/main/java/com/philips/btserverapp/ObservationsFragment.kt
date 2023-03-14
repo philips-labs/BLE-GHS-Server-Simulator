@@ -48,6 +48,7 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         binding.checkboxCompoundDiscreteObs.setOnClickListener { clickCompoundDiscreteObs() }
         binding.checkboxCompoundStateEventObs.setOnClickListener { clickCompoundStateEventObs() }
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
+        binding.checkboxObsTempStore?.setOnClickListener { clickTemporaryObsStore() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
@@ -72,6 +73,12 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         super.onResume()
         updateObservationCount()
         updateEmitterButton()
+    }
+
+
+
+    fun clickTemporaryObsStore() {
+        ObservationStore.isTemporaryStore = binding.checkboxObsTempStore?.isChecked ?: false
     }
 
     fun clickTempObs() {

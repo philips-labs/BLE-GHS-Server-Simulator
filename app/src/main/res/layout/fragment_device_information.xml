@@ -104,6 +104,14 @@
             android:text="@string/serverBusy"
             android:textSize="16sp"/>
 
+        <android.widget.Switch
+            android:id="@+id/toggleStoredObservationDelay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/storedObservationDelay"
+            android:textSize="16sp"/>
+
     </LinearLayout>
 
 </FrameLayout>

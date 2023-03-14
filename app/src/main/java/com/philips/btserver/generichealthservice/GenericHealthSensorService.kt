@@ -57,6 +57,12 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
             notifyCharacteristicChanged(serviceChangedHandleRangeBytes, serviceChangedCharacteristic)
         }
 
+    var delayBetweenObservationSends: Boolean
+        get() = storedObservationSendHandler.delayBetweenObservationSends
+        set(value) {
+            storedObservationSendHandler.delayBetweenObservationSends = value
+        }
+
     internal val observationCharacteristicProperties: Int get() {
         return (if (observationCharacteristicIndicate) PROPERTY_INDICATE else 0) or
                 (if (observationCharacteristicNotify) PROPERTY_NOTIFY else 0)
@@ -116,7 +122,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
-    // to do: make this match the required security level(s)
+    // TODO make this match the required security level(s)
     private val  securtyLevelsByteArray = byteArrayOf(0x1,0x2)
 
     private val controlPointHandler = GhsControlPointHandler(this)
@@ -149,6 +155,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     var isLiveObservationNotifyEnabled = false
+
     var isLiveObservationsStarted = false
 
     val isSendLiveObservationsEnabled get() = isLiveObservationNotifyEnabled && isLiveObservationsStarted
@@ -165,7 +172,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     ) {
         if (characteristic.uuid == OBSERVATION_CHARACTERISTIC_UUID) {
             isLiveObservationNotifyEnabled = true
-            sendTempStoredObservations(central)
+            if (isSendLiveObservationsEnabled) sendTempStoredObservations(central)
         } else if (characteristic.uuid == RACP_CHARACTERISTIC_UUID) {
             isRacpNotifyEnabled.put(central.address, true)
         }
@@ -255,7 +262,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         value: ByteArray
     ) {
         when (characteristic.uuid) {
-            GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(value)
+            GHS_CONTROL_POINT_CHARACTERISTIC_UUID -> controlPointHandler.handleReceivedBytes(value, bluetoothCentral)
             RACP_CHARACTERISTIC_UUID -> racpHandler.handleReceivedBytes(value, bluetoothCentral)
         }
     }
@@ -294,7 +301,7 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         }
     }
 
-    private fun sendTempStoredObservations(central: BluetoothCentral) {
+    fun sendTempStoredObservations(central: BluetoothCentral) {
         if (ObservationStore.isTemporaryStore && isSendLiveObservationsEnabled) {
             val userIndex = UserDataService.getInstance()?.getCurrentUserIndexForCentral(central)?.toInt() ?: UserDataManager.UNDEFINED_USER_INDEX
             sendObservations(ObservationStore.observationsForUser(userIndex))

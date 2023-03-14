@@ -4,6 +4,7 @@ import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.isIndicateEnabled
 import com.philips.btserver.extensions.isNotifyEnabled
 import com.philips.btserver.observations.ObservationEmitter
+import com.welie.blessed.BluetoothCentral
 import com.welie.blessed.GattStatus
 import timber.log.Timber
 
@@ -23,11 +24,11 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
         // GattStatus.INTERNAL_ERROR is 0x81 which is COMMAND_NOT_SUPPORTED
     }
 
-    fun handleReceivedBytes(bytes: ByteArray) {
+    fun handleReceivedBytes(bytes: ByteArray, central: BluetoothCentral) {
         if (bytes.isEmpty()) return
         Timber.i("GHS Control Point received bytes ${bytes.asFormattedHexString()}")
         when(bytes[0]) {
-            START_SEND_LIVE_OBSERVATIONS -> startSendingLiveObservations()
+            START_SEND_LIVE_OBSERVATIONS -> startSendingLiveObservations(central)
             STOP_SEND_LIVE_OBSERVATIONS -> stopSendingLiveObservations()
             else -> return
         }
@@ -35,7 +36,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
     fun reset() {}
 
-    private fun startSendingLiveObservations() {
+    private fun startSendingLiveObservations(central: BluetoothCentral) {
         var enableSend = false
         var result = byteArrayOf(CONTROL_POINT_SUCCESS)
         // TODO: isIndicateEnabled and isNotifyEnabled is always returning false!
@@ -49,6 +50,7 @@ class GhsControlPointHandler(val service: GenericHealthSensorService) {
 
         service.setCharacteristicValueAndNotify(ghsControlPointCharacteristic, result)
         service.isLiveObservationsStarted = enableSend
+        if (service.isSendLiveObservationsEnabled) service.sendTempStoredObservations(central)
     }
 
     private fun isLiveObservationNotifyEnabled(): Boolean {

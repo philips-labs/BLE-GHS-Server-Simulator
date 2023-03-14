@@ -5,6 +5,8 @@ import android.util.Range
 import com.philips.btserver.userdataservice.UserDataManager
 import com.philips.btserver.util.TimeCounter
 import com.philips.btserver.util.TimeCounterListener
+import com.philips.btserver.util.TimeSource
+import com.philips.btserver.util.TimeSourceListener
 import timber.log.Timber
 
 interface ObservationStoreListener {
@@ -12,7 +14,7 @@ interface ObservationStoreListener {
     fun observationStoreUserChanged() {}
 }
 
-object ObservationStore: TimeCounterListener {
+object ObservationStore: TimeCounterListener, TimeSourceListener {
     var isTemporaryStore = false
 
     private val userObservations = mutableMapOf<Int, MutableMap<Int, Observation>>()
@@ -184,11 +186,30 @@ object ObservationStore: TimeCounterListener {
      * TimeCounterListener method
      */
     override fun onTimeCounterChanged() {
-        userObservations.values.forEach { it.values.forEach { it.isCurrentTimeline = false } }
+//        var numObs = 0
+//        userObservations.values.forEach {
+//            it.values.forEach {
+//                it.isCurrentTimeline = false
+//                numObs++
+//            }
+//        }
+        Timber.i("ObservationStore onTimeCounterChanged - No Reset observation(s) current timeline flag")
+    }
+
+    override fun onTimeSourceChanged() {
+        var numObs = 0
+        userObservations.values.forEach {
+            it.values.forEach {
+                it.isCurrentTimeline = false
+                numObs++
+            }
+        }
+        Timber.i("ObservationStore onTimeSourceChanged - Reset $numObs observation(s) current timeline flag")
     }
 
     init {
         TimeCounter.addListener(this)
+        TimeSource.addListener(this)
     }
 }
 

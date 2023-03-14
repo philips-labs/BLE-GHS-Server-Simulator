@@ -1,6 +1,7 @@
 package com.philips.btserver.util
 
 import com.philips.btserver.extensions.*
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.observations.ObservationStore
 import com.philips.btserver.observations.ObservationStoreListener
 import com.welie.blessed.BluetoothBytesParser
@@ -17,6 +18,7 @@ object TimeCounter {
     private var epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
     private var counterStartTimeMillis = System.currentTimeMillis()
     private var tzDstOffsetMillis = TimeZone.getDefault().getOffset(counterStartTimeMillis).toLong()
+    private var deltaTimeMillis = 0
 
     private val currentEpoch2kMillis
         get() = epoch2kMillis + System.currentTimeMillis() - counterStartTimeMillis
@@ -30,17 +32,24 @@ object TimeCounter {
     fun setToCurrentSystemTime() {
         epoch2kMillis = System.currentTimeMillis() - UTC_TO_UNIX_EPOCH_MILLIS
         counterStartTimeMillis = System.currentTimeMillis()
+        deltaTimeMillis = 0
         tzDstOffsetMillis = TimeZone.getDefault().getOffset(counterStartTimeMillis).toLong()
         broadcastChange()
+    }
+
+    fun addToCurrentSystemTime(milliseconds: Int) {
+        deltaTimeMillis += milliseconds
+        broadcastChange()
+    }
+
+    fun asDate(): Date {
+        return Date(System.currentTimeMillis() + deltaTimeMillis)
     }
 
     fun setTimeCounterWithETSBytes(clockBytes: ByteArray) {
         val parser = BluetoothBytesParser(clockBytes)
         val flags = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8).toByte().asBitmask()
-        val lowUint24Value = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT24).toLong()
-        val highUint24Value = (parser.getIntValue(BluetoothBytesParser.FORMAT_UINT24).toLong().shl(24))
-        val value =  lowUint24Value + highUint24Value
-
+        val value = parser.uInt48
         val timesource = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
 
         Timesource.currentSource = Timesource.value(timesource)
@@ -84,6 +93,9 @@ object TimeCounter {
 
     }
 
+    init {
+        setToCurrentSystemTime()
+    }
 }
 
 

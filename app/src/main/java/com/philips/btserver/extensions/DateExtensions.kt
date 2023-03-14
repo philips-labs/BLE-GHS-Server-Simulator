@@ -103,6 +103,9 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     }
 }
 
+/*
+ * Convert the value (secs, millis, 1/10sec, 1/10msec) into milliseconds value based on receiver flags
+ */
 fun BitMask.convertToTimeResolutionScaledMillisValue(value: Long): Long {
     return if (isSeconds()) value * 1000L
     else if (isMilliseconds()) value
@@ -111,6 +114,9 @@ fun BitMask.convertToTimeResolutionScaledMillisValue(value: Long): Long {
     else value
 }
 
+/*
+ * Convert the millisecond value into secs, millis, 1/10sec, 1/10msec based on receiver flags
+ */
 fun BitMask.getTimeResolutionScaledValue(millis: Long): Long {
     return if (isSeconds()) millis / 1000L
     else if (isMilliseconds()) millis
@@ -206,24 +212,41 @@ fun Date.epoch2000mills(): Long {
 
 fun Date.asGHSBytes(timestampFlags: BitMask): ByteArray {
     Timber.i("Timestamp Flags: ${timestampFlags.asTimestampFlagsString()}")
-    return listOf(
+    val bytes = listOf(
         byteArrayOf(BitMask(timestampFlags.value).value.toByte()),
         timestampFlags.getElaspedTimeByteArray(this),
         byteArrayOf(Timesource.currentSource.value.toByte(), timestampFlags.dstOffsetValue().toByte())
     ).merge()
+    Timber.i("Converting Date: $this to GHS bytes ${bytes.asFormattedHexString()}... reverse is:")
+    bytes.asDateFromGHSBytes()
+    return bytes
+}
 
+fun ByteArray.asDateFromGHSBytes(): Date {
+    val parser = BluetoothBytesParser(this)
+    val flagsValue = parser.sInt8
+    val counter = parser.uInt48 + UTC_TO_UNIX_EPOCH_MILLIS
+    val source = parser.sInt8
+    val offset = parser.sInt8
+    val flags = BitMask(flagsValue.toLong())
+    val scaledCounter = (if(flags.isSeconds()) counter * 1000 else counter) + (offset * MILLIS_IN_15_MINUTES)
+    val date = Date(scaledCounter)
+    Timber.i("ETS Bytes parsed to flags: $flagsValue millis: $scaledCounter source: ${Timesource.value(source)} offset: $offset date: $date")
+    return date
 }
 
 private fun BitMask.getElaspedTimeByteArray(date: Date): ByteArray {
     val currentTimeMillis = System.currentTimeMillis()
 
     var millis = if (isTickCounter()) SystemClock.elapsedRealtime() else date.epoch2000mills()
-    Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
 
     if (!isTickCounter()) {
         // Used if the clock is reporting local time, not UTC time. Get UTC offset and add it to the milliseconds reported for local time
         val utcOffsetMillis = if (this hasFlag TimestampFlags.isUTC) 0L else TimeZone.getDefault().getOffset(currentTimeMillis).toLong()
-        millis += utcOffsetMillis
+        Timber.i("Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis utc offset: $utcOffsetMillis")
+         millis += utcOffsetMillis
+    } else {
+        Timber.i("Tick Counter Epoch millis Value: Unix: ${millis + UTC_TO_UNIX_EPOCH_MILLIS} Y2K: $millis")
     }
 
     return getTimeResolutionScaledValue(millis).asUInt48ByteArray()
@@ -250,7 +273,7 @@ fun Long.asUInt48ByteArray(): ByteArray {
 }
 
 // Return true if current TimestampFlags (a BitMask) indicates  a timestamp value is sent, false if a tick counter
-fun BitMask.isTimestampSent(): Boolean {
+fun BitMask.isTimestamp(): Boolean {
     return !hasFlag(TimestampFlags.isTickCounter)
 }
 
