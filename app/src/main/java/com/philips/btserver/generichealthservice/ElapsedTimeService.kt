@@ -23,6 +23,18 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         PERMISSION_READ or PERMISSION_WRITE
     )
 
+    private val statusCharacteristic = BluetoothGattCharacteristic(
+        CLOCK_STATUS_CHARACTERISTIC_UUID,
+        PROPERTY_READ,
+        PERMISSION_READ
+    )
+
+    private val capabilitiesCharacteristic = BluetoothGattCharacteristic(
+        CLOCK_CAPABILITIES_CHARACTERISTIC_UUID,
+        PROPERTY_READ,
+        PERMISSION_READ
+    )
+
     private fun hasBondedCentralReconnected(central: BluetoothCentral): Boolean {
         return disconnectedBondedCentrals.contains(central.address)
     }
@@ -45,9 +57,12 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         central: BluetoothCentral,
         characteristic: BluetoothGattCharacteristic
     ): ReadResponse {
-        return if (characteristic.uuid == ELASPED_TIME_CHARACTERISTIC_UUID) {
-            ReadResponse(GattStatus.SUCCESS, currentClockBytes())
-        } else { super.onCharacteristicRead(central, characteristic)}
+        return when(characteristic.uuid) {
+            ELASPED_TIME_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, currentClockBytes())
+            CLOCK_STATUS_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, clockStatusBytes())
+            CLOCK_CAPABILITIES_CHARACTERISTIC_UUID -> ReadResponse(GattStatus.SUCCESS, clockCapabilitiesBytes())
+            else -> super.onCharacteristicRead(central, characteristic)
+        }
     }
 
     override fun onCharacteristicWrite(central: BluetoothCentral, characteristic: BluetoothGattCharacteristic, value: ByteArray): GattStatus {
@@ -117,10 +132,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     fun currentClockBytes(): ByteArray {
-        return listOf(currentTimeBytes(), clockStatusBytes(), clockCapabilitiesBytes()).merge()
-    }
-
-    private fun currentTimeBytes(): ByteArray {
         return if (TimestampFlags.currentFlags.isTickCounter()) TickCounter.asGHSBytes() else TimeCounter.asGHSBytes()
     }
 
@@ -136,8 +147,9 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     companion object {
         val ELAPSED_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
-        val ELASPED_TIME_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
+        val ELASPED_TIME_CHARACTERISTIC_UUID = UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
+        val CLOCK_STATUS_CHARACTERISTIC_UUID = UUID.fromString("00007f3c-0000-1000-8000-00805f9b34fb")
+        val CLOCK_CAPABILITIES_CHARACTERISTIC_UUID = UUID.fromString("00007f3b-0000-1000-8000-00805f9b34fb")
         private const val ELAPSED_TIME_DESCRIPTION = "Elapsed Time Service Characteristic"
 
         private val ERROR_TIMESOUCE_QUALITY_TOO_LOW = GattStatus.fromValue(0x80)
