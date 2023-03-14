@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import androidx.fragment.app.Fragment
 import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.R
@@ -34,22 +35,24 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ObservationStore.addListener(this)
-
+        ObservationEmitter.reset()
         ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
-        binding.checkboxHRObs.isChecked = true
 
-        binding.checkboxTempObs.setOnClickListener { clickTempObs() }
-        binding.checkboxHRObs.setOnClickListener { clickHRObs() }
-        binding.checkboxPPGObs.setOnClickListener { clickPPGObs() }
-        binding.checkboxSPO2Obs.setOnClickListener { clickSPO2Obs() }
-        binding.checkboxBPObs.setOnClickListener { clickBPObs() }
-        binding.checkboxDiscreteObs.setOnClickListener { clickDiscreteObs() }
-        binding.checkboxStringObs.setOnClickListener { clickStringObs() }
-        binding.checkboxTLVObs.setOnClickListener { clickTLVObs() }
-        binding.checkboxCompoundDiscreteObs.setOnClickListener { clickCompoundDiscreteObs() }
-        binding.checkboxCompoundStateEventObs.setOnClickListener { clickCompoundStateEventObs() }
+        binding.checkboxObsTempStore.isChecked = ObservationStore.isTemporaryStore
+
+        setupCheckBox(binding.checkboxTempObs, ObservationType.MDC_TEMP_BODY)
+        setupCheckBox(binding.checkboxHRObs, ObservationType.MDC_ECG_HEART_RATE)
+        setupCheckBox(binding.checkboxPPGObs, ObservationType.MDC_PPG_TIME_PD_PP)
+        setupCheckBox(binding.checkboxSPO2Obs, ObservationType.MDC_PULS_OXIM_SAT_O2)
+        setupCheckBox(binding.checkboxBPObs, ObservationType.MDC_PRESS_BLD_NONINV)
+        setupCheckBox(binding.checkboxDiscreteObs, ObservationType.MDC_ATTR_ALERT_TYPE)
+        setupCheckBox(binding.checkboxStringObs, ObservationType.MDC_DRUG_NAME_LABEL)
+        setupCheckBox(binding.checkboxTLVObs, ObservationType.MDC_DOSE_DRUG_DELIV)
+        setupCheckBox(binding.checkboxCompoundDiscreteObs, ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
+        setupCheckBox(binding.checkboxCompoundStateEventObs, ObservationType.MDC_ATTR_ALARM_STATE)
+
         binding.checkboxBundleObs.setOnClickListener { clickBundleObs() }
-        binding.checkboxObsTempStore?.setOnClickListener { clickTemporaryObsStore() }
+        binding.checkboxObsTempStore.setOnClickListener { clickTemporaryObsStore() }
         binding.btnStartStopEmitter.setOnClickListener { toggleEmitter() }
         binding.btnSingleShotEmit.setOnClickListener { ObservationEmitter.singleShotEmit() }
         binding.btnClearObsStore.setOnClickListener { ObservationStore.clear() }
@@ -66,6 +69,18 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         checkIfCanBundle()
     }
 
+    private fun setupCheckBox(checkBox: CheckBox, observationType: ObservationType) {
+        checkBox.isChecked = ObservationEmitter.observationTypes.contains(observationType)
+        checkBox.setOnClickListener {
+            if (checkBox.isChecked) {
+                ObservationEmitter.addObservationType(observationType)
+            } else {
+                ObservationEmitter.removeObservationType(observationType)
+            }
+            checkIfCanBundle()
+        }
+    }
+
     override fun onDestroyView() {
         ObservationStore.removeListener(this)
         super.onDestroyView()
@@ -77,101 +92,8 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         updateEmitterButton()
     }
 
-
-
     fun clickTemporaryObsStore() {
         ObservationStore.isTemporaryStore = binding.checkboxObsTempStore?.isChecked ?: false
-    }
-
-    fun clickTempObs() {
-        if (binding.checkboxTempObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_TEMP_BODY)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_TEMP_BODY)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickHRObs() {
-        if (binding.checkboxHRObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_ECG_HEART_RATE)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_ECG_HEART_RATE)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickPPGObs() {
-        if (binding.checkboxPPGObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_PPG_TIME_PD_PP)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickSPO2Obs() {
-        if (binding.checkboxSPO2Obs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_PULS_OXIM_SAT_O2)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickBPObs() {
-        if (binding.checkboxBPObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_PRESS_BLD_NONINV)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickDiscreteObs() {
-        if (binding.checkboxDiscreteObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALERT_TYPE)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickStringObs() {
-        if (binding.checkboxStringObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_DRUG_NAME_LABEL)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickCompoundDiscreteObs() {
-        if (binding.checkboxCompoundDiscreteObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_DEV_PUMP_PROGRAM_STATUS)
-        }
-        checkIfCanBundle()
-    }
-
-
-    fun clickCompoundStateEventObs() {
-        if (binding.checkboxCompoundStateEventObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_ATTR_ALARM_STATE)
-        }
-        checkIfCanBundle()
-    }
-
-    fun clickTLVObs() {
-        if (binding.checkboxTLVObs.isChecked) {
-            ObservationEmitter.addObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
-        } else {
-            ObservationEmitter.removeObservationType(ObservationType.MDC_DOSE_DRUG_DELIV)
-        }
-        checkIfCanBundle()
     }
 
     fun clickBundleObs() {
