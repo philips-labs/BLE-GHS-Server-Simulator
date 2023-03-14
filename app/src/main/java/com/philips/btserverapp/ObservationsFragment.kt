@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.philips.btserver.observations.ObservationType
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentObservationsBinding
+import com.philips.btserver.gatt.BatteryService
 import com.philips.btserver.generichealthservice.ReconnectionConfigurationService
 import com.philips.btserver.observations.ObservationEmitter
 import com.philips.btserver.observations.ObservationStore
@@ -59,6 +60,7 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
                 ObservationType.MDC_ECG_HEART_RATE,
                 4f,
                 4f) }
+        binding.btnUpdateBattery.setOnClickListener { BatteryService.getInstance().updateAndNotifyBatteryLevel() }
 //        updateObservationCount()
 //        updateEmitterButton()
         checkIfCanBundle()
@@ -196,7 +198,6 @@ class ObservationsFragment : Fragment(), ObservationStoreListener {
         }
         updateEmitterButton()
     }
-
 
     private fun triggerObservationScheduleChange() {
         ObservationEmitter.setObservationSchedule(ObservationType.MDC_ECG_HEART_RATE, 4f, 4f)

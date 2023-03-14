@@ -28,7 +28,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
     override val service = BluetoothGattService(DIS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
     private val manufacturerChar = createReadCharacteristic(MANUFACTURER_NAME_CHARACTERISTIC_UUID)
     private val modelNumberChar = createReadCharacteristic(MODEL_NUMBER_CHARACTERISTIC_UUID)
-    private val uniqueDeviceIdentifierChar = createReadCharacteristic(UDI_CHARACTERISTIC_UUID)
+    private val uniqueDeviceIdentifierChar = BluetoothGattCharacteristic(UDI_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED_MITM)
 
     var manufacturer = Build.MANUFACTURER
     var modelNumber = Build.MODEL
@@ -105,6 +105,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         service.addCharacteristic(manufacturerChar)
         service.addCharacteristic(modelNumberChar)
         service.addCharacteristic(uniqueDeviceIdentifierChar)
+        timber.log.Timber.i("UDI value as hex: ${udiValue.asHexString()}")
     }
 
 }

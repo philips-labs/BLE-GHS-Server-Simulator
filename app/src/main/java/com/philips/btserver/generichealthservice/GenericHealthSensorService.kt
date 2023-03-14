@@ -122,8 +122,8 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
         0
     )
 
-    // TODO make this match the required security level(s)
-    private val  securtyLevelsByteArray = byteArrayOf(0x1,0x2)
+    // to do: make this match the required security level(s)
+    private val  securtyLevelsByteArray = byteArrayOf(0x1,0x4)
 
     private val controlPointHandler = GhsControlPointHandler(this)
     private val observationScheduleHandler = GhsObservationScheduleHandler(this)
