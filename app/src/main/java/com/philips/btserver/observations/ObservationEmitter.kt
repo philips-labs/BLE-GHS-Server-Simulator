@@ -7,12 +7,9 @@ package com.philips.btserver.observations
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.annotation.RequiresApi
 import com.philips.btserver.extensions.asFormattedHexString
 import com.philips.btserver.extensions.asGHSBytes
-import com.philips.btserver.generichealthservice.DeviceSpecialization
 import com.philips.btserver.generichealthservice.GenericHealthSensorService
-import com.philips.btserver.util.TimeCounter
 import com.philips.btserver.util.TimeSource
 import timber.log.Timber
 import java.util.*

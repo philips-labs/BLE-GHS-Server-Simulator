@@ -14,7 +14,7 @@ import timber.log.Timber
 import java.util.*
 import kotlin.experimental.and
 
-internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager), TimeCounterListener, TimeSourceListener {
+internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager), TimeSourceListener {
 
     override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
@@ -73,27 +73,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         if (!isTimesourceValid(source)) return ERROR_TIMESOUCE_QUALITY_TOO_LOW
         TimeSource.setTimeSourceWithETSBytes(value)
         return GattStatus.SUCCESS
-/*
-//        val minimumDateAllowed = 1640995200000 - UTC_TO_UNIX_EPOCH_MILLIS
-        val ticks = value[1].toLong() +
-                value[2].toLong().shl(8) +
-                value[3].toLong().shl(16) +
-                value[4].toLong().shl(24) +
-                value[5].toLong().shl(32) +
-                value[6].toLong().shl(40)
-//        if (!writeFlags.hasFlag(TimestampFlags.isTickCounter) && (writeFlags.getTimeResolutionScaledValue(ticks) < minimumDateAllowed) ) {
-//            return ERROR_OUT_OF_RANGE
-//        }
-
-        if (writeFlags.isTickCounter()) {
-            TickCounter.setTickCounter(ticks)
-        } else {
-            Timber.i("Writing ETS Time Bytes: ${value.asFormattedHexString()}")
-            TimeCounter.setTimeCounterWithETSBytes(value)
-        }
-
-        return GattStatus.SUCCESS
- */
     }
 
     private fun isTimesourceValid(source: Timesource): Boolean {
@@ -127,7 +106,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
             TimeSource.asGHSBytes(),
             clockStatusBytes(),
             clockCapabilitiesBytes()).merge()
-//        return if (TimestampFlags.currentFlags.isTickCounter()) TickCounter.asGHSBytes() else TimeCounter.asGHSBytes()
     }
 
     // Always wants the clock to be set
@@ -142,12 +120,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
 
     /*
-     * TimeCounterListener methods
+     * TimeSourceListener method
      */
-    override fun onTimeCounterChanged() {
-        Timber.i("ETS onTimeCounterChanged: do not send Notify on characteristic ")
-//        notifyClockBytes()
-    }
     override fun onTimeSourceChanged() {
         Timber.i("ETS onTimeSourceChanged: send Notify on characteristic ")
         notifyClockBytes()
@@ -156,7 +130,6 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     init {
         initCharacteristic(simpleTimeCharacteristic, ELAPSED_TIME_DESCRIPTION)
         notifyClockBytes(false)
-        TimeCounter.addListener(this)
         TimeSource.addListener(this)
     }
 

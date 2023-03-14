@@ -13,9 +13,6 @@ import android.widget.ArrayAdapter
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
-import com.philips.btserver.generichealthservice.ElapsedTimeService
-import com.philips.btserver.util.TickCounter
-import com.philips.btserver.util.TimeCounter
 import com.philips.btserver.util.TimeSource
 
 class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {

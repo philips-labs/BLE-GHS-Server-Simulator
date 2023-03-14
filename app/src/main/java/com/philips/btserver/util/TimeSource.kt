@@ -109,3 +109,7 @@ object TimeSource {
         ).merge()
     }
 }
+
+fun Byte.asBitmask(): BitMask {
+    return BitMask(toLong())
+}

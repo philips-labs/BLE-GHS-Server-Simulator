@@ -1,11 +1,9 @@
 package com.philips.btserver.extensions
 
 import android.os.SystemClock
-import com.philips.btserver.util.TickCounter
 import com.welie.blessed.BluetoothBytesParser
 import timber.log.Timber
 import java.nio.ByteOrder
-import java.sql.Time
 import java.util.*
 
 /*
