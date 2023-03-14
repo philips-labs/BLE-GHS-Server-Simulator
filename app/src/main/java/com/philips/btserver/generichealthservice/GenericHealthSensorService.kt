@@ -139,7 +139,6 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     override fun onCentralConnected(central: BluetoothCentral) {
         super.onCentralConnected(central)
         resetHandlers()
-//        sendTempStoredObservations()
     }
 
     /**
