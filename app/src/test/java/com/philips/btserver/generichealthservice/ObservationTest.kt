@@ -4,9 +4,10 @@
  */
 package com.philips.btserver.generichealthservice
 
-import com.philips.btserver.extensions.asGHSByteArray
+//import com.philips.btserver.extensions.asGHSByteArray
 import com.philips.btserver.extensions.merge
 import com.philips.btserver.observations.*
+import com.philips.btserver.util.TimeSource
 import com.welie.blessed.BluetoothBytesParser
 import org.junit.Assert.*
 import org.junit.Test
@@ -48,7 +49,8 @@ class ObservationTest {
     @Test
     fun `When a SimpleNumericObservation is instantiated, then the timestamp byte array representation is correct`() {
         val obs = create_simple_numeric_observation()
-        assertArrayEquals(timestamp_byte_array_for(obs.timestamp), obs.timestamp.asGHSByteArray())
+        TimeSource.setTimeSourceWithETSBytes(timestamp_byte_array_for(obs.timestamp))
+        assertArrayEquals(timestamp_byte_array_for(obs.timestamp), TimeSource.asGHSBytes())
     }
 
     @Test
@@ -144,7 +146,7 @@ fun BluetoothBytesParser.encodeTLV(type: Int, length: Int, value: Number, precis
     when (value) {
         is Int -> setIntValue(value, BluetoothBytesParser.FORMAT_UINT32)
         is Short -> setIntValue(value.toInt(), BluetoothBytesParser.FORMAT_UINT16)
-        is Long -> setLong(value)
+        is Long -> setLong(value, BluetoothBytesParser.FORMAT_UINT64)
         is Float -> setFloatValue(value, precision)
         else -> error("Unsupported value type sent to encodeTLV()")
     }
