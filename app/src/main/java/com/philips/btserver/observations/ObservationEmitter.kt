@@ -253,7 +253,10 @@ object ObservationEmitter {
             observations.forEach { ObservationStore.addObservation(it) }
         } else {
             if (ghsService?.isSendLiveObservationsEnabled ?: false) {
-                observations.forEach { ghsService?.sendObservation(it) }
+                observations.forEach {
+                    Timber.i("Sending observation $it")
+                    ghsService?.sendObservation(it)
+                }
             } else {
                 Timber.i("Transmit observations is not enabled")
             }
