@@ -66,6 +66,7 @@ enum class TimestampFlags(override val bit: Long) : Flags {
         var currentFlags: BitMask = BitMask(TimestampFlags.isMilliseconds.bit)
             .plus(TimestampFlags.isTZPresent)
             .plus(TimestampFlags.isCurrentTimeline)
+            //.plus(TimestampFlags.isUTC)
 
 
         fun setLocalFlags() {
