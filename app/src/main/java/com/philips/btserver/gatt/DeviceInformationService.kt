@@ -82,6 +82,7 @@ internal class DeviceInformationService(peripheralManager: BluetoothPeripheralMa
         return  udiString.toByteArray(Charsets.UTF_8) + 0x0.toByte()
     }
 
+
     companion object {
         val DIS_SERVICE_UUID: UUID = UUID.fromString("0000180A-0000-1000-8000-00805f9b34fb")
         val MANUFACTURER_NAME_CHARACTERISTIC_UUID: UUID = UUID.fromString("00002A29-0000-1000-8000-00805f9b34fb")
