@@ -107,6 +107,10 @@ abstract class Observation {
         return typeFlag or supplementalInfoFlag or timestampFlag or patientIdFlag
     }
 
+    override fun toString(): String {
+        return classByte.toString()
+    }
+
     companion object {
         internal const val handleCode = 0x00010921
         internal const val handleLength = 2
