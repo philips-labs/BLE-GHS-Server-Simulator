@@ -67,10 +67,17 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     private fun writeETSBytes(value: ByteArray) : GattStatus {
+        Timber.i("Writing ETS to: ${value.etsDateInfoString()}" )
         val writeFlags = value.first().asBitmask()
-        if (!writeFlagsValid(writeFlags)) return ERROR_INCORRECT_TIME_FORMAT
+        if (!writeFlagsValid(writeFlags)) {
+            Timber.i("ERROR_INCORRECT_TIME_FORMAT")
+            return ERROR_INCORRECT_TIME_FORMAT
+        }
         val source = Timesource.value(value[7].toInt())
-        if (!isTimesourceValid(source)) return ERROR_TIMESOUCE_QUALITY_TOO_LOW
+        if (!isTimesourceValid(source)) {
+            Timber.i("ERROR_TIMESOUCE_QUALITY_TOO_LOW")
+            return ERROR_TIMESOUCE_QUALITY_TOO_LOW
+        }
         TimeSource.setTimeSourceWithETSBytes(value)
         return GattStatus.SUCCESS
     }
@@ -84,8 +91,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         return (flags.isTickCounter() == myFlags.isTickCounter()) &&
                 (flags.hasFlag(TimestampFlags.isUTC) == myFlags.hasFlag(TimestampFlags.isUTC)) &&
                 (flags.hasFlag(TimestampFlags.isTZPresent) == myFlags.hasFlag(TimestampFlags.isTZPresent)) &&
-                (flags.hasFlag(TimestampFlags.isMilliseconds) == myFlags.hasFlag(TimestampFlags.isMilliseconds)) &&
-                (flags.hasFlag(TimestampFlags.isHundredthsMilliseconds) == myFlags.hasFlag(TimestampFlags.isHundredthsMilliseconds))
+                (flags.hasFlag(TimestampFlags.timeScaleBit1) == myFlags.hasFlag(TimestampFlags.timeScaleBit1)) &&
+                (flags.hasFlag(TimestampFlags.timeScaleBit0) == myFlags.hasFlag(TimestampFlags.timeScaleBit0))
     }
 
     /*

@@ -38,6 +38,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     override fun onResume() {
         super.onResume()
         updateTimeOptionViews()
+        updateTimestampFlags()
     }
 
     private fun setupClockChoices() {
@@ -56,8 +57,8 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     private fun updateChoiceBoxes() {
         updateTimeViews()
         if (!TimestampFlags.currentFlags.isTimestamp()) startTickCounterDisplay() else startTimeCounterDisplay()
-        binding.choiceClockMilliseconds.isChecked = isFlagSet(TimestampFlags.isMilliseconds)
-        updateTimeOptionViews()
+        binding.choiceClockMilliseconds.isChecked = TimestampFlags.currentFlags.isMilliseconds()
+        //updateTimeOptionViews()
     }
 
     private fun updateTimeViews() {
@@ -103,7 +104,9 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
     val timestampFlags: BitMask
         get() {
             var flags = BitMask(TimestampFlags.isCurrentTimeline.bit)
-            if (binding.choiceClockMilliseconds.isChecked) flags = flags.plus(TimestampFlags.isMilliseconds)
+            if (binding.choiceClockMilliseconds.isChecked) {
+                flags = flags.plus(TimestampFlags.timeScaleBit1)
+            }
             if (binding.choiceClockTickCounter.isChecked) {
                 flags = flags.plus(TimestampFlags.isTickCounter)
             } else {

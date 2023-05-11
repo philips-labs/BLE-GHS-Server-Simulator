@@ -54,8 +54,8 @@ enum class TimestampFlags(override val bit: Long) : Flags {
     zero((0 shl 0).toLong()),
     isTickCounter((1 shl 0).toLong()),
     isUTC((1 shl 1).toLong()),
-    isHundredthsMilliseconds((1 shl 2).toLong()),
-    isMilliseconds((1 shl 3).toLong()),
+    timeScaleBit0((1 shl 2).toLong()),
+    timeScaleBit1((1 shl 3).toLong()),
     isTZPresent((1 shl 4).toLong()),
     isCurrentTimeline((1 shl 5).toLong()),
     reserved_1((1 shl 6).toLong()),
@@ -63,7 +63,7 @@ enum class TimestampFlags(override val bit: Long) : Flags {
 
     companion object {
         // This "global" holds the flags used to send out observations
-        var currentFlags: BitMask = BitMask(TimestampFlags.isMilliseconds.bit)
+        var currentFlags: BitMask = BitMask(TimestampFlags.timeScaleBit1.bit)
             .plus(TimestampFlags.isTZPresent)
             .plus(TimestampFlags.isCurrentTimeline)
             .plus(TimestampFlags.isUTC)
@@ -127,7 +127,7 @@ fun BitMask.getTimeResolutionScaledValue(millis: Long): Long {
 fun BitMask.asTimestampFlagsString(): String {
     val ticksOrTime = if (this.isTickCounter()) "Ticks" else "Time"
     val utcOrLocal = if (this hasFlag TimestampFlags.isUTC) "UTC" else "Local"
-    val millsOrSecs = if (this hasFlag TimestampFlags.isMilliseconds) "Millis" else "Seconds"
+    val millsOrSecs = if (isMilliseconds()) "Millis" else "Seconds"
     val hasTZ = if (this hasFlag TimestampFlags.isTZPresent) "TZ" else "No TZ"
     val current = if (this hasFlag TimestampFlags.isCurrentTimeline) "Current" else "Not Current"
     return "Value: ${value.toByte().asHexString()} : $ticksOrTime : $utcOrLocal : $millsOrSecs : $hasTZ : $current timeline"
@@ -234,6 +234,86 @@ fun ByteArray.asDateFromGHSBytes(): Date {
     return date
 }
 
+fun ByteArray.etsFlags(): BitMask = BitMask(this[0].toLong())
+
+fun ByteArray.etsTicksValue(): Long {
+    return this[1].toUByte().toLong() +
+            this[2].toUByte().toLong().shl(8) +
+            this[3].toUByte().toLong().shl(16) +
+            this[4].toUByte().toLong().shl(24) +
+            this[5].toUByte().toLong().shl(32) +
+            this[6].toUByte().toLong().shl(40)
+}
+
+/*
+ * Convert the value passed in from a Y2K epoch value to a Unix Epoch (1970) value in millisecods
+ * The receiver bit mask encodes the resolution of the value (seconds, millis, hundred millis,
+ * hundred microseconds as defined by the spec)
+ */
+fun BitMask.convertY2KScaledToUTCEpochMillis(value: Long): Long {
+    return (if (isSeconds()) value * 1000L
+    else if (isMilliseconds()) value
+    else if (isHundredMilliseconds()) value * 100L
+    else if (isHundredthsMicroseconds()) value / 10L
+    else value) + UTC_TO_UNIX_EPOCH_MILLIS
+}
+
+fun ByteArray.parseETSDate(): Date? {
+    return if (etsFlags().hasFlag(TimestampFlags.isTickCounter)) {
+        null
+    } else {
+        val scaledTicks = etsFlags().convertY2KScaledToUTCEpochMillis(etsTicksValue())
+        Date(scaledTicks)
+    }
+}
+fun ByteArray.etsTimesourceValue(): Timesource {
+    return Timesource.value(this[7].toInt())
+}
+
+fun ByteArray.etsTimezoneOffset(): Int {
+    return this[8] * MILLIS_IN_15_MINUTES
+}
+
+fun BitMask.timescaleString(): String {
+    return if (isMilliseconds()) "milliseconds" else if (isHundredMilliseconds()) "0.1 sec" else if (isHundredthsMicroseconds()) "100 usecs" else "seconds"
+}
+
+
+fun ByteArray.etsDateInfoString(): String {
+    val etsFlags = etsFlags()
+    return if (etsFlags.hasFlag(TimestampFlags.isTickCounter)) {
+        "Bytes are for a tick counter parsed ETS Date (should be null): ${parseETSDate()}"
+    } else {
+        var infoString = "Flags:"
+        if (etsFlags.hasFlag(TimestampFlags.isUTC)) {
+            infoString += " UTC time,"
+        } else {
+            infoString += " local time,"
+        }
+        if (etsFlags.hasFlag(TimestampFlags.isTZPresent)) {
+            infoString += " with TZ/DST offset,"
+        } else {
+            infoString += " no TZ/DST offset,"
+        }
+        if (etsFlags.hasFlag(TimestampFlags.isCurrentTimeline)) {
+            infoString += " current"
+        } else {
+            infoString += " not current"
+        }
+        infoString += ".\n"
+        val ticks = etsTicksValue()
+        //infoString += "Epoch millis Value: Unix: ${ticks + UTC_TO_UNIX_EPOCH_MILLIS}\nY2K: $ticks\n"
+        val timeSource = etsTimesourceValue()
+        val offset = etsTimezoneOffset()
+        infoString += "Timesource: $timeSource\ntime counter is ${etsFlags.timescaleString()}\n"
+        val scaledTicks = etsFlags.convertY2KScaledToUTCEpochMillis(ticks)
+        infoString += "UTC Epoch Millis:$scaledTicks\nOffset (msec): $offset\n"
+        infoString += "ETS Date: ${parseETSDate()}\n"
+        infoString += "ETS offset (15min): ${etsTimezoneOffset() / MILLIS_IN_15_MINUTES}"
+        infoString
+    }
+}
+
 private fun BitMask.getElaspedTimeByteArray(date: Date): ByteArray {
     val currentTimeMillis = System.currentTimeMillis()
 
@@ -276,18 +356,18 @@ fun BitMask.isTimestamp(): Boolean {
     return !hasFlag(TimestampFlags.isTickCounter)
 }
 
+fun BitMask.isSeconds(): Boolean {
+    return !(this hasFlag TimestampFlags.timeScaleBit1) and !(this hasFlag TimestampFlags.timeScaleBit0)
+}
+
 fun BitMask.isMilliseconds(): Boolean {
-    return (this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isHundredthsMilliseconds)
+    return (this hasFlag TimestampFlags.timeScaleBit1) and !(this hasFlag TimestampFlags.timeScaleBit0)
 }
 
 fun BitMask.isHundredMilliseconds(): Boolean {
-    return !(this hasFlag TimestampFlags.isMilliseconds) and (this hasFlag TimestampFlags.isHundredthsMilliseconds)
-}
-
-fun BitMask.isSeconds(): Boolean {
-    return !(this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isHundredthsMilliseconds)
+    return !(this hasFlag TimestampFlags.timeScaleBit1) and (this hasFlag TimestampFlags.timeScaleBit0)
 }
 
 fun BitMask.isHundredthsMicroseconds(): Boolean {
-    return !(this hasFlag TimestampFlags.isMilliseconds) and !(this hasFlag TimestampFlags.isMilliseconds)
+    return (this hasFlag TimestampFlags.timeScaleBit1) and (this hasFlag TimestampFlags.timeScaleBit0)
 }

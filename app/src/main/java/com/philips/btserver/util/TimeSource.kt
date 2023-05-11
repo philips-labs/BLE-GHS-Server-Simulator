@@ -67,13 +67,13 @@ object TimeSource {
         val timeMillis = flags.convertToTimeResolutionScaledMillisValue(parser.uInt48)
         Timesource.currentSource = Timesource.value(parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8))
 
-        val timesource = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
-        Timesource.currentSource = Timesource.value(timesource)
+//        val timesource = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
+//        Timesource.currentSource = Timesource.value(timesource)
 
         val offsetUnits = parser.getIntValue(BluetoothBytesParser.FORMAT_SINT8)
         val offsetMillis = if(!flags.hasFlag(TimestampFlags.isTZPresent)) 0 else offsetUnits * MILLIS_IN_15_MINUTES
 
-        Timber.i("Set time millis: $timeMillis offset millis: $tzDstOffsetMillis source: $timesource")
+        Timber.i("Set time millis: $timeMillis offset millis: $tzDstOffsetMillis source: ${Timesource.currentSource}")
 
         clockStartUTCMillis = System.currentTimeMillis()
         tickStartMillis = SystemClock.elapsedRealtime()
@@ -102,9 +102,12 @@ object TimeSource {
         Timber.i("Timesource Value: ${Timesource.currentSource.value}")
         Timber.i("Offset Value: $offsetUnits")
 
+        val tc = timestampFlags.getTimeResolutionScaledValue(millis).asUInt48ByteArray()
+
         return listOf(
             byteArrayOf(timestampFlags.value.toByte()),
-            millis.asUInt48ByteArray(),
+            tc,
+            //millis.asUInt48ByteArray(),
             byteArrayOf(Timesource.currentSource.value.toByte(), offsetUnits.toByte())
         ).merge()
     }
