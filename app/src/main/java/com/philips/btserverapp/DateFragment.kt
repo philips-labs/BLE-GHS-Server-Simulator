@@ -14,8 +14,10 @@ import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
 import com.philips.btserver.util.TimeSource
+import com.philips.btserver.util.TimeSourceListener
+import timber.log.Timber
 
-class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
+class DateFragment : Fragment(), AdapterView.OnItemSelectedListener, TimeSourceListener {
 
     private var _binding: FragmentDateBinding? = null
 
@@ -33,6 +35,7 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
         setupTimeSourceSpinner()
         setupClockChoices()
         setupButtons()
+        TimeSource.addListener(this)
     }
 
     override fun onResume() {
@@ -153,5 +156,9 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     // AdapterView Interface callback
     override fun onNothingSelected(parent: AdapterView<*>) {}
+    override fun onTimeSourceChanged() {
+        Timber.i("Timesource changed to: ${Timesource.currentSource.value}")
+        updateTimesourceSpinner()
+    }
 
 }

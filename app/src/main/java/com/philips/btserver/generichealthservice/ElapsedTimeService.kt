@@ -13,6 +13,7 @@ import com.welie.blessed.*
 import timber.log.Timber
 import java.util.*
 import kotlin.experimental.and
+import kotlin.experimental.or
 
 internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager) : BaseService(peripheralManager), TimeSourceListener {
 
@@ -122,7 +123,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     private fun clockCapabilitiesBytes(): ByteArray {
         val tz = if(TimestampFlags.currentFlags.hasFlag(TimestampFlags.isTZPresent) && !TimestampFlags.currentFlags.isTickCounter()) 2 else 0
         val dst = if(TimestampFlags.currentFlags.isTickCounter()) 0 else 1
-        return byteArrayOf(tz.toByte() and dst.toByte())
+        val cap : Byte = tz.toByte() or dst.toByte()
+        return byteArrayOf(cap)
     }
 
 
