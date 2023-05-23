@@ -19,7 +19,8 @@ object TimeSource {
     val currentTickCounter get() = SystemClock.elapsedRealtime() - tickStartMillis + baseTickMillis
     val currentUTCMillis get() = clockStartUTCMillis + currentTickCounter
     val currentEpoch2kMillis get() = currentUTCMillis - UTC_TO_UNIX_EPOCH_MILLIS
-    var tzDstOffsetMillis = TimeZone.getDefault().getOffset(clockStartUTCMillis).toLong()
+    //var tzDstOffsetMillis = TimeZone.getDefault().getOffset(clockStartUTCMillis).toLong()
+    var tzDstOffsetMillis = TimeZone.getDefault().rawOffset.toLong()
     val currentDate get() = Date(currentUTCMillis)
 
     private val listeners = mutableListOf<TimeSourceListener>()
@@ -37,7 +38,8 @@ object TimeSource {
     fun setToCurrentSystemTime() {
         clockStartUTCMillis = System.currentTimeMillis()
         tickStartMillis = SystemClock.elapsedRealtime()
-        tzDstOffsetMillis = TimeZone.getDefault().getOffset(clockStartUTCMillis).toLong()
+        //tzDstOffsetMillis = TimeZone.getDefault().getOffset(clockStartUTCMillis).toLong()
+        tzDstOffsetMillis = TimeZone.getDefault().rawOffset.toLong()
         broadcastChange()
     }
 
