@@ -67,7 +67,7 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
         Timber.i("onCharacteristicWriteCompleted")
     }
 
-    private fun writeETSBytes(value: ByteArray) : GattStatus {
+    fun writeETSBytes(value: ByteArray) : GattStatus {
         Timber.i("Writing ETS to: ${value.etsDateInfoString()}" )
         val writeFlags = value.first().asBitmask()
         if (!writeFlagsValid(writeFlags)) {

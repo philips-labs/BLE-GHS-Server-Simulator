@@ -77,9 +77,11 @@ object TimeSource {
 
         Timber.i("Set time millis: $timeMillis offset millis: $tzDstOffsetMillis source: ${Timesource.currentSource}")
 
-        clockStartUTCMillis = System.currentTimeMillis()
+        clockStartUTCMillis = timeMillis + UTC_TO_UNIX_EPOCH_MILLIS
         tickStartMillis = SystemClock.elapsedRealtime()
+        baseTickMillis = 0L
         tzDstOffsetMillis = offsetMillis.toLong()
+
         broadcastChange()
     }
 
