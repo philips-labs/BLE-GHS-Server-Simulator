@@ -425,23 +425,23 @@ class GenericHealthSensorService(peripheralManager: BluetoothPeripheralManager) 
     }
 
     companion object {
-        val GHS_SERVICE_UUID = UUID.fromString("00007f44-0000-1000-8000-00805f9b34fb")
+        val GHS_SERVICE_UUID = UUID.fromString("00001840-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f43-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002b8b-0000-1000-8000-00805f9b34fb")
         val STORED_OBSERVATIONS_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f42-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002bdd-0000-1000-8000-00805f9b34fb")
         val GHS_FEATURES_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f41-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002bf3-0000-1000-8000-00805f9b34fb")
         val GHS_CONTROL_POINT_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f40-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002bf4-0000-1000-8000-00805f9b34fb")
         val RACP_CHARACTERISTIC_UUID =
             UUID.fromString("00002a52-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_SCHEDULE_CHANGED_CHARACTERISTIC_UUID =
-            UUID.fromString("00007f3f-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002bf1-0000-1000-8000-00805f9b34fb")
         val OBSERVATION_SCHEDULE_DESCRIPTOR_UUID =
-            UUID.fromString("00007f35-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002910-0000-1000-8000-00805f9b34fb")
         val VALID_RANGE_AND_ACCURACY_DESCRIPTOR_UUID =
-            UUID.fromString("00007f34-0000-1000-8000-00805f9b34fb")
+            UUID.fromString("00002911-0000-1000-8000-00805f9b34fb")
         val LE_GATT_SECURITY_LEVELS_UUID =
             UUID.fromString("00002BF5-0000-1000-8000-00805f9b34fb")
         val SERVICE_CHANGED_UUID =

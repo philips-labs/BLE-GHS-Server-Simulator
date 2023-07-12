@@ -143,8 +143,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
     }
 
     companion object {
-        val ELAPSED_TIME_SERVICE_UUID = UUID.fromString("00007f3E-0000-1000-8000-00805f9b34fb")
-        val ELASPED_TIME_CHARACTERISTIC_UUID = UUID.fromString("00007f3d-0000-1000-8000-00805f9b34fb")
+        val ELAPSED_TIME_SERVICE_UUID = UUID.fromString("00000183F-0000-1000-8000-00805f9b34fb")
+        val ELASPED_TIME_CHARACTERISTIC_UUID = UUID.fromString("00002bf2-0000-1000-8000-00805f9b34fb")
         private const val ELAPSED_TIME_DESCRIPTION = "Elapsed Time Service Characteristic"
 
         private val ERROR_TIMESOUCE_QUALITY_TOO_LOW = GattStatus.fromValue(0x80)
