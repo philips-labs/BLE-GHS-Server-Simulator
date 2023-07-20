@@ -76,6 +76,12 @@
 
         </LinearLayout>
 
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            android:layout_weight="1"
+            android:fadeScrollbars="false" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -84,6 +90,18 @@
         android:orientation="vertical"
         android:background="@drawable/selector_fieldset_background">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/clockStatus" />
+        <CheckBox
+            android:id="@+id/choiceClockNeedsToBeSet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/clockNeedsToBeSet" />
 
     <TextView
             android:layout_width="match_parent"
@@ -123,6 +141,7 @@
             android:layout_marginBottom="8dp"
             android:text="@string/clockIncludesTZ" />
     </LinearLayout>
+        </ScrollView>
 
         <Button
             android:id="@+id/btnResetClock"

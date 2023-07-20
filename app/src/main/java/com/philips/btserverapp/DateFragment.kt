@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import com.philips.btserver.R
 import com.philips.btserver.databinding.FragmentDateBinding
 import com.philips.btserver.extensions.*
+import com.philips.btserver.generichealthservice.ElapsedTimeService
 import com.philips.btserver.util.TimeSource
 import com.philips.btserver.util.TimeSourceListener
 import timber.log.Timber
@@ -49,12 +50,24 @@ class DateFragment : Fragment(), AdapterView.OnItemSelectedListener, TimeSourceL
         binding.choiceClockUTCTime.setOnClickListener { updateTimestampFlags() }
         binding.choiceClockMilliseconds.setOnClickListener { updateTimestampFlags() }
         binding.choiceClockIncludesTZ.setOnClickListener { updateTimestampFlags() }
+        binding.choiceClockNeedsToBeSet.setOnClickListener { updateClockNeedsSetting() }
     }
 
     private fun updateTimestampFlags() {
         TimestampFlags.currentFlags = this.timestampFlags
         updateChoiceBoxes()
         updateTimesourceSpinner()
+    }
+
+    private fun updateClockNeedsSetting() {
+        Timber.i("Updating ETS clock needs to be set flag....")
+        val ets = ElapsedTimeService.getInstance()
+        if (ets == null) {
+         Timber.i("Oops, ETS not found...")
+        } else {
+            ets.clockNeedsToBeSet = binding.choiceClockNeedsToBeSet.isChecked
+        }
+        Timber.i("Done updating ETS clock.")
     }
 
     private fun updateChoiceBoxes() {

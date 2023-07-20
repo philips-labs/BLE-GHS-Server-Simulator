@@ -108,6 +108,19 @@
             android:layout_weight="0.50"
             android:orientation="vertical"
             android:paddingTop="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/clockStatus" />
+            <CheckBox
+                android:id="@+id/choiceClockNeedsToBeSet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/clockNeedsToBeSet" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -19,6 +19,8 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
 
     override val service = BluetoothGattService(ELAPSED_TIME_SERVICE_UUID, SERVICE_TYPE_PRIMARY)
 
+    var clockNeedsToBeSet : Boolean = false;
+
     private val simpleTimeCharacteristic = BluetoothGattCharacteristic(
         ELASPED_TIME_CHARACTERISTIC_UUID,
         PROPERTY_READ or PROPERTY_WRITE or PROPERTY_INDICATE,
@@ -116,8 +118,13 @@ internal class ElapsedTimeService(peripheralManager: BluetoothPeripheralManager)
             clockCapabilitiesBytes()).merge()
     }
 
-    // Always wants the clock to be set
-    private fun clockStatusBytes(): ByteArray { return byteArrayOf(0x1) }
+    // Not always want the clock to be set
+    private fun clockStatusBytes(): ByteArray {
+        if (clockNeedsToBeSet) {
+            return byteArrayOf(0x1)
+        }
+        return byteArrayOf(0x0)
+    }
 
     // TODO Make the tests for capabilities a bit more flexible and accurate to server config
     private fun clockCapabilitiesBytes(): ByteArray {

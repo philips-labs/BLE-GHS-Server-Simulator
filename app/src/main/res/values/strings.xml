@@ -63,7 +63,9 @@
     <string name="serverClock">Current clock:</string>
     <string name="tickCounter">Tick counter:</string>
     <string name="dateSyncMethod">Date sync:</string>
+    <string name="clockStatus">Clock status:</string>
     <string name="clockCapabilities">Clock capabilites:</string>
+    <string name="clockNeedsToBeSet">Clock needs to be set</string>
     <string name="clockTickCounter">Clock is a tick counter</string>
     <string name="clockUTCTime">Clock reports UTC time</string>
     <string name="clockMilliseconds">Clock reports milliseconds</string>
